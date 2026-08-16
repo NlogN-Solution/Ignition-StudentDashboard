@@ -1,0 +1,191 @@
+[
+  {
+    "id": "app-001",
+    "studentId": "stu-001",
+    "universityId": "uni-001",
+    "universityName": "University of Toronto",
+    "courseId": "crs-001",
+    "courseName": "Master of Science in Data Science",
+    "intake": "Feb 2027",
+    "status": "submitted",
+    "submittedAt": "2026-07-12T09:20:00.000Z",
+    "deadline": "2027-01-15",
+    "progress": 80,
+    "missingDocumentIds": [
+      "doc-003",
+      "doc-005"
+    ],
+    "notes": "Waiting on the official transcript from Tribhuvan University.",
+    "timeline": [
+      {
+        "id": "tl-001",
+        "label": "Application created",
+        "date": "2026-06-28",
+        "state": "completed"
+      },
+      {
+        "id": "tl-002",
+        "label": "Documents attached",
+        "date": "2026-07-05",
+        "state": "completed"
+      },
+      {
+        "id": "tl-003",
+        "label": "Submitted to university",
+        "date": "2026-07-12",
+        "state": "completed"
+      },
+      {
+        "id": "tl-004",
+        "label": "Under review",
+        "date": "2026-08-01",
+        "state": "current"
+      },
+      {
+        "id": "tl-005",
+        "label": "Decision released",
+        "date": "2027-03-20",
+        "state": "upcoming"
+      }
+    ]
+  },
+  {
+    "id": "app-002",
+    "studentId": "stu-001",
+    "universityId": "uni-002",
+    "universityName": "McGill University",
+    "courseId": "crs-004",
+    "courseName": "MBA — Global Management",
+    "intake": "Jan 2027",
+    "status": "in-review",
+    "submittedAt": "2026-06-30T11:00:00.000Z",
+    "deadline": "2026-11-30",
+    "progress": 100,
+    "missingDocumentIds": [],
+    "notes": "Interview invitation expected in September.",
+    "timeline": [
+      {
+        "id": "tl-006",
+        "label": "Application created",
+        "date": "2026-06-10",
+        "state": "completed"
+      },
+      {
+        "id": "tl-007",
+        "label": "Documents attached",
+        "date": "2026-06-22",
+        "state": "completed"
+      },
+      {
+        "id": "tl-008",
+        "label": "Submitted to university",
+        "date": "2026-06-30",
+        "state": "completed"
+      },
+      {
+        "id": "tl-009",
+        "label": "Under review",
+        "date": "2026-07-14",
+        "state": "current"
+      },
+      {
+        "id": "tl-010",
+        "label": "Decision released",
+        "date": "2027-01-15",
+        "state": "upcoming"
+      }
+    ]
+  },
+  {
+    "id": "app-003",
+    "studentId": "stu-001",
+    "universityId": "uni-003",
+    "universityName": "University of British Columbia",
+    "courseId": "crs-002",
+    "courseName": "Introduction to Machine Learning",
+    "intake": "Jan 2027",
+    "status": "offer",
+    "submittedAt": "2026-05-18T08:45:00.000Z",
+    "deadline": "2026-12-10",
+    "progress": 100,
+    "missingDocumentIds": [],
+    "notes": "Conditional offer received — conditional on final transcript.",
+    "timeline": [
+      {
+        "id": "tl-011",
+        "label": "Application created",
+        "date": "2026-05-02",
+        "state": "completed"
+      },
+      {
+        "id": "tl-012",
+        "label": "Documents attached",
+        "date": "2026-05-11",
+        "state": "completed"
+      },
+      {
+        "id": "tl-013",
+        "label": "Submitted to university",
+        "date": "2026-05-18",
+        "state": "completed"
+      },
+      {
+        "id": "tl-014",
+        "label": "Under review",
+        "date": "2026-06-02",
+        "state": "completed"
+      },
+      {
+        "id": "tl-015",
+        "label": "Conditional offer received",
+        "date": "2026-07-21",
+        "state": "current"
+      }
+    ]
+  },
+  {
+    "id": "app-004",
+    "studentId": "stu-001",
+    "universityId": "uni-004",
+    "universityName": "University of Manchester",
+    "courseId": "crs-003",
+    "courseName": "Full Stack Web Development",
+    "intake": "Feb 2027",
+    "status": "draft",
+    "submittedAt": null,
+    "deadline": "2026-12-20",
+    "progress": 35,
+    "missingDocumentIds": [
+      "doc-003",
+      "doc-004",
+      "doc-006"
+    ],
+    "notes": "Draft started — still deciding between Manchester and TUM.",
+    "timeline": [
+      {
+        "id": "tl-016",
+        "label": "Application created",
+        "date": "2026-07-30",
+        "state": "completed"
+      },
+      {
+        "id": "tl-017",
+        "label": "Documents attached",
+        "date": "",
+        "state": "current"
+      },
+      {
+        "id": "tl-018",
+        "label": "Submitted to university",
+        "date": "",
+        "state": "upcoming"
+      },
+      {
+        "id": "tl-019",
+        "label": "Decision released",
+        "date": "",
+        "state": "upcoming"
+      }
+    ]
+  }
+]

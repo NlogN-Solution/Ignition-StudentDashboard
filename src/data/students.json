@@ -1,0 +1,90 @@
+[
+  {
+    "id": "stu-001",
+    "fullName": "Richard Pokhrel",
+    "email": "richard.pokhrel@example.com",
+    "password": "Ignition@2025",
+    "role": "student",
+    "phone": "+977 9801234567",
+    "profileImage": null,
+    "counsellorId": "cns-001",
+    "basicInfo": {
+      "dateOfBirth": "1999-04-18",
+      "gender": "Male",
+      "nationality": "Nepali"
+    },
+    "address": {
+      "street": "12 Lazimpat Road",
+      "city": "Kathmandu",
+      "state": "Bagmati",
+      "country": "Nepal",
+      "postalCode": "44600"
+    },
+    "education": {
+      "highestLevel": "Bachelor's Degree",
+      "university": "Tribhuvan University",
+      "major": "Computer Engineering",
+      "startingYear": "2018",
+      "completionYear": "2022",
+      "obtainedMarks": "3.7 GPA",
+      "country": "Nepal",
+      "educationGap": "1",
+      "gapReason": "Worked as a junior software engineer while preparing for IELTS.",
+      "achievements": [
+        "Dean's List 2021",
+        "National Robotics Finalist"
+      ]
+    },
+    "preferences": {
+      "intendedStudyArea": "Computer Science",
+      "courseLevel": "Master's",
+      "intake": "Fall 2026",
+      "destinations": [
+        "Canada",
+        "United Kingdom",
+        "Australia"
+      ],
+      "specialization": "Artificial Intelligence",
+      "studyMode": "Full-time",
+      "budget": "$30,000 - $40,000",
+      "feeStructure": "Medium"
+    },
+    "testScores": {
+      "language": {
+        "IELTS": {
+          "selected": true,
+          "score": "7.5",
+          "date": "2026-03-14"
+        },
+        "TOEFL": {
+          "selected": false,
+          "score": "",
+          "date": ""
+        },
+        "PTE": {
+          "selected": false,
+          "score": "",
+          "date": ""
+        }
+      },
+      "other": {
+        "GRE": {
+          "selected": true,
+          "score": "318",
+          "date": "2026-05-09"
+        },
+        "GMAT": {
+          "selected": false,
+          "score": "",
+          "date": ""
+        },
+        "SAT": {
+          "selected": false,
+          "score": "",
+          "date": ""
+        }
+      }
+    },
+    "profileCompletion": 75
+  }
+]

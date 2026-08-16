@@ -1,0 +1,62 @@
+[
+  {
+    "id": "apt-001",
+    "studentId": "stu-001",
+    "counsellorId": "cns-001",
+    "counsellorName": "Sarah Gurung",
+    "meetingType": "Application Review",
+    "mode": "Video call",
+    "scheduledAt": "2026-08-11T09:30:00.000Z",
+    "durationMinutes": 45,
+    "status": "confirmed",
+    "location": "Ignition Meet",
+    "meetingLink": null,
+    "agenda": "Walk through the Toronto application and confirm the outstanding transcript.",
+    "notes": ""
+  },
+  {
+    "id": "apt-002",
+    "studentId": "stu-001",
+    "counsellorId": "cns-001",
+    "counsellorName": "Sarah Gurung",
+    "meetingType": "Visa Preparation",
+    "mode": "In person",
+    "scheduledAt": "2026-08-24T04:00:00.000Z",
+    "durationMinutes": 60,
+    "status": "pending",
+    "location": "Kathmandu office — Room 2",
+    "meetingLink": null,
+    "agenda": "Financial document checklist and visa interview practice.",
+    "notes": "Awaiting counsellor confirmation."
+  },
+  {
+    "id": "apt-003",
+    "studentId": "stu-001",
+    "counsellorId": "cns-001",
+    "counsellorName": "Sarah Gurung",
+    "meetingType": "Course Shortlisting",
+    "mode": "Video call",
+    "scheduledAt": "2026-09-03T10:15:00.000Z",
+    "durationMinutes": 30,
+    "status": "confirmed",
+    "location": "Ignition Meet",
+    "meetingLink": null,
+    "agenda": "Compare Manchester and TUM before the December deadlines.",
+    "notes": ""
+  },
+  {
+    "id": "apt-004",
+    "studentId": "stu-001",
+    "counsellorId": "cns-001",
+    "counsellorName": "Sarah Gurung",
+    "meetingType": "Profile Evaluation",
+    "mode": "Video call",
+    "scheduledAt": "2026-07-15T09:00:00.000Z",
+    "durationMinutes": 45,
+    "status": "completed",
+    "location": "Ignition Meet",
+    "meetingLink": null,
+    "agenda": "Initial profile evaluation and destination shortlist.",
+    "notes": "Agreed on Canada as the primary destination."
+  }
+]

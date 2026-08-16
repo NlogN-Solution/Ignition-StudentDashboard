@@ -1,0 +1,29 @@
+[
+  {
+    "id": "itype-academic",
+    "name": "Academic Interview",
+    "description": "Programme-fit questions asked by admissions faculty.",
+    "durationMinutes": 20,
+    "questionCount": 4,
+    "passingScore": 70,
+    "accent": "blue"
+  },
+  {
+    "id": "itype-visa",
+    "name": "Visa Interview",
+    "description": "Consular questions about intent, funding and post-study plans.",
+    "durationMinutes": 15,
+    "questionCount": 4,
+    "passingScore": 75,
+    "accent": "purple"
+  },
+  {
+    "id": "itype-merit",
+    "name": "Merit Panel Interview",
+    "description": "Competitive panel questions on achievements and leadership.",
+    "durationMinutes": 25,
+    "questionCount": 3,
+    "passingScore": 80,
+    "accent": "green"
+  }
+]

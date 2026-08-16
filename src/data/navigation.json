@@ -1,0 +1,13 @@
+[
+  { "id": "/", "icon": "home", "label": "Home", "path": "/", "badge": null },
+  { "id": "/applications", "icon": "myApplications", "label": "My Applications", "path": "/applications", "badge": null },
+  { "id": "/appointments", "icon": "appointments", "label": "Appointments", "path": "/appointments", "badge": null },
+  { "id": "/messages", "icon": "chat", "label": "Messages", "path": "/messages", "badge": null },
+  { "id": "/tasks", "icon": "tasks", "label": "My Checklist", "path": "/tasks", "badge": null },
+  { "id": "/interviews", "icon": "interviews", "label": "Interview Preparation", "path": "/interviews", "badge": null },
+  { "id": "/documents", "icon": "document", "label": "Documents", "path": "/documents", "badge": null },
+  { "id": "/finance-management", "icon": "myFinance", "label": "My Finance", "path": "/finance-management", "badge": null },
+  { "id": "/visa", "icon": "visaStatus", "label": "Visa & Departure", "path": "/visa", "badge": null },
+  { "id": "/settings", "icon": "settings", "label": "Settings", "path": "/settings", "badge": null },
+  { "id": "/help", "icon": "helpCenter", "label": "Help Center", "path": "/help", "badge": null }
+]

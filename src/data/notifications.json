@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ntf-001",
+    "studentId": "stu-001",
+    "title": "Deadline approaching",
+    "description": "University of Toronto application deadline is in 5 months — the transcript is still outstanding.",
+    "type": "deadline",
+    "isRead": false,
+    "createdAt": "2026-08-07T04:10:00.000Z"
+  },
+  {
+    "id": "ntf-002",
+    "studentId": "stu-001",
+    "title": "Document verified",
+    "description": "Your IELTS score report has been verified by the review team.",
+    "type": "document",
+    "isRead": false,
+    "createdAt": "2026-08-06T08:45:00.000Z"
+  },
+  {
+    "id": "ntf-003",
+    "studentId": "stu-001",
+    "title": "Conditional offer received",
+    "description": "University of British Columbia has issued a conditional offer for Introduction to Machine Learning.",
+    "type": "application",
+    "isRead": false,
+    "createdAt": "2026-07-21T12:00:00.000Z"
+  },
+  {
+    "id": "ntf-004",
+    "studentId": "stu-001",
+    "title": "Appointment confirmed",
+    "description": "Sarah Gurung confirmed your Application Review meeting on 11 August.",
+    "type": "appointment",
+    "isRead": true,
+    "createdAt": "2026-07-19T06:30:00.000Z"
+  },
+  {
+    "id": "ntf-005",
+    "studentId": "stu-001",
+    "title": "Interview practice available",
+    "description": "A new Visa Interview practice set has been added to your AI interview module.",
+    "type": "interview",
+    "isRead": true,
+    "createdAt": "2026-07-16T09:00:00.000Z"
+  }
+]

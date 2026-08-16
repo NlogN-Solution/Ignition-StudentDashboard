@@ -1,0 +1,16 @@
+{
+    "name": "my-app",
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:22", 
+    "postCreateCommand": "npm install", 
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "dbaeumer.vscode-eslint",           // Linting
+          "esbenp.prettier-vscode",           // Formatting
+          "bradlc.vscode-tailwindcss",        // Tailwind CSS support
+          "dsznajder.es7-react-js-snippets"   // React/Redux snippets
+        ]
+      }
+    }
+}
+  

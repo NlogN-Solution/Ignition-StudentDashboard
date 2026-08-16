@@ -1,0 +1,163 @@
+# Student Study Abroad Platform — Frontend-Only (Hardcoded Data) Spec
+
+You are a senior frontend engineer completing this project's UI/UX layer using **static, hardcoded JSON data only**. There is **no backend work, no API design, no database work, and no live integrations** in this version of the task.
+
+---
+
+## IMPORTANT RULES — DO NOT CHANGE
+
+* Do NOT modify the UI design.
+* Do NOT change colors, typography, spacing, animations, or branding.
+* Do NOT redesign components.
+* Do NOT introduce a new design system.
+* Preserve the existing user experience exactly as it is.
+
+The current UI is considered approved. Your task is **frontend engineering with static data**, not design, and not backend engineering.
+
+---
+
+## Hard Constraint: No Backend / No API Work
+
+* Do **NOT** create any API routes or endpoints.
+* Do **NOT** create or modify any database schema, migrations, or models.
+* Do **NOT** write backend services, controllers, or repositories.
+* Do **NOT** connect to any real or mock server — no `fetch`, no `axios` calls to a backend, no GraphQL, no tRPC, no server actions that hit a database.
+* Do **NOT** implement authentication against a real auth provider — if login/session UI exists, simulate it entirely client-side against hardcoded credentials/state.
+
+
+## Data Source: Local `data/` Folder Only
+
+Create a `data/` folder (e.g. `src/data/` or `data/` at project root, matching existing conventions) containing plain `.json` files that back every screen. Examples:
+
+```
+/data
+  students.json
+  applications.json
+  universities.json
+  courses.json
+  documents.json
+  appointments.json
+  notifications.json
+  activityFeed.json
+  ignitionPoints.json
+  interviews.json
+  interviewTypes.json
+  interviewFeedback.json
+  tasksChecklist.json
+  counsellors.json
+  progressMilestones.json
+```
+
+Rules for this data layer:
+
+* Import JSON directly into components/hooks (`import students from "@/data/students.json"`), or load it via a simple local module that returns the JSON — no network requests.
+* Where the UI needs interactivity (marking a notification read, uploading a "document", completing a task, adjusting points, etc.), simulate the change **in local React/app state** (e.g. `useState`, context, or existing state management), seeded from the JSON file on load. Changes do not need to persist across refresh unless the existing architecture already has a local persistence mechanism (e.g. localStorage) — do not add a new one unless asked.
+* Keep the JSON shape realistic and consistent with what a real API response would look like, so this can be swapped for real endpoints later with minimal refactor (but do not build those endpoints now).
+* Replace all inline hardcoded arrays/objects currently scattered across components with imports from these centralized JSON files — this is still a real improvement (single source of truth) even though it's still static.
+
+---
+
+## What "Complete the feature" Means in This Version
+
+For every feature area below, "complete" means: **the UI is fully wired to realistic hardcoded JSON and behaves correctly against that static data**, not that it talks to a real backend.
+
+### Authentication
+Simulate login/logout/session state client-side using a hardcoded user object from `students.json`. Protected routes should check local simulated session state, not a real token.
+
+### Student Profile
+Full profile editing UI works against local state seeded from JSON; "saving" updates local state only.
+
+### Universities / Courses
+Browse, search, filter, save/unsave, compare — all operating over the static `universities.json` / `courses.json` arrays with client-side filtering logic (no server-side search).
+
+> Per the original product requirement: Course Search should **not** appear on the student dashboard/navigation. Keep the course data and any search logic available in the `data/` and component layer (not deleted), but do not surface it in the dashboard UI.
+
+### Applications
+Create/edit application, document upload (simulate file selection and store metadata only, no real upload), status, timeline, milestones, deadlines — all against local state derived from `applications.json`.
+
+### Document Management
+Upload/delete/replace/preview/download simulated against local state; no real file storage.
+
+### Appointments
+View/request/reschedule/cancel using `appointments.json` + local state. This remains the dashboard card that replaces "Visa Application" (see below).
+
+### Notifications
+Unread count, mark read/mark all read, history — all derived from `notifications.json` and local state (no real-time/websocket integration).
+
+### Progress Tracking / Ignition Points
+Compute displayed percentages/points **client-side** from the static milestone/points JSON so the numbers look dynamic and reactive to on-screen actions, but there is no server-side points engine.
+
+### Activity Feed / Timeline
+Rendered from `activityFeed.json`; new simulated actions (e.g. clicking "complete task") can prepend a locally-generated entry to local state for realism.
+
+### AI Interview Module
+UI flow (start, answer questions, continue, complete, see score/feedback) runs entirely against hardcoded question sets and hardcoded/randomized-but-static feedback in `interviews.json` / `interviewFeedback.json`. Do not call any real AI/model API.
+
+### Student Task & Checklist Engine
+Render the milestone chain (Passport → IELTS → SOP → LOR → Apply → Interview → Offer → Visa → Departure) from `tasksChecklist.json`, with due dates/dependencies encoded in the JSON and completion toggled in local state.
+
+### Counsellor Visibility
+If counsellor-facing views exist, render them from the same static datasets (e.g. `students.json`, `ignitionPoints.json`) — read-only or locally-editable, no backend writes.
+
+---
+
+## Dashboard Modification (unchanged product decision)
+
+Remove the **Visa Application** dashboard card completely.
+
+Replace it with an **Upcoming Appointments** card showing:
+* meeting date/time
+* counsellor
+* meeting type
+* status
+* quick join/view-details action (can be a stub action/toast if no real meeting link exists)
+
+All sourced from `appointments.json`.
+
+---
+
+## Scholarship Module
+
+Remove entirely — pages, nav items, components, and any leftover JSON/data files referencing scholarships. No scholarship data file should be created.
+
+---
+
+## Forms, Error/Empty/Loading States
+
+Still implement properly, but simulate them:
+* Validation and error messages: real, client-side.
+* Loading states: simulate with a short artificial delay (e.g. `setTimeout`) when "submitting" against local data, so skeletons/spinners still get exercised.
+* Empty states: trigger by using JSON files (or filtered subsets) that are actually empty, to verify the UI handles it.
+* "Success" feedback: shown after the simulated local update completes.
+
+---
+
+## Code Quality
+
+* Eliminate duplicated/dead code, unused files, hooks, components.
+* Consolidate all previously scattered mock/hardcoded data into the `data/` folder described above.
+* Keep naming and folder conventions consistent with the existing codebase.
+* Do not introduce a new state-management library unless one is already in use — reuse existing patterns (Context, existing store, etc.) for simulated mutations.
+
+---
+
+## Explicitly Out of Scope
+
+* Any REST/GraphQL API creation or modification.
+* Any database schema, ORM model, or migration.
+* Any real authentication provider integration.
+* Any real file storage/upload.
+* Any real AI/LLM calls for interview scoring or feedback.
+* Any websocket/real-time infrastructure.
+* Any server-side business logic (points calculation, missed-interview detection, etc.) — represent these as static or locally-simulated outcomes only.
+
+---
+
+## Deliverables
+
+1. **Data Layer** — list every JSON file created in `data/` and what it backs.
+2. **Screens Completed** — every screen now fully wired to static data instead of ad hoc hardcoded values.
+3. **Simulated Interactions** — list interactions that update local state (marking read, completing a task, etc.) and confirm none touch a network layer.
+4. **Removed** — confirm Scholarship module and dashboard Course Search / Visa Application card removal.
+5. **Remaining Gaps** — anything left inconsistent or partially static, and why.
+6. **Notes for Future Backend Work** — since the JSON shapes are designed to mirror future API responses, note where a real backend could later be swapped in with minimal refactor (informational only — do not build it now).

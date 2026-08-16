@@ -1,0 +1,216 @@
+{
+  "educationLevels": [
+    "High School",
+    "Bachelor's Degree",
+    "Master's Degree",
+    "PhD",
+    "Diploma",
+    "Other"
+  ],
+  "courseLevels": [
+    "Bachelor's",
+    "Master's",
+    "PhD",
+    "Diploma",
+    "Certificate"
+  ],
+  "studyAreas": [
+    "Computer Science",
+    "Engineering",
+    "Business",
+    "Arts",
+    "Medicine",
+    "Law"
+  ],
+  "intakes": [
+    "Fall 2026",
+    "Spring 2027",
+    "Summer 2027",
+    "Fall 2027"
+  ],
+  "studyModes": [
+    "Full-Time",
+    "Part-Time",
+    "Online"
+  ],
+  "feeStructures": [
+    "Basic",
+    "Medium",
+    "Premium"
+  ],
+  "courses": [
+    "Computer Science",
+    "Business Administration",
+    "Engineering"
+  ],
+  "faculties": [
+    {
+      "value": "engineering",
+      "label": "Engineering"
+    },
+    {
+      "value": "business",
+      "label": "Business"
+    },
+    {
+      "value": "medicine",
+      "label": "Medicine"
+    },
+    {
+      "value": "arts",
+      "label": "Arts"
+    },
+    {
+      "value": "science",
+      "label": "Science"
+    }
+  ],
+  "nationalities": [
+    {
+      "value": "np",
+      "label": "Nepal"
+    },
+    {
+      "value": "in",
+      "label": "India"
+    },
+    {
+      "value": "bd",
+      "label": "Bangladesh"
+    },
+    {
+      "value": "lk",
+      "label": "Sri Lanka"
+    }
+  ],
+  "countryCodes": [
+    {
+      "value": "+977",
+      "label": "🇳🇵 +977"
+    },
+    {
+      "value": "+1",
+      "label": "🇺🇸 +1"
+    },
+    {
+      "value": "+91",
+      "label": "🇮🇳 +91"
+    },
+    {
+      "value": "+44",
+      "label": "🇬🇧 +44"
+    },
+    {
+      "value": "+61",
+      "label": "🇦🇺 +61"
+    }
+  ],
+  "destinations": [
+    {
+      "name": "United States",
+      "icon": "🇺🇸"
+    },
+    {
+      "name": "Canada",
+      "icon": "🇨🇦"
+    },
+    {
+      "name": "United Kingdom",
+      "icon": "🇬🇧"
+    },
+    {
+      "name": "Australia",
+      "icon": "🇦🇺"
+    },
+    {
+      "name": "Germany",
+      "icon": "🇩🇪"
+    },
+    {
+      "name": "Ireland",
+      "icon": "🇮🇪"
+    },
+    {
+      "name": "Malaysia",
+      "icon": "🇲🇾"
+    },
+    {
+      "name": "New Zealand",
+      "icon": "🇳🇿"
+    },
+    {
+      "name": "Singapore",
+      "icon": "🇸🇬"
+    },
+    {
+      "name": "United Arab Emirates",
+      "icon": "🇦🇪"
+    }
+  ],
+  "languageTests": [
+    "IELTS",
+    "TOEFL",
+    "PTE"
+  ],
+  "otherTests": [
+    "GRE",
+    "GMAT",
+    "SAT"
+  ],
+  "documentGuidelines": [
+    {
+      "tone": "info",
+      "text": "All documents must be clear and legible"
+    },
+    {
+      "tone": "info",
+      "text": "Ensure all documents are in English or include certified translations"
+    },
+    {
+      "tone": "warning",
+      "text": "Original documents may be required during visa processing"
+    }
+  ],
+  "courseSearchStatistics": [
+    {
+      "id": "stat-students",
+      "icon": "students",
+      "value": "15,000+",
+      "label": "Students Enrolled"
+    },
+    {
+      "id": "stat-faculty",
+      "icon": "faculty",
+      "value": "300+",
+      "label": "Faculty Members"
+    },
+    {
+      "id": "stat-programs",
+      "icon": "programs",
+      "value": "50+",
+      "label": "Programs Offered"
+    },
+    {
+      "id": "stat-countries",
+      "icon": "countries",
+      "value": "120+",
+      "label": "Countries Represented"
+    }
+  ],
+  "fundingSourceTypes": [
+    "Personal Savings",
+    "Parents",
+    "Education Loan",
+    "Sponsor",
+    "Employer",
+    "Relative Sponsor",
+    "Government Funding",
+    "Scholarship Grant"
+  ],
+  "fundingSourceStatuses": [
+    "Available",
+    "Processing",
+    "Pending",
+    "Declined"
+  ]
+}

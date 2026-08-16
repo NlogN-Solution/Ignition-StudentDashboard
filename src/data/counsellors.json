@@ -1,0 +1,22 @@
+[
+  {
+    "id": "cns-001",
+    "name": "Sarah Gurung",
+    "title": "Senior Study Abroad Counsellor",
+    "email": "sarah.gurung@ignition.example",
+    "phone": "+977 9800011122",
+    "specialities": ["Canada", "United Kingdom", "Computer Science"],
+    "avatarInitials": "SG",
+    "studentIds": ["stu-001", "stu-002"]
+  },
+  {
+    "id": "cns-002",
+    "name": "Milan Rai",
+    "title": "Counsellor — Health & Research Programmes",
+    "email": "milan.rai@ignition.example",
+    "phone": "+977 9800033344",
+    "specialities": ["Australia", "United Kingdom", "Public Health"],
+    "avatarInitials": "MR",
+    "studentIds": ["stu-003"]
+  }
+]

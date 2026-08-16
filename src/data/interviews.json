@@ -1,0 +1,111 @@
+{
+  "questionSets": [
+    {
+      "typeId": "itype-academic",
+      "questions": [
+        {
+          "id": "q-ac-1",
+          "prompt": "Why have you chosen this programme, and how does it connect to your undergraduate work?",
+          "hint": "Name two specific modules and link them to a project you have already built.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-ac-2",
+          "prompt": "Describe a technical project you led. What went wrong and how did you recover?",
+          "hint": "Use a situation → action → result structure and quantify the result.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-ac-3",
+          "prompt": "Which faculty member's research would you want to work with, and why?",
+          "hint": "Reference a paper or lab, not just a name.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-ac-4",
+          "prompt": "Where do you see yourself five years after graduating?",
+          "hint": "Tie the answer back to the skills the programme actually teaches.",
+          "maxScore": 25
+        }
+      ]
+    },
+    {
+      "typeId": "itype-visa",
+      "questions": [
+        {
+          "id": "q-vi-1",
+          "prompt": "Why did you choose this country and this specific university?",
+          "hint": "Compare against options at home to show a deliberate decision.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-vi-2",
+          "prompt": "Who is funding your studies and how will the funds be transferred?",
+          "hint": "Name the sponsor, the relationship and the account documentation.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-vi-3",
+          "prompt": "What are your plans after you finish the programme?",
+          "hint": "Show clear ties to your home country.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-vi-4",
+          "prompt": "Do you have relatives in the country you are travelling to?",
+          "hint": "Answer factually and briefly — do not volunteer extra detail.",
+          "maxScore": 25
+        }
+      ]
+    },
+    {
+      "typeId": "itype-merit",
+      "questions": [
+        {
+          "id": "q-me-1",
+          "prompt": "What is the achievement you are proudest of, and what did it cost you?",
+          "hint": "Panels reward honesty about the trade-offs.",
+          "maxScore": 34
+        },
+        {
+          "id": "q-me-2",
+          "prompt": "Tell us about a time you changed someone's mind.",
+          "hint": "Focus on how you listened before you argued.",
+          "maxScore": 33
+        },
+        {
+          "id": "q-me-3",
+          "prompt": "What will you contribute to the cohort beyond your coursework?",
+          "hint": "Be concrete — a club, a workshop, a mentoring commitment.",
+          "maxScore": 33
+        }
+      ]
+    }
+  ],
+  "sessions": [
+    {
+      "id": "int-001",
+      "studentId": "stu-001",
+      "typeId": "itype-academic",
+      "typeName": "Academic Interview",
+      "status": "completed",
+      "startedAt": "2026-07-09T12:55:00.000Z",
+      "completedAt": "2026-07-09T13:20:00.000Z",
+      "score": 78,
+      "feedbackId": "fb-good",
+      "answers": []
+    },
+    {
+      "id": "int-002",
+      "studentId": "stu-001",
+      "typeId": "itype-visa",
+      "typeName": "Visa Interview",
+      "status": "completed",
+      "startedAt": "2026-06-22T07:00:00.000Z",
+      "completedAt": "2026-06-22T07:18:00.000Z",
+      "score": 64,
+      "feedbackId": "fb-average",
+      "answers": []
+    }
+  ]
+}

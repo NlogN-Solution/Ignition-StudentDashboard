@@ -1,0 +1,44 @@
+[
+  {
+    "id": "act-001",
+    "studentId": "stu-001",
+    "message": "University of Toronto application deadline in 5 months",
+    "type": "deadline",
+    "createdAt": "2026-08-07T02:00:00.000Z"
+  },
+  {
+    "id": "act-002",
+    "studentId": "stu-001",
+    "message": "Your IELTS score report has been verified",
+    "type": "document",
+    "createdAt": "2026-08-06T08:45:00.000Z"
+  },
+  {
+    "id": "act-003",
+    "studentId": "stu-001",
+    "message": "Statement of Purpose uploaded to your document vault",
+    "type": "document",
+    "createdAt": "2026-07-02T15:30:00.000Z"
+  },
+  {
+    "id": "act-004",
+    "studentId": "stu-001",
+    "message": "Conditional offer received from University of British Columbia",
+    "type": "application",
+    "createdAt": "2026-07-21T12:00:00.000Z"
+  },
+  {
+    "id": "act-005",
+    "studentId": "stu-001",
+    "message": "Profile Evaluation meeting completed with Sarah Gurung",
+    "type": "appointment",
+    "createdAt": "2026-07-15T09:45:00.000Z"
+  },
+  {
+    "id": "act-006",
+    "studentId": "stu-001",
+    "message": "Mock Academic Interview scored 78%",
+    "type": "interview",
+    "createdAt": "2026-07-09T13:20:00.000Z"
+  }
+]

@@ -1,0 +1,135 @@
+[
+  {
+    "id": "tsk-001",
+    "studentId": "stu-001",
+    "key": "passport",
+    "title": "Secure your passport",
+    "description": "Apply for or renew a passport valid for at least six months beyond your intake.",
+    "stage": "Passport",
+    "order": 1,
+    "dueDate": "2026-06-15",
+    "completed": true,
+    "completedAt": "2026-06-14T07:12:00.000Z",
+    "dependsOn": []
+  },
+  {
+    "id": "tsk-002",
+    "studentId": "stu-001",
+    "key": "ielts",
+    "title": "Sit the IELTS exam",
+    "description": "Book and complete IELTS with a band score of 7.0 or higher.",
+    "stage": "IELTS",
+    "order": 2,
+    "dueDate": "2026-04-01",
+    "completed": true,
+    "completedAt": "2026-03-29T05:20:00.000Z",
+    "dependsOn": [
+      "tsk-001"
+    ]
+  },
+  {
+    "id": "tsk-003",
+    "studentId": "stu-001",
+    "key": "sop",
+    "title": "Write your Statement of Purpose",
+    "description": "Draft, review with your counsellor and finalise your SOP.",
+    "stage": "SOP",
+    "order": 3,
+    "dueDate": "2026-07-10",
+    "completed": true,
+    "completedAt": "2026-07-02T15:30:00.000Z",
+    "dependsOn": [
+      "tsk-002"
+    ]
+  },
+  {
+    "id": "tsk-004",
+    "studentId": "stu-001",
+    "key": "lor",
+    "title": "Collect Letters of Recommendation",
+    "description": "Request two academic references and upload the signed letters.",
+    "stage": "LOR",
+    "order": 4,
+    "dueDate": "2026-08-20",
+    "completed": false,
+    "completedAt": null,
+    "dependsOn": [
+      "tsk-003"
+    ]
+  },
+  {
+    "id": "tsk-005",
+    "studentId": "stu-001",
+    "key": "apply",
+    "title": "Submit your applications",
+    "description": "Complete and submit applications to every shortlisted university.",
+    "stage": "Apply",
+    "order": 5,
+    "dueDate": "2026-11-30",
+    "completed": false,
+    "completedAt": null,
+    "dependsOn": [
+      "tsk-004"
+    ]
+  },
+  {
+    "id": "tsk-006",
+    "studentId": "stu-001",
+    "key": "interview",
+    "title": "Pass the admission interview",
+    "description": "Practise with the AI interview module, then attend the university interview.",
+    "stage": "Interview",
+    "order": 6,
+    "dueDate": "2026-12-15",
+    "completed": false,
+    "completedAt": null,
+    "dependsOn": [
+      "tsk-005"
+    ]
+  },
+  {
+    "id": "tsk-007",
+    "studentId": "stu-001",
+    "key": "offer",
+    "title": "Accept your offer",
+    "description": "Review offer letters, compare conditions and confirm your place.",
+    "stage": "Offer",
+    "order": 7,
+    "dueDate": "2027-01-31",
+    "completed": false,
+    "completedAt": null,
+    "dependsOn": [
+      "tsk-006"
+    ]
+  },
+  {
+    "id": "tsk-008",
+    "studentId": "stu-001",
+    "key": "visa",
+    "title": "Apply for your student visa",
+    "description": "Assemble financial documents and lodge the student visa application.",
+    "stage": "Visa",
+    "order": 8,
+    "dueDate": "2027-03-01",
+    "completed": false,
+    "completedAt": null,
+    "dependsOn": [
+      "tsk-007"
+    ]
+  },
+  {
+    "id": "tsk-009",
+    "studentId": "stu-001",
+    "key": "departure",
+    "title": "Prepare for departure",
+    "description": "Book flights, arrange accommodation and complete pre-departure briefing.",
+    "stage": "Departure",
+    "order": 9,
+    "dueDate": "2027-01-25",
+    "completed": false,
+    "completedAt": null,
+    "dependsOn": [
+      "tsk-008"
+    ]
+  }
+]

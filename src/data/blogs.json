@@ -1,0 +1,32 @@
+[
+  {
+    "id": "blog-001",
+    "title": "How to Ace Your IELTS Exam",
+    "category": "Test Prep",
+    "author": "Jane Doe",
+    "date": "2026-07-01",
+    "description": "Learn effective tips and strategies to improve your IELTS scores.",
+    "image": null,
+    "url": "/blog/ace-ielts"
+  },
+  {
+    "id": "blog-002",
+    "title": "Top 10 Countries for Affordable Education",
+    "category": "Study Abroad",
+    "author": "John Smith",
+    "date": "2026-06-28",
+    "description": "Explore the most budget-friendly countries for higher education.",
+    "image": null,
+    "url": "/blog/affordable-education"
+  },
+  {
+    "id": "blog-003",
+    "title": "Step-by-Step Visa Application Guide",
+    "category": "Immigration",
+    "author": "Alice Johnson",
+    "date": "2026-06-20",
+    "description": "A comprehensive guide to help you apply for a student visa.",
+    "image": null,
+    "url": "/blog/visa-guide"
+  }
+]
