@@ -3,6 +3,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { fetchCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister } from "../api/auth";
 import { clearTokens, getAccessToken } from "../api/client";
 import { fetchMyProfile, updateMyProfile } from "../api/students";
+import { consumePendingHandoff, mergeResearchIntoPreferences, peekPendingHandoff } from "../lib/handoff";
+import { clearSessionHint, setSessionHint } from "../lib/session";
 
 // Session comes from the real Ignition backend (JWT, stored in localStorage)
 // instead of a hardcoded students.json lookup. The exported shape of this
@@ -64,7 +66,46 @@ const toLegacyUser = (account, profile) => ({
   testScores: profile?.test_scores ?? {},
   profileCompletion: profile?.profile_completion ?? 0,
   onboardingCompleted: profile?.onboarding_completed ?? false,
+  //: Whether a StudentProfile row exists yet. A freshly registered student has
+  //: no row until the onboarding wizard creates one, and the backend rejects a
+  //: profile PATCH that would create it without `education_level` — so this is
+  //: what decides whether carried-over research can be written now or has to
+  //: wait for the wizard.
+  hasProfile: Boolean(profile),
 });
+
+/**
+ * Writes research carried over from the public site onto the student's
+ * profile, if there is any and if there is a profile row to write it to.
+ *
+ * A student who has just registered has no row yet, and creating one requires
+ * `education_level` — which only the onboarding wizard knows. The handoff is
+ * therefore left pending for the wizard to pick up (it also prefills from it),
+ * and is consumed exactly once, wherever it lands.
+ */
+const applyPendingResearch = async (user) => {
+  if (!user || user.role !== "student" || !user.hasProfile) return null;
+
+  const handoff = peekPendingHandoff();
+  if (!handoff) return null;
+
+  const preferences = mergeResearchIntoPreferences(user.preferences ?? {}, handoff);
+  const patch = { preferences };
+  if (!user.preferences?.intendedStudyArea && preferences.intendedStudyArea) {
+    patch.preferred_program = preferences.intendedStudyArea;
+  }
+  if (!user.preferences?.destinations) patch.preferred_country = preferences.destinations;
+
+  try {
+    const profile = await updateMyProfile(patch);
+    // Only now — a failed write must leave the research to be retried on the
+    // student's next sign-in rather than silently losing their shortlist.
+    consumePendingHandoff();
+    return profile;
+  } catch {
+    return null;
+  }
+};
 
 const loadSession = async () => {
   const account = await fetchCurrentUser();
@@ -84,6 +125,17 @@ const loadSession = async () => {
   return toLegacyUser(account, profile);
 };
 
+/** `loadSession` plus the research import, folded back into the same shape. */
+const withImportedResearch = async (user) => {
+  const profile = await applyPendingResearch(user);
+  if (!profile) return user;
+  return {
+    ...user,
+    preferences: profile.preferences ?? user.preferences,
+    profileCompletion: profile.profile_completion ?? user.profileCompletion,
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -100,7 +152,10 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       try {
-        const nextUser = await loadSession();
+        // Also imported here, not only on the login path: a student who is
+        // already signed in and follows an apply link from the public site is
+        // redirected straight past `login()` by the auth guard.
+        const nextUser = await withImportedResearch(await loadSession());
         if (!cancelled) setUser(nextUser);
       } catch {
         clearTokens();
@@ -119,8 +174,9 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticating(true);
     try {
       await apiLogin(email, password);
-      const nextUser = await loadSession();
+      const nextUser = await withImportedResearch(await loadSession());
       setUser(nextUser);
+      setSessionHint();
       return { ok: true, user: nextUser };
     } catch (error) {
       clearTokens();
@@ -137,8 +193,9 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticating(true);
     try {
       await apiRegister(payload);
-      const nextUser = await loadSession();
+      const nextUser = await withImportedResearch(await loadSession());
       setUser(nextUser);
+      setSessionHint();
       return { ok: true, user: nextUser };
     } catch (error) {
       clearTokens();
@@ -150,6 +207,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     setUser(null);
+    clearSessionHint();
     apiLogout().catch(() => {});
   }, []);
 
@@ -214,6 +272,8 @@ export const AuthProvider = ({ children }) => {
         if (!current) return current;
         return {
           ...current,
+          // The PATCH created the row if it did not exist.
+          hasProfile: true,
           basicInfo: { ...current.basicInfo, nationality: profile.nationality ?? "" },
           address: profile.address ?? {},
           education: profile.education ?? {},

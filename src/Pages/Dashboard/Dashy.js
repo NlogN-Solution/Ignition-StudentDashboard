@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useAppData } from '../../context/AppDataContext';
 import { useToast } from '../../context/ToastContext';
 import EmptyState from '../../components/common/EmptyState';
+import ResearchCard from '../../components/dashboard/ResearchCard';
 import { STATUS_LABELS } from '../../components/common/StatusBadge';
 import {
   formatDeadline,
@@ -164,6 +165,10 @@ const StudentDashboard = () => {
             Welcome back, Ignite your Study Abroad Journey !!
           </p>
         </motion.div>
+
+        {/* Everything the student explored on the public Ignition site, before
+            they had an account. Renders nothing when there is none. */}
+        <ResearchCard research={user?.preferences?.research} />
 
         {/* Dashboard Content */}
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">

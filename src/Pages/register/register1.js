@@ -1,33 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, User, X } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import formOptions from "../../data/formOptions.json";
 import { parseApiErrorDetail } from "../../lib/apiErrors";
-
-const InputField = ({ label, type = "text", value, onChange, error, required, placeholder }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-600">
-      {label} {required && <span className="text-blue-500">*</span>}
-    </label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className={`w-full px-6 py-4 bg-white text-gray-700 rounded-lg border ${
-        error ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-blue-500"
-      } focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all hover:border-gray-300`}
-    />
-    {error && (
-      <p className="text-sm text-red-500 mt-1 flex items-center">
-        <X className="w-4 h-4 mr-1" /> {error}
-      </p>
-    )}
-  </div>
-);
+import {
+  AuthButton,
+  AuthError,
+  AuthField,
+  AuthShell,
+} from "../../components/auth/AuthShell";
 
 const RegistrationPage = () => {
   const navigate = useNavigate();
@@ -52,13 +36,13 @@ const RegistrationPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = "Full Name is required.";
+    if (!formData.fullName) newErrors.fullName = "Full name is required.";
     if (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email))
       newErrors.email = "A valid email address is required.";
     if (!formData.phone || !/^\d+$/.test(formData.phone))
       newErrors.phone = "A valid phone number is required.";
     if (!formData.password || formData.password.length < 8)
-      newErrors.password = "Password must be at least 8 characters long.";
+      newErrors.password = "Use at least 8 characters.";
     if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match.";
     setErrors(newErrors);
@@ -105,181 +89,144 @@ const RegistrationPage = () => {
     navigate("/initalsetup", { replace: true });
   };
 
+  const set = (field) => (event) => {
+    setFormData((current) => ({ ...current, [field]: event.target.value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    setFormError("");
+  };
+
+  const revealButton = (key, shown) => (
+    <button
+      type="button"
+      onClick={() => setShowPassword((current) => ({ ...current, [key]: !current[key] }))}
+      aria-label={shown ? "Hide password" : "Show password"}
+      className="absolute right-[14px] top-1/2 -translate-y-1/2 text-ink-faint transition-colors hover:text-navy"
+    >
+      {shown ? (
+        <EyeOff className="h-[17px] w-[17px]" aria-hidden />
+      ) : (
+        <Eye className="h-[17px] w-[17px]" aria-hidden />
+      )}
+    </button>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-5xl w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-        {/* Logo */}
-        <div className="absolute top-6 left-6">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl font-semibold text-green-600">Ignition</span>
+    <AuthShell
+      title="Create your Ignition application."
+      subtitle="One account for your profile, your documents and every application you make. It takes a couple of minutes and costs nothing."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="font-bold text-blue-link transition-colors hover:text-navy"
+          >
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <AuthField
+          id="fullName"
+          label="Full name"
+          autoComplete="name"
+          placeholder="As it appears on your passport"
+          icon={User}
+          error={errors.fullName}
+          value={formData.fullName}
+          onChange={set("fullName")}
+        />
+
+        <AuthField
+          id="email"
+          label="Email address"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          icon={Mail}
+          error={errors.email}
+          value={formData.email}
+          onChange={set("email")}
+        />
+
+        <div>
+          <label htmlFor="phone" className="block text-[13.5px] font-semibold text-ink-soft">
+            Phone number
+          </label>
+          <div className="mt-[6px] flex gap-2">
+            <select
+              value={countryCode}
+              onChange={(e) => setCountryCode(e.target.value)}
+              aria-label="Country dialling code"
+              className="h-[50px] shrink-0 rounded-[10px] border border-ring-idle bg-white px-3 text-[15px] font-medium text-ink outline-none transition-colors hover:border-nav/40 focus:border-blue-bright focus:ring-2 focus:ring-blue-bright/20"
+            >
+              {formOptions.countryCodes.map((code) => (
+                <option key={code.value} value={code.value}>
+                  {code.label}
+                </option>
+              ))}
+            </select>
+            <input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              value={formData.phone}
+              onChange={set("phone")}
+              placeholder="123 456 7890"
+              aria-invalid={errors.phone ? "true" : undefined}
+              aria-describedby={errors.phone ? "phone-error" : undefined}
+              className={`h-[50px] min-w-0 flex-1 rounded-[10px] border bg-white px-4 text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-blue-bright focus:ring-2 focus:ring-blue-bright/20 ${
+                errors.phone ? "border-orange" : "border-ring-idle hover:border-nav/40"
+              }`}
+            />
           </div>
+          {errors.phone ? (
+            <p id="phone-error" className="mt-[6px] text-[13.5px] font-semibold text-orange">
+              {errors.phone}
+            </p>
+          ) : null}
         </div>
 
-        <div className="flex flex-col lg:flex-row">
-          {/* Left Panel */}
-          <div className="lg:w-2/5 bg-gradient-to-br from-blue-50 via-white to-blue-50 p-8 lg:p-12">
-            <div className="mb-12 mt-12">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <User className="text-blue-500 w-6 h-6" />
-                </div>
-                <span className="text-xl font-semibold text-blue-500">Welcome!</span>
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold mb-4 text-gray-800">Create an Account</h1>
-            <p className="text-gray-600 text-lg">Get started with a smooth and modern registration experience.</p>
-          </div>
+        <AuthField
+          id="password"
+          label="Password"
+          type={showPassword.password ? "text" : "password"}
+          autoComplete="new-password"
+          placeholder="At least 8 characters"
+          icon={Lock}
+          error={errors.password}
+          value={formData.password}
+          onChange={set("password")}
+          trailing={revealButton("password", showPassword.password)}
+        />
 
-          {/* Form Panel */}
-          <div className="lg:w-3/5 p-8 lg:p-12 bg-white">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name */}
-              <InputField
-                label="Full Name"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                error={errors.fullName}
-                required
-                placeholder="Enter your full name"
-              />
-              {/* Email */}
-              <InputField
-                label="Email Address"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                error={errors.email}
-                required
-                placeholder="you@example.com"
-              />
-              {/* Phone Number */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-600">
-                  Phone Number <span className="text-blue-500">*</span>
-                </label>
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300"
-                  >
-                    {formOptions.countryCodes.map((code) => (
-                      <option key={code.value} value={code.value}>
-                        {code.label}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="123 456 7890"
-                    className={`flex-1 px-6 py-4 bg-white text-gray-700 rounded-lg border ${
-                      errors.phone ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all hover:border-gray-300`}
-                  />
-                </div>
-                {errors.phone && (
-                  <p className="text-sm text-red-500 mt-1 flex items-center">
-                    <X className="w-4 h-4 mr-1" /> {errors.phone}
-                  </p>
-                )}
-              </div>
-              {/* Password */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-600">
-                  Password <span className="text-blue-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword.password ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Enter your password"
-                    className={`w-full px-6 py-4 bg-white text-gray-700 rounded-lg border ${
-                      errors.password ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all hover:border-gray-300`}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() =>
-                      setShowPassword({ ...showPassword, password: !showPassword.password })
-                    }
-                  >
-                    {showPassword.password ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-sm text-red-500 mt-1 flex items-center">
-                    <X className="w-4 h-4 mr-1" /> {errors.password}
-                  </p>
-                )}
-              </div>
+        <AuthField
+          id="confirmPassword"
+          label="Confirm password"
+          type={showPassword.confirm ? "text" : "password"}
+          autoComplete="new-password"
+          placeholder="Re-enter your password"
+          icon={Lock}
+          error={errors.confirmPassword}
+          value={formData.confirmPassword}
+          onChange={set("confirmPassword")}
+          trailing={revealButton("confirm", showPassword.confirm)}
+        />
 
-              {/* Confirm Password */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-600">
-                  Confirm Password <span className="text-blue-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword.confirm ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={(e) =>
-                      setFormData({ ...formData, confirmPassword: e.target.value })
-                    }
-                    placeholder="Re-enter your password"
-                    className={`w-full px-6 py-4 bg-white text-gray-700 rounded-lg border ${
-                      errors.confirmPassword
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-200 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all hover:border-gray-300`}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() =>
-                      setShowPassword({ ...showPassword, confirm: !showPassword.confirm })
-                    }
-                  >
-                    {showPassword.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-sm text-red-500 mt-1 flex items-center">
-                    <X className="w-4 h-4 mr-1" /> {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
+        <AuthError>{formError}</AuthError>
 
-              {formError && (
-                <p className="text-sm text-red-500 flex items-center">
-                  <X className="w-4 h-4 mr-1" /> {formError}
-                </p>
-              )}
+        <AuthButton type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Creating your account…" : "Create my account"}
+        </AuthButton>
 
-              {/* Submit Button */}
-              <div className="space-y-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 text-lg font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-400 focus:ring-opacity-50 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:transform-none"
-                >
-                  {isSubmitting ? "Creating account…" : "Register"}
-                </button>
-                <p className="text-center text-sm text-gray-600">
-                  Already have an account?{" "}
-                  <Link to="/login" className="text-blue-500 hover:text-blue-600">
-                    Sign in
-                  </Link>
-                </p>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+        <p className="text-[13.5px] font-medium leading-[1.55] text-ink-faint">
+          Next you will tell us about your studies and what you want to apply for.
+          Nothing is sent to any university until you and your Ignition advisor agree
+          it is ready.
+        </p>
+      </form>
+    </AuthShell>
   );
 };
 

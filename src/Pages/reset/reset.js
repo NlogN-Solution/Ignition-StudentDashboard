@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Check, X } from 'lucide-react';
 
 import { confirmPasswordReset, requestPasswordReset } from '../../api/auth';
 import { useToast } from '../../context/ToastContext';
+import {
+  AuthButton,
+  AuthError,
+  AuthField,
+  AuthShell,
+} from '../../components/auth/AuthShell';
 
 /** Step one: ask for the account email and send a reset link — the step this
  * screen used to skip entirely, jumping straight to "set a new password"
@@ -27,51 +33,42 @@ const RequestResetStep = ({ onSent }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <p className="text-sm text-gray-400 text-center">
-        Enter the email on your account and we'll send you a link to reset your password.
-      </p>
-      <div className="relative group">
-        <input
-          type="email"
-          placeholder="Email Address"
-          className={`w-full px-6 py-4 bg-gray-900/50 text-white rounded-xl border focus:ring-2 outline-none backdrop-blur-xl pl-12 ${
-            error
-              ? 'border-red-500 focus:ring-red-500/20'
-              : 'border-gray-700 focus:border-emerald-500 focus:ring-emerald-500/20'
-          }`}
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setError('');
-          }}
-        />
-        <Mail className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
-      </div>
-      {error && (
-        <p className="text-sm text-red-400 flex items-center gap-1">
-          <X className="w-4 h-4" /> {error}
-        </p>
-      )}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full px-6 py-4 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50 transition-all disabled:opacity-50"
-      >
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <AuthField
+        id="reset-email"
+        label="Email address"
+        type="email"
+        autoComplete="email"
+        placeholder="you@example.com"
+        icon={Mail}
+        error={error}
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setError('');
+        }}
+      />
+      <AuthButton type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Sending…' : 'Send reset link'}
-      </button>
+      </AuthButton>
     </form>
   );
 };
 
 const RequestSentNotice = () => (
-  <div className="text-center space-y-4">
-    <div className="mx-auto w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-      <Check className="w-6 h-6 text-emerald-400" />
-    </div>
-    <p className="text-gray-300">
-      If that email has an account, a reset link is on its way. Follow the link there to
-      choose a new password.
+  <div className="rounded-xl border border-hairline bg-white p-6">
+    <span
+      aria-hidden
+      className="flex h-11 w-11 items-center justify-center rounded-full bg-navy/[0.07]"
+    >
+      <Check className="h-5 w-5 text-navy" strokeWidth={2.6} />
+    </span>
+    <h2 className="mt-4 text-[18px] font-bold tracking-[-0.01em] text-navy">
+      Check your inbox
+    </h2>
+    <p className="mt-2 text-[15px] font-medium leading-[1.6] text-ink-muted">
+      If that email has an Ignition account, a reset link is on its way. Follow the
+      link there to choose a new password.
     </p>
   </div>
 );
@@ -159,144 +156,129 @@ const ResetPassword = () => {
     }
   };
 
+  const revealButton = (key, shown) => (
+    <button
+      type="button"
+      onClick={() => setShowPassword((prev) => ({ ...prev, [key]: !prev[key] }))}
+      aria-label={shown ? 'Hide password' : 'Show password'}
+      className="absolute right-[14px] top-1/2 -translate-y-1/2 text-ink-faint transition-colors hover:text-navy"
+    >
+      {shown ? (
+        <EyeOff className="h-[17px] w-[17px]" aria-hidden />
+      ) : (
+        <Eye className="h-[17px] w-[17px]" aria-hidden />
+      )}
+    </button>
+  );
+
+  const requirements = [
+    { label: '8 or more characters', valid: validation.passwordStrength.length },
+    { label: 'A number', valid: validation.passwordStrength.number },
+    { label: 'A special character', valid: validation.passwordStrength.special },
+    { label: 'An uppercase letter', valid: validation.passwordStrength.uppercase }
+  ];
+
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black flex items-center justify-center overflow-hidden">
-      <div className="w-full h-1/2 max-w-lg mx-auto bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 border border-gray-700/50 shadow-2xl flex flex-col justify-center overflow-y-auto">
-        <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-          Reset Password
-        </h2>
-
-        {!hasResetToken ? (
-          requestSent ? (
-            <RequestSentNotice />
-          ) : (
-            <RequestResetStep onSent={() => setRequestSent(true)} />
-          )
+    <AuthShell
+      title={hasResetToken ? 'Choose a new password.' : 'Reset your password.'}
+      subtitle={
+        hasResetToken
+          ? 'Pick something you have not used elsewhere. You will sign in with it straight after.'
+          : 'Enter the email on your Ignition account and we will send you a link to set a new password.'
+      }
+      footer={
+        <>
+          Remembered it?{' '}
+          <Link
+            to="/login"
+            className="font-bold text-blue-link transition-colors hover:text-navy"
+          >
+            Back to sign in
+          </Link>
+        </>
+      }
+    >
+      {!hasResetToken ? (
+        requestSent ? (
+          <RequestSentNotice />
         ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* New Password Field */}
-          <div className="space-y-2">
-            <div className="relative group">
-              <input
-                type={showPassword.new ? 'text' : 'password'}
-                placeholder="New Password"
-                className={`w-full px-6 py-4 bg-gray-900/50 text-white rounded-xl border focus:ring-2 outline-none backdrop-blur-xl pl-12 pr-12 ${
-                  formData.newPassword
-                    ? validation.newPassword.isValid
-                      ? 'border-green-500 focus:ring-green-500/20'
-                      : 'border-red-500 focus:ring-red-500/20'
-                    : 'border-gray-700 focus:border-emerald-500 focus:ring-emerald-500/20'
-                }`}
-                value={formData.newPassword}
-                onChange={(e) => {
-                  setFormData({ ...formData, newPassword: e.target.value });
-                  validatePassword(e.target.value);
-                }}
-              />
-              <Lock className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPassword((prev) => ({ ...prev, new: !prev.new }))
-                }
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-              >
-                {showPassword.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
+          <RequestResetStep onSent={() => setRequestSent(true)} />
+        )
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <AuthField
+            id="newPassword"
+            label="New password"
+            type={showPassword.new ? 'text' : 'password'}
+            autoComplete="new-password"
+            placeholder="Your new password"
+            icon={Lock}
+            value={formData.newPassword}
+            onChange={(e) => {
+              setFormData({ ...formData, newPassword: e.target.value });
+              validatePassword(e.target.value);
+            }}
+            trailing={revealButton('new', showPassword.new)}
+          />
 
-          {/* Confirm Password Field */}
-          <div className="space-y-2">
-            <div className="relative group">
-              <input
-                type={showPassword.confirm ? 'text' : 'password'}
-                placeholder="Confirm New Password"
-                className={`w-full px-6 py-4 bg-gray-900/50 text-white rounded-xl border focus:ring-2 outline-none backdrop-blur-xl pl-12 pr-12 ${
-                  formData.confirmPassword
-                    ? validation.confirmPassword.isValid
-                      ? 'border-green-500 focus:ring-green-500/20'
-                      : 'border-red-500 focus:ring-red-500/20'
-                    : 'border-gray-700 focus:border-emerald-500 focus:ring-emerald-500/20'
-                }`}
-                value={formData.confirmPassword}
-                onChange={(e) => {
-                  setFormData({ ...formData, confirmPassword: e.target.value });
-                  validateConfirmPassword(e.target.value);
-                }}
-              />
-              <Lock className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPassword((prev) => ({ ...prev, confirm: !prev.confirm }))
-                }
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-              >
-                {showPassword.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {formData.confirmPassword && (
-              <div className="flex items-center gap-2 mt-1">
-                {validation.confirmPassword.isValid ? (
-                  <Check className="text-green-500 w-5 h-5" />
-                ) : (
-                  <X className="text-red-500 w-5 h-5" />
-                )}
-                <p
-                  className={`text-sm ${
-                    validation.confirmPassword.isValid ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {validation.confirmPassword.message}
-                </p>
-              </div>
-            )}
-          </div>
+          <AuthField
+            id="confirmPassword"
+            label="Confirm new password"
+            type={showPassword.confirm ? 'text' : 'password'}
+            autoComplete="new-password"
+            placeholder="Re-enter your new password"
+            icon={Lock}
+            error={
+              formData.confirmPassword && !validation.confirmPassword.isValid
+                ? validation.confirmPassword.message
+                : undefined
+            }
+            value={formData.confirmPassword}
+            onChange={(e) => {
+              setFormData({ ...formData, confirmPassword: e.target.value });
+              validateConfirmPassword(e.target.value);
+            }}
+            trailing={revealButton('confirm', showPassword.confirm)}
+          />
 
-          {/* Password Strength */}
-          <div className="mt-4">
-            <h3 className="text-sm text-gray-400 mb-2">Password Requirements:</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: '8+ Characters', valid: validation.passwordStrength.length },
-                { label: 'Numbers', valid: validation.passwordStrength.number },
-                { label: 'Special Characters', valid: validation.passwordStrength.special },
-                { label: 'Uppercase Letters', valid: validation.passwordStrength.uppercase }
-              ].map((req, index) => (
-                <div
-                  key={index}
-                  className={`text-xs flex items-center gap-1 ${
-                    req.valid ? 'text-green-500' : 'text-gray-400'
-                  }`}
-                >
-                  <Check className="w-4 h-4" /> {req.label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {formError && (
-            <p className="text-sm text-red-400 flex items-center gap-1">
-              <X className="w-4 h-4" /> {formError}
+          <div className="rounded-[10px] border border-hairline bg-white p-4">
+            <p className="text-[12.5px] font-bold uppercase tracking-[0.11em] text-ink-faint">
+              Your password needs
             </p>
-          )}
+            <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {requirements.map((requirement) => (
+                <li
+                  key={requirement.label}
+                  className={`flex items-center gap-2 text-[13.5px] font-semibold ${
+                    requirement.valid ? 'text-navy' : 'text-ink-faint'
+                  }`}
+                >
+                  {requirement.valid ? (
+                    <Check className="h-[14px] w-[14px] shrink-0 text-orange" strokeWidth={3} aria-hidden />
+                  ) : (
+                    <X className="h-[14px] w-[14px] shrink-0" strokeWidth={2.4} aria-hidden />
+                  )}
+                  {requirement.label}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <button
+          <AuthError>{formError}</AuthError>
+
+          <AuthButton
             type="submit"
-            className="w-full px-6 py-4 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50 transition-all disabled:opacity-50 disabled:hover:bg-emerald-500"
             disabled={
               isSubmitting ||
               !validation.newPassword.isValid ||
               !validation.confirmPassword.isValid
             }
           >
-            {isSubmitting ? 'Resetting…' : 'Reset Password'}
-          </button>
+            {isSubmitting ? 'Resetting…' : 'Reset my password'}
+          </AuthButton>
         </form>
-        )}
-      </div>
-    </div>
+      )}
+    </AuthShell>
   );
 };
 

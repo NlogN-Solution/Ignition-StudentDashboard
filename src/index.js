@@ -3,6 +3,13 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { captureIncomingHandoff } from './lib/handoff';
+
+// Before anything renders, and before the router reads the URL: a student
+// arriving from the public Ignition site carries their research in the URL
+// fragment. This lifts it into sessionStorage and strips it from the address
+// bar. See src/lib/handoff.js.
+captureIncomingHandoff();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

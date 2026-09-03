@@ -60,12 +60,25 @@ const TestCard = ({ type, testName, data, onToggle, onInputChange }) => (
 );
 
 // Main StudyPreferences Component
-const StudyPreferences = ({ onNext, onPrevious, isLastStep, isSubmitting }) => {
+/**
+ * `initialValues` lets the wizard open with what the student already told the
+ * public Ignition site — the destination they were browsing, and the subject
+ * of the first course they saved. Everything stays editable; this only saves
+ * them re-entering an answer they have effectively already given.
+ */
+const StudyPreferences = ({
+  onNext,
+  onPrevious,
+  isLastStep,
+  isSubmitting,
+  initialValues,
+}) => {
   const [studyPreferences, setStudyPreferences] = useState({
     country: [],
     course: "",
     studyMode: "",
     feeStructure: "",
+    ...initialValues,
   });
   const [languageTests, setLanguageTests] = useState(() =>
     seedTests(formOptions.languageTests)
