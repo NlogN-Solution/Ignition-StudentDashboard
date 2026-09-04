@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, AlertCircle, Rocket, Loader2, Clock3, Trophy, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, Loader2, Clock3, Trophy, ShieldCheck } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import IgnitionMark from '../../components/common/IgnitionMark';
 
 const TRUST_POINTS = [
   {
@@ -22,17 +23,6 @@ const TRUST_POINTS = [
     label: 'Quality independently checked, not self-declared',
   },
 ];
-
-const IgnitionMark = ({ dark }) => (
-  <Link to="/" className="inline-flex items-center gap-2.5 select-none">
-    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-ignite-400 to-ignite-600 shadow-md shadow-ignite-600/30">
-      <Rocket className="h-5 w-5 text-white" strokeWidth={2.25} />
-    </span>
-    <span className={`text-xl font-bold tracking-tight ${dark ? 'text-white' : 'text-navy-900'}`}>
-      ignition
-    </span>
-  </Link>
-);
 
 const LoginPage = () => {
   const navigate = useNavigate();

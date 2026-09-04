@@ -27,6 +27,7 @@ import navigationItems from "../../data/navigation.json";
 import { useAppData } from "../../context/AppDataContext";
 import { useAuth } from "../../context/AuthContext";
 import { formatDeadline, formatRelativeTime } from "../../lib/simulate";
+import IgnitionMark from "../common/IgnitionMark";
 
 const PremiumNavigation = () => {
   const location = useLocation();
@@ -156,15 +157,16 @@ const PremiumNavigation = () => {
   const getAnimationDelay = (index) => `${index * 50}ms`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 h-16 bg-white z-[60] flex items-center justify-between px-4 transition-all duration-500
-        ${isScrolled ? "shadow-lg border-b border-gray-100" : "shadow-sm"}`}
+        ${isScrolled ? "shadow-lg border-b border-slate-100" : "shadow-sm border-b border-transparent"}`}
       >
         <div className="flex items-center gap-4">
           <button
-            className="p-2 rounded-lg hover:bg-gray-100 lg:hidden relative z-[70]"
+            className="p-2 rounded-lg hover:bg-navy-50 lg:hidden relative z-[70] text-navy-900"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
           >
             {isSidebarOpen ? (
               <X size={20} className="transition-all duration-300" />
@@ -172,35 +174,35 @@ const PremiumNavigation = () => {
               <Menu size={20} className="transition-all duration-300" />
             )}
           </button>
-          <Link to="/" className="text-green-600 font-bold text-xl relative z-[70]">
-            Ignition
-          </Link>
+          <span className="relative z-[70]">
+            <IgnitionMark size="sm" />
+          </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           {/* Priority Tasks */}
           <div className="relative" ref={priorityTasksRef}>
             <button
-              className="relative p-2 rounded-full hover:bg-gray-100"
+              className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-700 transition-colors"
               onClick={() => setShowPriorityTasks(!showPriorityTasks)}
               aria-label="Priority tasks"
             >
               <ListChecks className="h-6 w-6" />
               {priorityTasks.length > 0 && (
-                <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute top-0 right-0 bg-ignite-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {priorityTasks.length}
                 </span>
               )}
             </button>
 
             {showPriorityTasks && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="font-semibold">Priority Tasks</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100">
+                  <h3 className="font-semibold text-navy-900">Priority Tasks</h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {priorityTasks.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
+                    <div className="p-4 text-center text-slate-500">
                       Nothing outstanding
                     </div>
                   ) : (
@@ -209,28 +211,28 @@ const PremiumNavigation = () => {
                         key={task.id}
                         to="/tasks"
                         onClick={() => setShowPriorityTasks(false)}
-                        className="block w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50"
+                        className="block w-full text-left p-4 border-b border-slate-100 last:border-0 hover:bg-navy-50/60"
                       >
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium">{task.title}</h4>
+                          <h4 className="font-medium text-navy-900">{task.title}</h4>
                           {task.dueDate && (
-                            <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                            <span className="text-xs text-slate-500 flex-shrink-0 ml-2">
                               {formatDeadline(task.dueDate)}
                             </span>
                           )}
                         </div>
                         {task.description && (
-                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                          <p className="text-sm text-slate-500 mt-1">{task.description}</p>
                         )}
                       </Link>
                     ))
                   )}
                 </div>
-                <div className="p-3 border-t border-gray-200 text-center">
+                <div className="p-3 border-t border-slate-100 text-center">
                   <Link
                     to="/tasks"
                     onClick={() => setShowPriorityTasks(false)}
-                    className="text-sm text-blue-600 hover:text-blue-700"
+                    className="text-sm font-medium text-navy-700 hover:text-navy-900"
                   >
                     View all tasks
                   </Link>
@@ -242,8 +244,9 @@ const PremiumNavigation = () => {
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button
-              className="relative p-2 rounded-full hover:bg-gray-100"
+              className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-700 transition-colors"
               onClick={() => setShowNotifications(!showNotifications)}
+              aria-label="Notifications"
             >
               <Bell className="h-6 w-6" />
               {unreadNotificationCount > 0 && (
@@ -254,13 +257,13 @@ const PremiumNavigation = () => {
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200">
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                  <h3 className="font-semibold">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                  <h3 className="font-semibold text-navy-900">Notifications</h3>
                   {unreadNotificationCount > 0 && (
                     <button
                       onClick={markAllNotificationsRead}
-                      className="text-sm text-green-600 hover:text-green-700"
+                      className="text-sm font-medium text-navy-700 hover:text-navy-900"
                     >
                       Mark all as read
                     </button>
@@ -268,7 +271,7 @@ const PremiumNavigation = () => {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
+                    <div className="p-4 text-center text-slate-500">
                       No notifications
                     </div>
                   ) : (
@@ -277,25 +280,25 @@ const PremiumNavigation = () => {
                         key={notification.id}
                         type="button"
                         onClick={() => markNotificationRead(notification.id)}
-                        className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer
-                        ${notification.isRead ? "bg-white" : "bg-blue-50"}`}
+                        className={`w-full text-left p-4 border-b border-slate-100 last:border-0 hover:bg-navy-50/60 cursor-pointer
+                        ${notification.isRead ? "bg-white" : "bg-ignite-50/50"}`}
                       >
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium">{notification.title}</h4>
-                          <span className="text-xs text-gray-500">
+                          <h4 className="font-medium text-navy-900">{notification.title}</h4>
+                          <span className="text-xs text-slate-500">
                             {formatRelativeTime(notification.createdAt)}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">{notification.description}</p>
+                        <p className="text-sm text-slate-500 mt-1">{notification.description}</p>
                       </button>
                     ))
                   )}
                 </div>
-                <div className="p-3 border-t border-gray-200 text-center">
+                <div className="p-3 border-t border-slate-100 text-center">
                   <Link
                     to="/notifications"
                     onClick={() => setShowNotifications(false)}
-                    className="text-sm text-blue-600 hover:text-blue-700"
+                    className="text-sm font-medium text-navy-700 hover:text-navy-900"
                   >
                     View notification history
                   </Link>
@@ -307,27 +310,30 @@ const PremiumNavigation = () => {
           {/* User Profile */}
           <div className="relative" ref={userMenuRef}>
             <button
-              className="relative p-2 rounded-full hover:bg-gray-100 overflow-hidden"
+              className="relative p-1 rounded-full hover:bg-navy-50 overflow-hidden transition-colors"
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              aria-label="Account menu"
             >
               {user?.profileImage ? (
                 <img
                   src={user.profileImage}
                   alt="Profile"
-                  className="h-6 w-6 rounded-full object-cover"
+                  className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <UserCircle className="h-6 w-6" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-100 text-navy-700">
+                  <UserCircle className="h-6 w-6" />
+                </span>
               )}
             </button>
 
             {/* User Menu Dropdown */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200">
-                <div className="p-4 border-b border-gray-200">
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-navy-50/50">
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <div className="h-16 w-16 rounded-full overflow-hidden bg-gray-100">
+                      <div className="h-16 w-16 rounded-full overflow-hidden bg-navy-100">
                         {user?.profileImage ? (
                           <img
                             src={user.profileImage}
@@ -335,15 +341,16 @@ const PremiumNavigation = () => {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <UserCircle className="h-full w-full p-2" />
+                          <UserCircle className="h-full w-full p-2 text-navy-700" />
                         )}
                       </div>
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploadingPhoto}
-                        className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                        className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
+                        aria-label="Change profile photo"
                       >
-                        <Camera className={`h-4 w-4 ${isUploadingPhoto ? "animate-pulse" : ""}`} />
+                        <Camera className={`h-4 w-4 text-navy-700 ${isUploadingPhoto ? "animate-pulse" : ""}`} />
                       </button>
                       <input
                         type="file"
@@ -353,9 +360,9 @@ const PremiumNavigation = () => {
                         onChange={handlePhotoUpload}
                       />
                     </div>
-                    <div>
-                      <p className="font-semibold">{user?.fullName ?? "Guest"}</p>
-                      <p className="text-sm text-gray-600">{user?.email ?? ""}</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-navy-900 truncate">{user?.fullName ?? "Guest"}</p>
+                      <p className="text-sm text-slate-500 truncate">{user?.email ?? ""}</p>
                     </div>
                   </div>
                 </div>
@@ -363,7 +370,7 @@ const PremiumNavigation = () => {
                   <Link
                     to="/profile"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
                   >
                     <UserCircle className="h-5 w-5 mr-3" />
                     Profile
@@ -371,14 +378,14 @@ const PremiumNavigation = () => {
                   <Link
                     to="/settings"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
                   >
                     <Settings className="h-5 w-5 mr-3" />
                     Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-red-50 hover:text-red-700"
                   >
                     <LogOut className="h-5 w-5 mr-3" />
                     Logout
@@ -391,8 +398,8 @@ const PremiumNavigation = () => {
 
         {/* Alert Messages */}
         {alert.show && (
-          <div className="fixed bottom-4 right-4">
-            <Alert className={alert.type === "error" ? "bg-red-50" : "bg-green-50"}>
+          <div className="fixed bottom-4 right-4 z-[80]">
+            <Alert className={alert.type === "error" ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}>
               <AlertDescription>
                 {alert.message}
               </AlertDescription>
@@ -406,7 +413,7 @@ const PremiumNavigation = () => {
         ref={sidebarRef}
         className={`fixed top-16 h-[calc(100vh-4rem)] bg-white w-72 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transition-transform duration-500 shadow-xl border-r border-gray-100 overflow-y-auto z-[50]`}
+        } md:translate-x-0 transition-transform duration-500 shadow-xl md:shadow-none border-r border-slate-100 overflow-y-auto z-[50]`}
       >
         <nav className="h-full py-8">
           <div className="space-y-1 px-2 pt-5">
@@ -414,11 +421,11 @@ const PremiumNavigation = () => {
               <Link
                 key={item.id}
                 to={item.path}
-                className={`flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 group transition-all duration-300 relative
+                className={`flex items-center gap-4 px-4 py-3 rounded-lg group transition-all duration-300 relative
                   ${
                     activeItem === item.path
-                      ? "bg-blue-50 text-blue-600 shadow-sm"
-                      : "hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5"
+                      ? "bg-navy-50 text-navy-800"
+                      : "text-slate-600 hover:bg-slate-50 hover:-translate-y-0.5"
                   }`}
                 onClick={() => {
                   if (window.innerWidth < 1024) {
@@ -433,8 +440,8 @@ const PremiumNavigation = () => {
                   name={item.icon}
                   className={`w-5 h-5 transition-all duration-300 ${
                     activeItem === item.path
-                      ? "text-blue-600 transform scale-110"
-                      : "text-gray-500 group-hover:text-blue-600 group-hover:scale-110"
+                      ? "text-navy-700 transform scale-110"
+                      : "text-slate-400 group-hover:text-navy-700 group-hover:scale-110"
                   }`}
                 />
                 <span className="text-sm font-medium">{item.label}</span>
@@ -448,8 +455,8 @@ const PremiumNavigation = () => {
                       className={`absolute right-4 px-2 py-0.5 rounded-full text-xs font-medium
                       ${
                         activeItem === item.path
-                          ? "bg-blue-200 text-blue-700"
-                          : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
+                          ? "bg-navy-200 text-navy-800"
+                          : "bg-slate-100 text-slate-600 group-hover:bg-navy-100 group-hover:text-navy-700"
                       }`}
                     >
                       {item.badge}
@@ -457,7 +464,7 @@ const PremiumNavigation = () => {
                   )
                 )}
                 <div
-                  className={`absolute left-0 w-1 h-8 rounded-r-full bg-blue-500 transform transition-all duration-300
+                  className={`absolute left-0 w-1 h-8 rounded-r-full bg-ignite-500 transform transition-all duration-300
                   ${
                     activeItem === item.path
                       ? "scale-y-100"
@@ -469,16 +476,16 @@ const PremiumNavigation = () => {
           </div>
 
           <div className="px-4 mt-24">
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-700 mb-2">
+            <div className="p-4 bg-gradient-to-br from-navy-900 to-navy-800 rounded-xl">
+              <h4 className="text-sm font-semibold text-white mb-1">
                 Need Help?
               </h4>
-              <p className="text-xs text-blue-600 mb-3">
+              <p className="text-xs text-navy-200 mb-3">
                 Contact our support team for assistance
               </p>
               <Link
                 to="/appointments"
-                className="block text-center w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="block text-center w-full px-4 py-2 bg-ignite-500 hover:bg-ignite-600 text-white rounded-lg text-sm font-semibold transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-ignite-400 focus:ring-offset-2 focus:ring-offset-navy-900"
               >
                 Contact Support
               </Link>
@@ -487,17 +494,14 @@ const PremiumNavigation = () => {
         </nav>
       </aside>
 
-      {/* Main Content */}
-      <div className="mt-16 md:ml-72 relative">
-        {/* Overlay - Only show on mobile */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-gray-800/30 backdrop-blur-sm z-[45] md:hidden transition-opacity duration-500 mt-16"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-      </div>
-    </div>
+      {/* Overlay — mobile only, closes the sidebar on tap-away */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 top-16 bg-navy-950/30 backdrop-blur-sm z-[45] md:hidden transition-opacity duration-500"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+    </>
   );
 };
 
