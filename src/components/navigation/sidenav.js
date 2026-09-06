@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 
+import logo from "../../assets/logo.png";
+
 import navigationItems from "../../data/navigation.json";
 import { useAppData } from "../../context/AppDataContext";
 import { useAuth } from "../../context/AuthContext";
@@ -172,8 +174,8 @@ const PremiumNavigation = () => {
               <Menu size={20} className="transition-all duration-300" />
             )}
           </button>
-          <Link to="/" className="text-green-600 font-bold text-xl relative z-[70]">
-            Ignition
+          <Link to="/" className="relative z-[70] flex items-center" aria-label="Ignition home">
+            <img src={logo} alt="Ignition" className="h-8 w-auto" />
           </Link>
         </div>
 
