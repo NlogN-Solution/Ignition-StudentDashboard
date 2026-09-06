@@ -3,15 +3,17 @@ import React from "react";
 import SideNavigation from "../navigation/sidenav";
 
 /**
- * The shell every signed-in screen sits in: side navigation plus a flexible
- * content column. Extracted from the six near-identical *Layout files that used
- * to repeat this markup verbatim.
+ * The shell every signed-in screen sits in: fixed header + sidebar from
+ * SideNavigation, plus a content column offset to clear both (pt-16 for the
+ * header, md:pl-72 for the sidebar). SideNavigation only renders the fixed
+ * chrome itself — this is the one place that reserves the actual layout
+ * space for it, so content never renders underneath it.
  */
 const AppLayout = ({ children, contentClassName }) => (
-  <div className="flex min-h-screen">
+  <div className="min-h-screen bg-slate-50">
     <SideNavigation />
 
-    <div className="flex-1 flex flex-col">
+    <div className="pt-16 md:pl-72">
       {contentClassName ? (
         <div className={contentClassName}>{children}</div>
       ) : (

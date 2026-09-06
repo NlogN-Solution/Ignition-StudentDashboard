@@ -5,7 +5,7 @@
 
 // 8001, not FastAPI's usual 8000 — offset because ED360's own stack already
 // occupies 8000 on this machine (see backend/README.md "Ports").
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8001/api/v1";
+const BASE_URL="https://ignition-backend-2ste.onrender.com/api/v1"
 
 const ACCESS_TOKEN_KEY = "ignition_access_token";
 const REFRESH_TOKEN_KEY = "ignition_refresh_token";
