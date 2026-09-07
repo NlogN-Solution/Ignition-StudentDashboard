@@ -175,6 +175,7 @@ const StudentDashboard = () => {
           {/* Application Progress Section */}
           <motion.div
             className="bg-white rounded-lg shadow p-6"
+            data-tour="dashboard-overview"
             {...fadeIn}
           >
             <div className="flex justify-between items-center mb-4">
@@ -245,6 +246,7 @@ const StudentDashboard = () => {
             {/* Priority Tasks */}
             <motion.div
               className="lg:col-span-2 bg-white rounded-lg shadow p-6"
+              data-tour="dashboard-priority-tasks"
               {...fadeIn}
             >
               <h2 className="text-lg font-semibold mb-4">Priority Tasks</h2>

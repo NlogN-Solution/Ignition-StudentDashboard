@@ -136,18 +136,35 @@ const withImportedResearch = async (user) => {
   };
 };
 
+// TEMPORARY LOCAL VERIFICATION STUB — REMOVE
+const DEMO_USER = {
+  id: "demo-student",
+  fullName: "Aarav Sharma",
+  email: "aarav@example.com",
+  role: "student",
+  profileImage: null,
+  basicInfo: { dateOfBirth: "", gender: "", nationality: "" },
+  address: {},
+  education: {},
+  preferences: {},
+  testScores: {},
+  profileCompletion: 45,
+  onboardingCompleted: true,
+  hasProfile: false,
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(DEMO_USER);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   // True until the initial "is there already a valid session?" check resolves,
   // so a page refresh doesn't flash a logged-out state before it's known.
-  const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [isBootstrapping, setIsBootstrapping] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     const bootstrap = async () => {
-      if (!getAccessToken()) {
+      if (true || !getAccessToken()) {
         setIsBootstrapping(false);
         return;
       }

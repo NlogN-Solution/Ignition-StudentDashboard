@@ -9,8 +9,8 @@ import { fetchMyProfile } from "../../api/students";
 import { getEducationHistoryApi, getWorkExperienceApi } from "../../api/studentPortal";
 import { formatDate } from "../../lib/simulate";
 
-const SectionCard = ({ title, icon: Icon, children, actions }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+const SectionCard = ({ title, icon: Icon, children, actions, dataTour }) => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6" data-tour={dataTour}>
     <div className="flex items-center justify-between mb-4">
       <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
         {Icon && <Icon className="w-5 h-5 text-blue-500" />}
@@ -66,7 +66,7 @@ const EnhancedProfile = () => {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <SectionCard title="Profile Overview" icon={User}>
+        <SectionCard title="Profile Overview" icon={User} dataTour="profile-overview">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -127,7 +127,7 @@ const EnhancedProfile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard title="Study Preferences" icon={GraduationCap}>
+            <SectionCard title="Study Preferences" icon={GraduationCap} dataTour="profile-preferences">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InfoField label="Preferred Country" value={profile?.preferred_country} />
                 <InfoField label="Preferred Program" value={profile?.preferred_program} />
@@ -138,7 +138,7 @@ const EnhancedProfile = () => {
               </div>
             </SectionCard>
 
-            <SectionCard title="Academic Background" icon={GraduationCap}>
+            <SectionCard title="Academic Background" icon={GraduationCap} dataTour="profile-academics">
               {education.length > 0 ? (
                 <div className="space-y-3">
                   {education.map((entry) => (

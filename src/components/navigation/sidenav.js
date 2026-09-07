@@ -20,6 +20,7 @@ import {
   Camera,
   UserCircle,
   MessageCircle,
+  Compass,
 } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 
@@ -28,6 +29,7 @@ import logo from "../../assets/logo.png";
 import navigationItems from "../../data/navigation.json";
 import { useAppData } from "../../context/AppDataContext";
 import { useAuth } from "../../context/AuthContext";
+import { useDashboardTour } from "../../context/TourContext";
 import { formatDeadline, formatRelativeTime } from "../../lib/simulate";
 import IgnitionMark from "../common/IgnitionMark";
 
@@ -35,6 +37,9 @@ const PremiumNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
+  // Null on screens rendered outside the tour provider — the hook is
+  // deliberately non-throwing for exactly this reason.
+  const tour = useDashboardTour();
   const {
     notifications,
     unreadNotificationCount,
@@ -105,6 +110,15 @@ const PremiumNavigation = () => {
       document.removeEventListener("keydown", handleKeyboard);
     };
   }, []);
+
+  // A tour step that points at the sidebar has to open it first on mobile,
+  // where it is an off-canvas drawer. The request carries a sequence number so
+  // asking for the same state twice still re-opens it.
+  const navDrawerRequest = tour?.navDrawerRequest;
+  useEffect(() => {
+    if (!navDrawerRequest) return;
+    setIsSidebarOpen(navDrawerRequest.open);
+  }, [navDrawerRequest]);
 
   // The chosen file never leaves the browser — we only keep an object URL for
   // the preview and hold it in the simulated session.
@@ -183,7 +197,7 @@ const PremiumNavigation = () => {
 
         <div className="flex items-center gap-2">
           {/* Priority Tasks */}
-          <div className="relative" ref={priorityTasksRef}>
+          <div className="relative" ref={priorityTasksRef} data-tour="priority-tasks">
             <button
               className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-700 transition-colors"
               onClick={() => setShowPriorityTasks(!showPriorityTasks)}
@@ -244,7 +258,7 @@ const PremiumNavigation = () => {
           </div>
 
           {/* Notifications */}
-          <div className="relative" ref={notificationRef}>
+          <div className="relative" ref={notificationRef} data-tour="notifications">
             <button
               className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-700 transition-colors"
               onClick={() => setShowNotifications(!showNotifications)}
@@ -310,7 +324,7 @@ const PremiumNavigation = () => {
           </div>
 
           {/* User Profile */}
-          <div className="relative" ref={userMenuRef}>
+          <div className="relative" ref={userMenuRef} data-tour="account-menu">
             <button
               className="relative p-1 rounded-full hover:bg-navy-50 overflow-hidden transition-colors"
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -385,6 +399,19 @@ const PremiumNavigation = () => {
                     <Settings className="h-5 w-5 mr-3" />
                     Settings
                   </Link>
+                  {tour && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        tour.restartTour();
+                      }}
+                      className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
+                    >
+                      <Compass className="h-5 w-5 mr-3" />
+                      Take dashboard tour again
+                    </button>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-red-50 hover:text-red-700"
@@ -413,6 +440,7 @@ const PremiumNavigation = () => {
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
+        data-tour="sidebar"
         className={`fixed top-16 h-[calc(100vh-4rem)] bg-white w-72 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 transition-transform duration-500 shadow-xl md:shadow-none border-r border-slate-100 overflow-y-auto z-[50]`}
@@ -423,6 +451,7 @@ const PremiumNavigation = () => {
               <Link
                 key={item.id}
                 to={item.path}
+                data-tour={item.tourId}
                 className={`flex items-center gap-4 px-4 py-3 rounded-lg group transition-all duration-300 relative
                   ${
                     activeItem === item.path
@@ -478,7 +507,10 @@ const PremiumNavigation = () => {
           </div>
 
           <div className="px-4 mt-24">
-            <div className="p-4 bg-gradient-to-br from-navy-900 to-navy-800 rounded-xl">
+            <div
+              className="p-4 bg-gradient-to-br from-navy-900 to-navy-800 rounded-xl"
+              data-tour="help-support"
+            >
               <h4 className="text-sm font-semibold text-white mb-1">
                 Need Help?
               </h4>

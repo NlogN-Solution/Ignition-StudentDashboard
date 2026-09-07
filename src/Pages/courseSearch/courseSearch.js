@@ -159,7 +159,7 @@ const CourseSearchHero = () => {
         </div>
 
         {/* Search Section - Matching Featured Courses Style */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto" data-tour="course-search">
           <form
             onSubmit={handleSearch}
             className="bg-gradient-to-b from-gray-900 via-gray-800 to-black  p-6 rounded-lg shadow-lg border border-gray-100"
