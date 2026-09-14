@@ -27,6 +27,18 @@ const STATUS_STYLES = {
   waived: "bg-gray-100 text-gray-500",
   under_review: "bg-yellow-100 text-yellow-700",
   expired: "bg-red-100 text-red-600",
+  // The backend's `ApplicationStatus` values a student-opened application
+  // moves through. Without them the badge printed the raw enum —
+  // "Ready_to_submit" — which is the database talking, not the product.
+  documents_pending: "bg-yellow-100 text-yellow-700",
+  ready_to_submit: "bg-blue-100 text-blue-600",
+  offer_received: "bg-green-100 text-green-600",
+  offer_accepted: "bg-green-100 text-green-600",
+  offer_declined: "bg-gray-100 text-gray-500",
+  visa_processing: "bg-yellow-100 text-yellow-700",
+  visa_approved: "bg-green-100 text-green-600",
+  visa_rejected: "bg-red-100 text-red-600",
+  enrolled: "bg-green-100 text-green-600",
 };
 
 export const STATUS_LABELS = {
@@ -54,11 +66,23 @@ export const STATUS_LABELS = {
   waived: "Waived",
   under_review: "Under review",
   expired: "Expired",
+  documents_pending: "Documents needed",
+  //: What a student's own submit lands on. Deliberately not "Submitted":
+  //: filing with the university is the counsellor's act, and the label has to
+  //: mean the same thing as the copy on the apply flow's last step.
+  ready_to_submit: "With your counsellor",
+  offer_received: "Offer received",
+  offer_accepted: "Offer accepted",
+  offer_declined: "Offer declined",
+  visa_processing: "Visa in progress",
+  visa_approved: "Visa approved",
+  visa_rejected: "Visa refused",
+  enrolled: "Enrolled",
 };
 
 const StatusBadge = ({ status, className = "" }) => (
   <span
-    className={`px-2 py-1 rounded text-xs font-medium capitalize ${
+    className={`px-2 py-1 rounded text-xs font-medium ${
       STATUS_STYLES[status] ?? "bg-gray-100 text-gray-600"
     } ${className}`}
   >

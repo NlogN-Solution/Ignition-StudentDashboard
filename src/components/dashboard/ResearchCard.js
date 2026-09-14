@@ -160,7 +160,7 @@ const ResearchCard = ({ research }) => {
 
       <div className="mt-5 flex flex-wrap gap-3">
         <Link
-          to="/course-search"
+          to="/explore"
           className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
         >
           Browse the Ignition catalogue

@@ -1,0 +1,80 @@
+{
+  "_comment": [
+    "Section breakdowns for every test the wizard collects.",
+    "",
+    "The wizard used to take one number per test and a date. That is not what a",
+    "university admits on: an entry requirement is almost always written as an",
+    "overall band 'with no component below' a floor, so a student with IELTS 6.5",
+    "and 5.5 in writing does not meet a 6.5/6.0 requirement — and the portal had",
+    "no way to know, because it never asked. Counsellors were reading the",
+    "component scores off the certificate on a call.",
+    "",
+    "Ranges are the published ones for each test. They are enforced in the",
+    "input's min/max so an impossible score is rejected at the control rather",
+    "than reaching a counsellor as a typo.",
+    "",
+    "'derive' says whether an overall can be computed from the components:",
+    "  mean-half — arithmetic mean, rounded to the nearest half band (IELTS)",
+    "  mean      — arithmetic mean, rounded to a whole number (PTE)",
+    "  sum       — the components add up to the total (TOEFL iBT, SAT)",
+    "  null      — the total is scaled and cannot be reconstructed (GRE, GMAT),",
+    "              so it is asked for directly and never guessed at."
+  ],
+
+  "IELTS": {
+    "overall": { "label": "Overall band", "min": 0, "max": 9, "step": 0.5, "derive": "mean-half" },
+    "sections": [
+      { "key": "listening", "label": "Listening", "min": 0, "max": 9, "step": 0.5 },
+      { "key": "reading", "label": "Reading", "min": 0, "max": 9, "step": 0.5 },
+      { "key": "writing", "label": "Writing", "min": 0, "max": 9, "step": 0.5 },
+      { "key": "speaking", "label": "Speaking", "min": 0, "max": 9, "step": 0.5 }
+    ]
+  },
+
+  "TOEFL": {
+    "overall": { "label": "Total score", "min": 0, "max": 120, "step": 1, "derive": "sum" },
+    "sections": [
+      { "key": "reading", "label": "Reading", "min": 0, "max": 30, "step": 1 },
+      { "key": "listening", "label": "Listening", "min": 0, "max": 30, "step": 1 },
+      { "key": "speaking", "label": "Speaking", "min": 0, "max": 30, "step": 1 },
+      { "key": "writing", "label": "Writing", "min": 0, "max": 30, "step": 1 }
+    ]
+  },
+
+  "PTE": {
+    "overall": { "label": "Overall score", "min": 10, "max": 90, "step": 1, "derive": "mean" },
+    "sections": [
+      { "key": "listening", "label": "Listening", "min": 10, "max": 90, "step": 1 },
+      { "key": "reading", "label": "Reading", "min": 10, "max": 90, "step": 1 },
+      { "key": "speaking", "label": "Speaking", "min": 10, "max": 90, "step": 1 },
+      { "key": "writing", "label": "Writing", "min": 10, "max": 90, "step": 1 }
+    ]
+  },
+
+  "GRE": {
+    "overall": { "label": "Total (Verbal + Quant)", "min": 260, "max": 340, "step": 1, "derive": null },
+    "sections": [
+      { "key": "verbal", "label": "Verbal Reasoning", "min": 130, "max": 170, "step": 1 },
+      { "key": "quantitative", "label": "Quantitative Reasoning", "min": 130, "max": 170, "step": 1 },
+      { "key": "analyticalWriting", "label": "Analytical Writing", "min": 0, "max": 6, "step": 0.5 }
+    ]
+  },
+
+  "GMAT": {
+    "overall": { "label": "Total score", "min": 200, "max": 800, "step": 10, "derive": null },
+    "sections": [
+      { "key": "verbal", "label": "Verbal", "min": 6, "max": 51, "step": 1 },
+      { "key": "quantitative", "label": "Quantitative", "min": 6, "max": 51, "step": 1 },
+      { "key": "integratedReasoning", "label": "Integrated Reasoning", "min": 1, "max": 8, "step": 1 },
+      { "key": "analyticalWriting", "label": "Analytical Writing", "min": 0, "max": 6, "step": 0.5 }
+    ]
+  },
+
+  "SAT": {
+    "overall": { "label": "Total score", "min": 400, "max": 1600, "step": 10, "derive": "sum" },
+    "sections": [
+      { "key": "ebrw", "label": "Evidence-Based Reading & Writing", "min": 200, "max": 800, "step": 10 },
+      { "key": "math", "label": "Math", "min": 200, "max": 800, "step": 10 }
+    ]
+  }
+}

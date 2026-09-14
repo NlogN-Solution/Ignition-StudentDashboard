@@ -39,9 +39,16 @@
     "Premium"
   ],
   "courses": [
-    "Computer Science",
-    "Business Administration",
-    "Engineering"
+    "Computing",
+    "Engineering",
+    "Health",
+    "Sciences",
+    "Business",
+    "Law",
+    "Arts & Design",
+    "Social Sciences",
+    "Education",
+    "Humanities"
   ],
   "faculties": [
     {
@@ -86,65 +93,65 @@
   "countryCodes": [
     {
       "value": "+977",
-      "label": "🇳🇵 +977"
+      "label": "\ud83c\uddf3\ud83c\uddf5 +977"
     },
     {
       "value": "+1",
-      "label": "🇺🇸 +1"
+      "label": "\ud83c\uddfa\ud83c\uddf8 +1"
     },
     {
       "value": "+91",
-      "label": "🇮🇳 +91"
+      "label": "\ud83c\uddee\ud83c\uddf3 +91"
     },
     {
       "value": "+44",
-      "label": "🇬🇧 +44"
+      "label": "\ud83c\uddec\ud83c\udde7 +44"
     },
     {
       "value": "+61",
-      "label": "🇦🇺 +61"
+      "label": "\ud83c\udde6\ud83c\uddfa +61"
     }
   ],
   "destinations": [
     {
       "name": "United States",
-      "icon": "🇺🇸"
+      "icon": "\ud83c\uddfa\ud83c\uddf8"
     },
     {
       "name": "Canada",
-      "icon": "🇨🇦"
+      "icon": "\ud83c\udde8\ud83c\udde6"
     },
     {
       "name": "United Kingdom",
-      "icon": "🇬🇧"
+      "icon": "\ud83c\uddec\ud83c\udde7"
     },
     {
       "name": "Australia",
-      "icon": "🇦🇺"
+      "icon": "\ud83c\udde6\ud83c\uddfa"
     },
     {
       "name": "Germany",
-      "icon": "🇩🇪"
+      "icon": "\ud83c\udde9\ud83c\uddea"
     },
     {
       "name": "Ireland",
-      "icon": "🇮🇪"
+      "icon": "\ud83c\uddee\ud83c\uddea"
     },
     {
       "name": "Malaysia",
-      "icon": "🇲🇾"
+      "icon": "\ud83c\uddf2\ud83c\uddfe"
     },
     {
       "name": "New Zealand",
-      "icon": "🇳🇿"
+      "icon": "\ud83c\uddf3\ud83c\uddff"
     },
     {
       "name": "Singapore",
-      "icon": "🇸🇬"
+      "icon": "\ud83c\uddf8\ud83c\uddec"
     },
     {
       "name": "United Arab Emirates",
-      "icon": "🇦🇪"
+      "icon": "\ud83c\udde6\ud83c\uddea"
     }
   ],
   "languageTests": [
@@ -212,5 +219,90 @@
     "Processing",
     "Pending",
     "Declined"
+  ],
+  "educationCountries": [
+    "Nepal",
+    "India",
+    "Bangladesh",
+    "Sri Lanka",
+    "Pakistan",
+    "Bhutan",
+    "Maldives",
+    "Afghanistan",
+    "China",
+    "Japan",
+    "South Korea",
+    "Malaysia",
+    "Singapore",
+    "Indonesia",
+    "Philippines",
+    "Thailand",
+    "Vietnam",
+    "Myanmar",
+    "Cambodia",
+    "Hong Kong",
+    "Taiwan",
+    "Mongolia",
+    "Kazakhstan",
+    "Uzbekistan",
+    "United Arab Emirates",
+    "Saudi Arabia",
+    "Qatar",
+    "Kuwait",
+    "Oman",
+    "Bahrain",
+    "Jordan",
+    "Lebanon",
+    "Turkey",
+    "Iran",
+    "Iraq",
+    "Israel",
+    "United Kingdom",
+    "Ireland",
+    "France",
+    "Germany",
+    "Netherlands",
+    "Belgium",
+    "Spain",
+    "Portugal",
+    "Italy",
+    "Switzerland",
+    "Austria",
+    "Sweden",
+    "Norway",
+    "Denmark",
+    "Finland",
+    "Poland",
+    "Czechia",
+    "Hungary",
+    "Romania",
+    "Greece",
+    "Ukraine",
+    "Russia",
+    "United States",
+    "Canada",
+    "Mexico",
+    "Brazil",
+    "Argentina",
+    "Chile",
+    "Colombia",
+    "Peru",
+    "Australia",
+    "New Zealand",
+    "Fiji",
+    "Nigeria",
+    "Ghana",
+    "Kenya",
+    "Uganda",
+    "Tanzania",
+    "Ethiopia",
+    "South Africa",
+    "Egypt",
+    "Morocco",
+    "Zimbabwe",
+    "Zambia",
+    "Rwanda",
+    "Cameroon",
+    "Other"
   ]
 }

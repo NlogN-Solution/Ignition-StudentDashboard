@@ -14,7 +14,6 @@ import {
   getActivityFeedFor,
   getApplicationsFor,
   getAppointmentsFor,
-  getCatalogApi,
   getDocumentsFor,
   getInterviewSessionsFor,
   getMessagesApi,
@@ -56,8 +55,6 @@ const newestFirst = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
 export const AppDataProvider = ({ children }) => {
   const { studentId } = useAuth();
 
-  const [courses, setCourses] = useState([]);
-  const [universities, setUniversities] = useState([]);
   const [applications, setApplications] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -82,8 +79,6 @@ export const AppDataProvider = ({ children }) => {
     let cancelled = false;
 
     if (!studentId) {
-      setCourses([]);
-      setUniversities([]);
       setApplications([]);
       setDocuments([]);
       setAppointments([]);
@@ -103,7 +98,6 @@ export const AppDataProvider = ({ children }) => {
       setIsLoading(true);
       try {
         const [
-          nextCatalog,
           nextApplications,
           nextDocuments,
           nextAppointments,
@@ -116,7 +110,6 @@ export const AppDataProvider = ({ children }) => {
           nextProgress,
           nextSaved,
         ] = await Promise.all([
-          getCatalogApi().catch(() => ({ courses: [], universities: [] })),
           getApplicationsFor().catch(() => []),
           getDocumentsFor().catch(() => []),
           getAppointmentsFor().catch(() => []),
@@ -131,8 +124,6 @@ export const AppDataProvider = ({ children }) => {
         ]);
         if (cancelled) return;
 
-        setCourses(nextCatalog.courses);
-        setUniversities(nextCatalog.universities);
         setApplications(nextApplications);
         setDocuments(nextDocuments);
         setAppointments(nextAppointments);
@@ -274,6 +265,22 @@ export const AppDataProvider = ({ children }) => {
   /** Real upload — `documentId` here is a `DocumentType` enum value
    * ("passport", "academic_transcript", ...), not a fixture slot id, since
    * the backend has no notion of a document "slot" — only actual uploads. */
+  /**
+   * Re-read the student's applications.
+   *
+   * The apply flow creates one and then submits it, both outside this context,
+   * and the Applications screen and the dashboard counters read from here. A
+   * targeted re-read is cheaper and less surprising than making those screens
+   * poll, and narrower than reloading everything the provider holds.
+   */
+  const reloadApplications = useCallback(async () => {
+    try {
+      setApplications(await getApplicationsFor());
+    } catch {
+      // Leave the last known list in place; the next page load will correct it.
+    }
+  }, []);
+
   const uploadDocument = useCallback(
     async (documentType, file) => {
       const uploaded = await uploadDocumentFile(documentType, file);
@@ -570,8 +577,6 @@ export const AppDataProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       // catalog
-      courses,
-      universities,
 
       // collections
       applications,
@@ -597,6 +602,7 @@ export const AppDataProvider = ({ children }) => {
       refetchMessages,
 
       // documents
+      reloadApplications,
       uploadDocument,
       removeDocument,
 
@@ -636,8 +642,6 @@ export const AppDataProvider = ({ children }) => {
       refetchProgress,
     }),
     [
-      courses,
-      universities,
       applications,
       documents,
       appointments,
@@ -655,6 +659,7 @@ export const AppDataProvider = ({ children }) => {
       pushNotification,
       unreadMessageCount,
       refetchMessages,
+      reloadApplications,
       uploadDocument,
       removeDocument,
       requestAppointment,

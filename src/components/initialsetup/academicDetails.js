@@ -3,6 +3,27 @@ import { ChevronRight } from 'lucide-react';
 
 import formOptions from '../../data/formOptions.json';
 
+/**
+ * The years a student can pick between, newest first.
+ *
+ * Both year fields were free `type="number"` inputs, which is a text box that
+ * happens to reject letters: it accepted `19999`, `3`, and a year fifty years
+ * in the future, and the validation below then had to reject what the control
+ * should never have offered. A student typing their completion year is not
+ * doing arithmetic — they are choosing one of about eighty answers they
+ * already know.
+ *
+ * The upper bound is five years out rather than the current year. A course a
+ * student is *on* has a completion year that has not happened yet, and that is
+ * the ordinary case for someone applying, not an edge case.
+ */
+const CURRENT_YEAR = new Date().getFullYear();
+const EARLIEST_YEAR = 1950;
+const YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR + 5 - EARLIEST_YEAR + 1 },
+  (unused, index) => CURRENT_YEAR + 5 - index
+);
+
 const AcademicDetails = ({ initialValues, onPrevious, onNext, isLastStep, isFirstStep }) => {
   const [education, setEducation] = useState(
     initialValues ?? {
@@ -24,20 +45,20 @@ const AcademicDetails = ({ initialValues, onPrevious, onNext, isLastStep, isFirs
 
   const validate = () => {
     const next = {};
-    const currentYear = new Date().getFullYear();
     const start = Number(education.startingYear);
     const end = Number(education.completionYear);
 
     if (!education.highestLevel) next.highestLevel = 'Select your highest level of education.';
-    if (!start || start < 1950 || start > currentYear) {
-      next.startingYear = `Enter a year between 1950 and ${currentYear}.`;
-    }
-    if (!end || end < 1950 || end > currentYear + 10) {
-      next.completionYear = 'Enter a valid completion year.';
+    // The range checks the old free-text inputs needed are now the dropdown's
+    // job. What is left is what a dropdown cannot enforce: that the two
+    // answers agree with each other.
+    if (!start) next.startingYear = 'Select the year you started.';
+    if (!end) {
+      next.completionYear = 'Select your year of completion.';
     } else if (start && end < start) {
       next.completionYear = 'Completion year cannot be before the starting year.';
     }
-    if (!education.country.trim()) next.country = 'Country of education is required.';
+    if (!education.country) next.country = 'Select the country you studied in.';
     if (!education.obtainedMarks.trim()) next.obtainedMarks = 'Enter your marks or CGPA.';
     if (Number(education.educationGap) > 0 && !education.gapReason.trim()) {
       next.gapReason = 'Explain the gap in your education.';
@@ -101,13 +122,18 @@ const AcademicDetails = ({ initialValues, onPrevious, onNext, isLastStep, isFirs
                     <label className="text-sm font-medium text-gray-700">
                       Starting Year<span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="number"
+                    <select
                       className={inputClass('startingYear')}
                       value={education.startingYear}
                       onChange={(e) => handleEducationChange('startingYear', e.target.value)}
-                      placeholder="YYYY"
-                    />
+                    >
+                      <option value="">Select year</option>
+                      {YEAR_OPTIONS.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
                     {errors.startingYear && (
                       <p className="text-sm text-red-500">{errors.startingYear}</p>
                     )}
@@ -117,13 +143,25 @@ const AcademicDetails = ({ initialValues, onPrevious, onNext, isLastStep, isFirs
                     <label className="text-sm font-medium text-gray-700">
                       Year of Completion <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="number"
+                    <select
                       className={inputClass('completionYear')}
                       value={education.completionYear}
                       onChange={(e) => handleEducationChange('completionYear', e.target.value)}
-                      placeholder="YYYY"
-                    />
+                    >
+                      <option value="">Select year</option>
+                      {YEAR_OPTIONS.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                    {/* Said here rather than left to a validation error: a
+                        student still studying has a completion year in the
+                        future, and a control that only offered past years
+                        would look like it was rejecting the truth. */}
+                    <p className="text-xs text-gray-500">
+                      Pick a future year if you have not finished yet.
+                    </p>
                     {errors.completionYear && (
                       <p className="text-sm text-red-500">{errors.completionYear}</p>
                     )}
@@ -134,13 +172,18 @@ const AcademicDetails = ({ initialValues, onPrevious, onNext, isLastStep, isFirs
                       Country of Education
                       <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       className={inputClass('country')}
                       value={education.country}
                       onChange={(e) => handleEducationChange('country', e.target.value)}
-                      placeholder="Enter country"
-                    />
+                    >
+                      <option value="">Select country</option>
+                      {formOptions.educationCountries.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
                     {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
                   </div>
 

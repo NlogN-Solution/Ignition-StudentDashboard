@@ -59,6 +59,10 @@ const toLegacyUser = (account, profile) => ({
     dateOfBirth: account.date_of_birth ?? "",
     gender: account.gender ?? "",
     nationality: profile?.nationality ?? "",
+    // Read and written now that the apply flow asks for it — a UK application
+    // needs a passport number and there was no way to give one from the
+    // portal, so it was being collected on a call.
+    passportNumber: profile?.passport_number ?? "",
   },
   address: profile?.address ?? {},
   education: profile?.education ?? {},
@@ -136,35 +140,18 @@ const withImportedResearch = async (user) => {
   };
 };
 
-// TEMPORARY LOCAL VERIFICATION STUB — REMOVE
-const DEMO_USER = {
-  id: "demo-student",
-  fullName: "Aarav Sharma",
-  email: "aarav@example.com",
-  role: "student",
-  profileImage: null,
-  basicInfo: { dateOfBirth: "", gender: "", nationality: "" },
-  address: {},
-  education: {},
-  preferences: {},
-  testScores: {},
-  profileCompletion: 45,
-  onboardingCompleted: true,
-  hasProfile: false,
-};
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(DEMO_USER);
+  const [user, setUser] = useState(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   // True until the initial "is there already a valid session?" check resolves,
   // so a page refresh doesn't flash a logged-out state before it's known.
-  const [isBootstrapping, setIsBootstrapping] = useState(false);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     const bootstrap = async () => {
-      if (true || !getAccessToken()) {
+      if (!getAccessToken()) {
         setIsBootstrapping(false);
         return;
       }
@@ -229,8 +216,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * `education`/`preferences`/`testScores`/`address` and `basicInfo.nationality`
-   * go to the student-profile endpoint and really do leave the browser now.
+   * `education`/`preferences`/`testScores`/`address` and
+   * `basicInfo.nationality`/`basicInfo.passportNumber` go to the
+   * student-profile endpoint and really do leave the browser now.
    *
    * Three things stay local-only, same posture as `profileImage` before it:
    * `fullName`/`email`/`phone` (no PATCH /auth/me exists — only staff can
@@ -279,6 +267,7 @@ export const AuthProvider = ({ children }) => {
     if (testScores !== undefined) profilePatch.test_scores = testScores;
     if (address !== undefined) profilePatch.address = address;
     if (basicInfo?.nationality !== undefined) profilePatch.nationality = basicInfo.nationality;
+    if (basicInfo?.passportNumber !== undefined) profilePatch.passport_number = basicInfo.passportNumber;
     if (onboardingCompleted !== undefined) profilePatch.onboarding_completed = onboardingCompleted;
 
     if (Object.keys(profilePatch).length === 0) return;
@@ -291,7 +280,11 @@ export const AuthProvider = ({ children }) => {
           ...current,
           // The PATCH created the row if it did not exist.
           hasProfile: true,
-          basicInfo: { ...current.basicInfo, nationality: profile.nationality ?? "" },
+          basicInfo: {
+            ...current.basicInfo,
+            nationality: profile.nationality ?? "",
+            passportNumber: profile.passport_number ?? "",
+          },
           address: profile.address ?? {},
           education: profile.education ?? {},
           preferences: profile.preferences ?? {},

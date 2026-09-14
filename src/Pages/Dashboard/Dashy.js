@@ -6,8 +6,8 @@ import {
   ChevronRight,
   Calendar,
   AlertCircle,
+  Bell,
   Clock,
-  Plus,
   ArrowUpRight,
   FileText,
   Building,
@@ -33,7 +33,6 @@ const StudentDashboard = () => {
   const { showToast } = useToast();
   const {
     applications,
-    requiredDocuments,
     upcomingAppointments,
     activityFeed,
     tasks,
@@ -42,8 +41,8 @@ const StudentDashboard = () => {
 
   const submittedApplications = applications.filter((app) => app.status !== 'draft');
   const offers = applications.filter((app) => app.status === 'offer');
-  const pendingDocuments = requiredDocuments.filter((doc) => doc.status !== 'approved');
   const nextAppointment = upcomingAppointments[0] ?? null;
+  const latestUpdate = activityFeed[0] ?? null;
 
   // Priority tasks are the next unlocked, incomplete milestones by due date.
   const priorityTasks = tasks
@@ -101,19 +100,27 @@ const StudentDashboard = () => {
         : 'No applications submitted yet',
     },
     {
-      key: 'documents',
-      label: 'Pending documents',
-      count: pendingDocuments.length,
-      lines: pendingDocuments.slice(0, 3).map((doc) => ({
-        icon: <FileText className="w-3 h-3" />,
-        text: doc.title,
+      // Replaces the former "Pending documents" card. Documents already have
+      // their own screen, their own nav entry and a priority task when one is
+      // outstanding, so this tile was the fourth place the same number
+      // appeared. What the grid had nowhere for was the answer to "has
+      // anything happened since I last looked", which is the question a
+      // student actually opens the dashboard with.
+      key: 'updates',
+      label: 'Recent updates',
+      count: activityFeed.length,
+      lines: activityFeed.slice(0, 3).map((entry) => ({
+        icon: <AlertCircle className="w-3 h-3" />,
+        text: entry.message,
       })),
-      icon: <CustomIcons iconType="pendingDocument" size={30} color="#FFA726" />,
+      icon: <CustomIcons iconType="application" size={30} color="#FFA726" />,
       secondaryIcon: <Clock className="w-4 h-4 text-orange-400" />,
-      actionIcon: <Plus className="w-4 h-4" />,
-      buttonText: 'Upload Documents',
-      onAction: () => navigate('/documents'),
-      stats: pendingDocuments.length ? 'Required before submission' : 'All required documents in',
+      actionIcon: <Bell className="w-4 h-4" />,
+      buttonText: 'View Notifications',
+      onAction: () => navigate('/notifications'),
+      stats: latestUpdate
+        ? `Last activity ${formatRelativeTime(latestUpdate.createdAt)}`
+        : 'Nothing has happened yet',
     },
     {
       // Replaces the former "Visa applications" card.
@@ -241,11 +248,16 @@ const StudentDashboard = () => {
             </div>
           </motion.div>
 
-          {/* Priority Tasks and Recent Updates */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Priority Tasks */}
+          {/* Priority Tasks.
+
+              The "Recent Updates" panel that used to sit beside this is gone:
+              recent activity is now the fourth card in the grid above, and
+              printing the same five entries twice on one screen is the sort of
+              thing that makes a dashboard feel busy without telling anyone
+              anything more. Tasks take the width the pair used to share. */}
+          <div className="grid grid-cols-1 gap-6">
             <motion.div
-              className="lg:col-span-2 bg-white rounded-lg shadow p-6"
+              className="bg-white rounded-lg shadow p-6"
               data-tour="dashboard-priority-tasks"
               {...fadeIn}
             >
@@ -285,45 +297,6 @@ const StudentDashboard = () => {
               )}
             </motion.div>
 
-            {/* Recent Updates */}
-            <motion.div
-              className="bg-white rounded-lg shadow p-6"
-              {...fadeIn}
-            >
-              <h2 className="text-lg font-semibold mb-4">Recent Updates</h2>
-              {activityFeed.length === 0 ? (
-                <EmptyState
-                  title="No activity yet"
-                  description="Actions you take across the portal show up here."
-                />
-              ) : (
-                <div className="space-y-4">
-                  {activityFeed.slice(0, 5).map((entry, index) => (
-                    <motion.div
-                      key={entry.id}
-                      className="flex items-start gap-3 p-3 border-b last:border-0"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ x: 5 }}
-                    >
-                      <motion.div
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
-                      </motion.div>
-                      <div>
-                        <p className="text-sm">{entry.message}</p>
-                        <span className="text-xs text-gray-500">
-                          {formatRelativeTime(entry.createdAt)}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
           </div>
         </div>
       </motion.div>

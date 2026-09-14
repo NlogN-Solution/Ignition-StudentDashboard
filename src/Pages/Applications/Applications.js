@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building, Calendar, ChevronRight, Clock, FileCheck, MapPin } from "lucide-react";
@@ -8,37 +8,45 @@ import EmptyState from "../../components/common/EmptyState";
 import StatusBadge from "../../components/common/StatusBadge";
 import { SkeletonList } from "../../components/common/Skeleton";
 import { useAppData } from "../../context/AppDataContext";
-import { simulateDelay } from "../../lib/simulate";
 
+/**
+ * The filters, keyed by the values the API actually returns.
+ *
+ * Three of the four used to name statuses that do not exist on the backend
+ * (`in-review`, `offer`) — leftovers from the fixture vocabulary — so clicking
+ * them filtered every application away and read as "you have none of those".
+ * A filter is grouped where a single status would be too narrow to be useful:
+ * an offer is an offer whether or not it has been accepted yet.
+ */
 const STATUS_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "submitted", label: "Submitted" },
-  { value: "in-review", label: "In review" },
-  { value: "offer", label: "Offers" },
+  { value: "all", label: "All", match: () => true },
+  {
+    value: "with-counsellor",
+    label: "With your counsellor",
+    match: (status) => ["draft", "documents_pending", "ready_to_submit"].includes(status),
+  },
+  { value: "submitted", label: "Submitted", match: (status) => status === "submitted" },
+  { value: "under_review", label: "In review", match: (status) => status === "under_review" },
+  {
+    value: "offer",
+    label: "Offers",
+    match: (status) => ["offer_received", "offer_accepted", "offer_declined"].includes(status),
+  },
 ];
 
 const Applications = () => {
-  const { applications } = useAppData();
+  // The provider's own flag, not a timer. This used to show a skeleton for a
+  // fixed 500ms and then render whatever `applications` held — which, while
+  // the provider was still fetching, was an empty array. A student who had
+  // just opened an application from a course landed here and was told they had
+  // none, for as long as the request took.
+  const { applications, isLoading } = useAppData();
 
-  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Simulated initial load so the skeleton state is exercised.
-  useEffect(() => {
-    let cancelled = false;
-    simulateDelay(500).then(() => {
-      if (!cancelled) setIsLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const visibleApplications = useMemo(() => {
-    const filtered =
-      statusFilter === "all"
-        ? applications
-        : applications.filter((app) => app.status === statusFilter);
+    const active = STATUS_FILTERS.find((filter) => filter.value === statusFilter);
+    const filtered = active ? applications.filter((app) => active.match(app.status)) : applications;
     return [...filtered].sort(
       (a, b) => new Date(b.applicationDate ?? 0) - new Date(a.applicationDate ?? 0)
     );
@@ -49,7 +57,7 @@ const Applications = () => {
       <PageHeader
         icon={FileCheck}
         title="My Applications"
-        description="Applications are opened by your counsellor once you're ready to apply — track their progress here."
+        description="Track every application here — start one from a course in Explore, or your counsellor opens it for you."
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
@@ -78,7 +86,7 @@ const Applications = () => {
             title={statusFilter === "all" ? "No applications yet" : "Nothing matches this filter"}
             description={
               statusFilter === "all"
-                ? "Once your counsellor opens an application on your behalf, it will show up here with its full timeline."
+                ? "Start one from a course in Explore, or your counsellor opens it for you — either way it shows up here with its full timeline."
                 : "Try a different status filter to see your other applications."
             }
           />

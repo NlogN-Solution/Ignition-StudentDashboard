@@ -21,10 +21,10 @@ import {
   UserCircle,
   MessageCircle,
   Compass,
+  GraduationCap,
 } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 
-import logo from "../../assets/logo.png";
 
 import navigationItems from "../../data/navigation.json";
 import { useAppData } from "../../context/AppDataContext";
@@ -151,6 +151,7 @@ const PremiumNavigation = () => {
   const iconsMap = {
     home: Home,
     courseSearch: Search,
+    universities: GraduationCap,
     myApplications: FileCheck,
     appointments: CalendarClock,
     chat: MessageCircle,

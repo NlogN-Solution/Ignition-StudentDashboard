@@ -1,63 +1,152 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Circle, CircleCheck, Calendar, ChevronRight, X } from "lucide-react";
 
 import CustomIcons from "../icons/CustomIcons";
 import formOptions from "../../data/formOptions.json";
+import testSections from "../../data/testSections.json";
+import { FALLBACK_SUBJECTS, getPublicTaxonomies } from "../../api/catalogue";
 
-const emptyTest = { selected: false, score: "", date: "" };
+const emptyTest = { selected: false, score: "", date: "", sections: {} };
 
 const seedTests = (names) =>
-  names.reduce((acc, name) => ({ ...acc, [name]: { ...emptyTest } }), {});
+  names.reduce((acc, name) => ({ ...acc, [name]: { ...emptyTest, sections: {} } }), {});
 
-const TestCard = ({ type, testName, data, onToggle, onInputChange }) => (
-  <div className="p-4 border border-gray-200 rounded-lg hover:shadow-md hover:bg-gray-50 transition-all duration-300 flex flex-col">
-    <div className="flex items-center gap-3 mb-2">
-      <CustomIcons iconType="document" size={30} color="#4CAF50" />
-      <h3 className="font-medium text-gray-900">{testName}</h3>
-      <label className="flex items-center ml-auto cursor-pointer">
-        <input
-          type="checkbox"
-          className="hidden"
-          checked={data.selected}
-          onChange={() => onToggle(type, testName)}
-        />
-        {data.selected ? (
-          <CircleCheck className="text-green-500 w-5 h-5" />
-        ) : (
-          <Circle className="text-gray-300 w-5 h-5" />
-        )}
-      </label>
-    </div>
+/**
+ * Compute the overall from the components, where the test allows it.
+ *
+ * Returns `""` unless every component is filled: a partial average is a wrong
+ * number, and writing one into the field a university reads is worse than
+ * leaving it for the student to type. See `data/testSections.json` for what
+ * each `derive` mode means and why GRE and GMAT have none.
+ */
+const deriveOverall = (spec, sections) => {
+  if (!spec?.overall?.derive) return "";
 
-    {data.selected && (
-      <>
-        <div className="mt-2">
-          <label className="text-sm text-gray-600">Score</label>
+  const entered = spec.sections.map((section) => sections?.[section.key] ?? "");
+  if (entered.some((value) => value === "")) return "";
+
+  const values = entered.map(Number);
+  if (values.some((value) => !Number.isFinite(value))) return "";
+
+  const total = values.reduce((sum, value) => sum + value, 0);
+  if (spec.overall.derive === "sum") return String(total);
+
+  const mean = total / values.length;
+  if (spec.overall.derive === "mean") return String(Math.round(mean));
+  // IELTS rounds to the nearest half band — 6.25 is reported as 6.5, not 6.0.
+  return (Math.round(mean * 2) / 2).toFixed(1);
+};
+
+/**
+ * One test, with its component scores.
+ *
+ * The card used to take a single "Score" and a date. A university admits on
+ * the breakdown — "6.5 overall with no band below 6.0" is the ordinary form of
+ * an English requirement — so a single number could not answer the question
+ * the requirement asks, and the components were being read off a certificate
+ * on a phone call instead.
+ *
+ * The components are optional and the overall is not. That is the right way
+ * round: a student who knows only their band should not be blocked from
+ * finishing setup, and one who fills the breakdown in gets the overall
+ * computed for them rather than being asked for a number they have already
+ * given four parts of. Typing over a derived overall wins — some certificates
+ * report a total that is not the mean, and the certificate is the authority.
+ */
+const TestCard = ({ type, testName, data, onToggle, onInputChange, onSectionChange }) => {
+  const spec = testSections[testName];
+  const overallLabel = spec?.overall?.label ?? "Score";
+
+  return (
+    <div className="p-4 border border-gray-200 rounded-lg hover:shadow-md hover:bg-gray-50 transition-all duration-300 flex flex-col">
+      <div className="flex items-center gap-3 mb-2">
+        <CustomIcons iconType="document" size={30} color="#4CAF50" />
+        <h3 className="font-medium text-gray-900">{testName}</h3>
+        <label className="flex items-center ml-auto cursor-pointer">
           <input
-            type="number"
-            value={data.score}
-            onChange={(e) => onInputChange(type, testName, e.target.value, "score")}
-            className="w-full mt-1 p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="Enter your score"
+            type="checkbox"
+            className="hidden"
+            checked={data.selected}
+            onChange={() => onToggle(type, testName)}
           />
-        </div>
+          {data.selected ? (
+            <CircleCheck className="text-green-500 w-5 h-5" />
+          ) : (
+            <Circle className="text-gray-300 w-5 h-5" />
+          )}
+        </label>
+      </div>
 
-        <div className="mt-4">
-          <label className="text-sm text-gray-600">Test Date</label>
-          <div className="relative">
-            <Calendar className="absolute top-2 left-2 text-gray-400 w-5 h-5" />
+      {data.selected && (
+        <>
+          {spec && (
+            <div className="mt-2 rounded-md border border-gray-100 bg-white p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                Section scores
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {spec.sections.map((section) => (
+                  <div key={section.key}>
+                    <label className="text-xs text-gray-600">{section.label}</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={section.min}
+                      max={section.max}
+                      step={section.step}
+                      value={data.sections?.[section.key] ?? ""}
+                      onChange={(e) => onSectionChange(type, testName, section.key, e.target.value)}
+                      className="w-full mt-1 p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder={`${section.min}–${section.max}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-gray-400">
+                {spec.overall.derive
+                  ? "Optional — filling all of these works out your overall."
+                  : "Optional. This test's total is scaled, so enter it below yourself."}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-3">
+            <label className="text-sm text-gray-600">
+              {overallLabel}
+              <span className="text-red-500">*</span>
+            </label>
             <input
-              type="date"
-              value={data.date}
-              onChange={(e) => onInputChange(type, testName, e.target.value, "date")}
-              className="w-full mt-1 pl-10 p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              type="number"
+              inputMode="decimal"
+              min={spec?.overall?.min}
+              max={spec?.overall?.max}
+              step={spec?.overall?.step}
+              value={data.score}
+              onChange={(e) => onInputChange(type, testName, e.target.value, "score")}
+              className="w-full mt-1 p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder={spec ? `${spec.overall.min}–${spec.overall.max}` : "Enter your score"}
             />
           </div>
-        </div>
-      </>
-    )}
-  </div>
-);
+
+          <div className="mt-4">
+            <label className="text-sm text-gray-600">
+              Test Date<span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Calendar className="absolute top-2 left-2 text-gray-400 w-5 h-5" />
+              <input
+                type="date"
+                value={data.date}
+                onChange={(e) => onInputChange(type, testName, e.target.value, "date")}
+                className="w-full mt-1 pl-10 p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 // Main StudyPreferences Component
 /**
@@ -86,6 +175,35 @@ const StudyPreferences = ({
   const [otherTests, setOtherTests] = useState(() => seedTests(formOptions.otherTests));
   const [errors, setErrors] = useState({});
 
+  /**
+   * "Preferred course" is the catalogue's own subject vocabulary, fetched.
+   *
+   * It used to be three hard-coded strings — "Computer Science", "Business
+   * Administration", "Engineering" — none of which is a value the catalogue
+   * uses. So a student's stated preference could not be joined to a single
+   * course they might apply for, the public site's course facets and this
+   * dropdown disagreed about what a subject even is, and research carried over
+   * from the public platform never prefilled because no title or subject in it
+   * could ever match one of the three.
+   *
+   * `formOptions.courses` is now the same ten values as a static fallback, so
+   * an unreachable API costs a student the freshness of the list and not the
+   * ability to finish setup.
+   */
+  const [subjects, setSubjects] = useState(() => formOptions.courses ?? FALLBACK_SUBJECTS);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPublicTaxonomies()
+      .then((taxonomies) => {
+        if (!cancelled && taxonomies?.subjects?.length) setSubjects(taxonomies.subjects);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleTestToggle = (type, test) => {
     const setter = type === "language" ? setLanguageTests : setOtherTests;
     setter((prev) => ({
@@ -98,8 +216,30 @@ const StudyPreferences = ({
     const setter = type === "language" ? setLanguageTests : setOtherTests;
     setter((prev) => ({
       ...prev,
-      [test]: { ...prev[test], [field]: value },
+      // `scoreEdited` records that the student typed the overall themselves,
+      // which stops a later section edit from overwriting it. A certificate
+      // that reports a total the components do not average to is the
+      // authority; our arithmetic is not.
+      [test]: { ...prev[test], [field]: value, ...(field === "score" ? { scoreEdited: true } : {}) },
     }));
+  };
+
+  const handleSectionChange = (type, test, sectionKey, value) => {
+    const setter = type === "language" ? setLanguageTests : setOtherTests;
+    setter((prev) => {
+      const current = prev[test];
+      const sections = { ...(current.sections ?? {}), [sectionKey]: value };
+      const derived = deriveOverall(testSections[test], sections);
+
+      return {
+        ...prev,
+        [test]: {
+          ...current,
+          sections,
+          score: current.scoreEdited || !derived ? current.score : derived,
+        },
+      };
+    });
   };
 
   const handleAddCountry = (country) => {
@@ -129,7 +269,27 @@ const StudyPreferences = ({
     ].filter(([, data]) => data.selected);
 
     if (selectedTests.some(([, data]) => !data.score || !data.date)) {
-      next.tests = "Fill in the score and date for every test you selected.";
+      next.tests = "Fill in the overall score and date for every test you selected.";
+    } else {
+      // Section scores are optional, but a section that *is* filled has to be
+      // a score the test can actually award. The input's min/max stops most of
+      // it; a pasted or keyboard-nudged value can still land outside, and a
+      // Writing band of 12 reaching a counsellor as fact is worse than a
+      // rejected form.
+      const outOfRange = selectedTests.find(([name, data]) => {
+        const spec = testSections[name];
+        if (!spec) return false;
+        return spec.sections.some((section) => {
+          const raw = data.sections?.[section.key];
+          if (raw === undefined || raw === "") return false;
+          const value = Number(raw);
+          return !Number.isFinite(value) || value < section.min || value > section.max;
+        });
+      });
+
+      if (outOfRange) {
+        next.tests = `Check your ${outOfRange[0]} section scores — one is outside the range that test awards.`;
+      }
     }
 
     setErrors(next);
@@ -142,7 +302,7 @@ const StudyPreferences = ({
   };
 
   const selectFields = [
-    { label: "Preferred Course", field: "course", options: formOptions.courses },
+    { label: "Preferred Course", field: "course", options: subjects },
     { label: "Study Mode", field: "studyMode", options: formOptions.studyModes },
     {
       label: "Highest Academic Qualification",
@@ -252,6 +412,7 @@ const StudyPreferences = ({
                 data={data}
                 onToggle={handleTestToggle}
                 onInputChange={handleInputChange}
+                onSectionChange={handleSectionChange}
               />
             ))}
           </div>
@@ -269,6 +430,7 @@ const StudyPreferences = ({
                 data={data}
                 onToggle={handleTestToggle}
                 onInputChange={handleInputChange}
+                onSectionChange={handleSectionChange}
               />
             ))}
           </div>

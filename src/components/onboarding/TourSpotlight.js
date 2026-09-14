@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
  * The dimmed backdrop with a hole cut out around the current step's target.
@@ -21,6 +21,19 @@ const RING_HALO = "rgba(255, 90, 31, 0.25)";
 
 const TourSpotlight = ({ rect, reduceMotion, onBackdropClick }) => {
   const blockerRef = useRef(null);
+  // The shadow spread is derived from the viewport, so it has to be recomputed
+  // when the viewport changes even if the target itself has not moved.
+  const [viewport, setViewport] = useState(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+
+  useEffect(() => {
+    const onResize = () =>
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const node = blockerRef.current;
@@ -34,6 +47,13 @@ const TourSpotlight = ({ rect, reduceMotion, onBackdropClick }) => {
       node.removeEventListener("touchmove", prevent);
     };
   }, []);
+
+  // The backdrop is the spotlight's own outer shadow, so the target keeps its
+  // real colours instead of being redrawn on top of a scrim. The spread has to
+  // be big enough to reach every viewport edge but no bigger: Chrome drops the
+  // shadow entirely once the painted rect gets very large, which is why the
+  // usual `0 0 0 9999px` spelling of this trick renders nothing here.
+  const spread = Math.ceil(Math.max(viewport.width, viewport.height)) + 120;
 
   const transition = reduceMotion
     ? "none"
@@ -60,7 +80,7 @@ const TourSpotlight = ({ rect, reduceMotion, onBackdropClick }) => {
             height: rect.height,
             borderRadius: rect.radius ?? 12,
             transition,
-            boxShadow: `0 0 0 9999px ${OVERLAY_COLOR}, 0 0 0 2px ${RING_COLOR}, 0 0 0 8px ${RING_HALO}`,
+            boxShadow: `0 0 0 ${spread}px ${OVERLAY_COLOR}, 0 0 0 2px ${RING_COLOR}, 0 0 0 8px ${RING_HALO}`,
           }}
         />
       )}

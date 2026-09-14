@@ -76,10 +76,10 @@ export const dashboardTourSteps = [
   {
     id: "course-search",
     target: '[data-tour="course-search"]',
-    route: "/course-search",
+    route: "/explore",
     placement: "bottom",
     title: "Explore your options",
-    body: "Browse suitable universities and courses by subject, destination, intake and budget, then save the ones you like so your counsellor can see your shortlist.",
+    body: "Search every course Ignition works with by subject, level, duration and university, then shortlist the ones you like — your counsellor sees your shortlist straight away.",
     tip: "Anything you saved on the public Ignition site is already waiting on your dashboard.",
   },
   {

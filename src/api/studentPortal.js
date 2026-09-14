@@ -83,7 +83,17 @@ const mapProgram = (p, universitiesById) => {
   };
 };
 
-/** Whole catalog, joined client-side (programs → university → country). */
+/**
+ * Whole catalog, joined client-side (programs → university → country).
+ *
+ * **Nothing in the portal calls this any more.** The explore screens read the
+ * public catalogue directly (`api/catalogue.js`) — the same 4,797 offerings
+ * the marketing site searches — where this returned at most 200 through a
+ * thinner shape. Kept, not deleted, because `/student/catalog/*` is still the
+ * right surface for anything that needs the *authenticated* view of the
+ * catalogue (a counsellor-visible program list, an intake picker), and
+ * rebuilding this mapper for the first such screen would be pure re-work.
+ */
 export const getCatalogApi = async () => {
   const [countriesRes, universitiesRes, programsRes] = await Promise.all([
     apiGet("/student/catalog/countries?limit=200"),
@@ -133,6 +143,39 @@ const mapApplication = (a) => ({
 export const getApplicationsFor = async () => {
   const data = await apiGet("/student/me/applications?limit=100");
   return data.items.map(mapApplication);
+};
+
+/**
+ * Open an application against a course, as the student.
+ *
+ * The staff `POST /applications` endpoint has never accepted this — it is
+ * locked to staff precisely so a student cannot post one naming an arbitrary
+ * `student_id` or an already-`enrolled` status. This is the student-facing
+ * counterpart, and it takes three fields: the course, an optional intake, and
+ * a note. Everything else is the backend's.
+ *
+ * Opens as a **draft**. Nothing is with the university until a counsellor
+ * files it.
+ */
+export const startApplicationApi = async ({ programId, intakeId, remarks }) => {
+  const data = await apiPost("/student/me/applications", {
+    program_id: programId,
+    intake_id: intakeId ?? null,
+    remarks: remarks || null,
+  });
+  return mapApplication(data);
+};
+
+/**
+ * "I have finished my part."
+ *
+ * Moves the application to `ready_to_submit`, not `submitted` — submitting is
+ * filing it *with the university*, which Ignition does on the student's behalf
+ * after checking it over. Idempotent, so a double-press is not an error.
+ */
+export const submitApplicationApi = async (applicationId) => {
+  const data = await apiPost(`/student/me/applications/${applicationId}/submit`);
+  return mapApplication(data);
 };
 
 export const getApplicationTimeline = async (applicationId) => {
@@ -714,6 +757,57 @@ export const getSavedItemsApi = async () => {
     universityIds: universities.items.map((i) => i.university_id),
     compareCourseIds: compare.items.map((i) => i.program_id),
     maxCompare: compare.max_items,
+  };
+};
+
+/**
+ * The same two calls as `getSavedItemsApi`, keeping the records instead of the ids.
+ *
+ * `/student/me/saved/*` has always returned the full `program` and
+ * `university` rows alongside each saved entry; the context above throws them
+ * away because all it needs is a set of ids to drive a heart icon. The
+ * shortlist panel needs the names, so it reads the same payload and keeps
+ * them, rather than resolving each id back into a record over the public
+ * catalogue — which has no by-id lookup and would be one request per saved
+ * course.
+ *
+ * Unpublished rows are kept and flagged, not filtered. A student saved it
+ * while it was published, and "the course you shortlisted has been withdrawn"
+ * is something to say rather than a row to make silently disappear.
+ */
+export const getSavedShortlistApi = async () => {
+  const [courses, universities] = await Promise.all([
+    apiGet("/student/me/saved/courses?limit=100"),
+    apiGet("/student/me/saved/universities?limit=100"),
+  ]);
+
+  return {
+    courses: courses.items
+      .filter((entry) => entry.program)
+      .map((entry) => ({
+        id: entry.program.id,
+        slug: entry.program.slug,
+        title: entry.program.name,
+        qualification: entry.program.qualification,
+        courseLevel: entry.program.course_level,
+        subject: entry.program.subject,
+        durationYears: entry.program.duration_years,
+        universityId: entry.program.university_id,
+        isPublished: entry.program.is_published,
+        savedAt: entry.created_at,
+      })),
+    universities: universities.items
+      .filter((entry) => entry.university)
+      .map((entry) => ({
+        id: entry.university.id,
+        slug: entry.university.slug,
+        name: entry.university.name,
+        city: entry.university.city,
+        region: entry.university.region,
+        monogram: entry.university.monogram,
+        isPublished: entry.university.is_published,
+        savedAt: entry.created_at,
+      })),
   };
 };
 
