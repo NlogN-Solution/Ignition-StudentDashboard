@@ -1,0 +1,108 @@
+{
+  "Canada": {
+    "code": "CA",
+    "flag": "🇨🇦",
+    "currency": "CAD",
+    "proofOfFundsName": "Guaranteed Investment Certificate (GIC)",
+    "note": "IRCC requires proof of first-year tuition plus a GIC covering living costs.",
+    "requirements": {
+      "tuitionUsd": 42000,
+      "livingCostUsd": 15000,
+      "insuranceUsd": 900,
+      "visaFeeUsd": 175,
+      "biometricsUsd": 63
+    },
+    "costCategories": [
+      { "id": "cc-ca-tuition", "category": "Tuition", "amount": 42000, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-living", "category": "Living Expenses", "amount": 15000, "essential": true, "phase": "ongoing" },
+      { "id": "cc-ca-insurance", "category": "Health Insurance", "amount": 900, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-visa", "category": "Visa Fee", "amount": 175, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-biometrics", "category": "Biometrics", "amount": 63, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-flight", "category": "Flight Tickets", "amount": 1100, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-accommodation", "category": "Accommodation Deposit", "amount": 1600, "essential": true, "phase": "arrival" },
+      { "id": "cc-ca-application", "category": "Application Fees", "amount": 480, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-tests", "category": "IELTS / PTE", "amount": 260, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-ca-settlement", "category": "Initial Settlement Cost", "amount": 1800, "essential": false, "phase": "arrival" },
+      { "id": "cc-ca-buffer", "category": "Miscellaneous Buffer", "amount": 2000, "essential": false, "phase": "ongoing" }
+    ]
+  },
+  "Australia": {
+    "code": "AU",
+    "flag": "🇦🇺",
+    "currency": "AUD",
+    "proofOfFundsName": "Genuine Student financial capacity evidence",
+    "note": "Home Affairs requires 12 months of living costs plus tuition and travel.",
+    "requirements": {
+      "tuitionUsd": 36000,
+      "livingCostUsd": 20000,
+      "insuranceUsd": 2100,
+      "visaFeeUsd": 1030,
+      "biometricsUsd": 0
+    },
+    "costCategories": [
+      { "id": "cc-au-tuition", "category": "Tuition", "amount": 36000, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-au-living", "category": "Living Expenses", "amount": 20000, "essential": true, "phase": "ongoing" },
+      { "id": "cc-au-oshc", "category": "Overseas Student Health Cover", "amount": 2100, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-au-visa", "category": "Visa Fee", "amount": 1030, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-au-flight", "category": "Flight Tickets", "amount": 1250, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-au-accommodation", "category": "Accommodation Deposit", "amount": 2100, "essential": true, "phase": "arrival" },
+      { "id": "cc-au-application", "category": "Application Fees", "amount": 330, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-au-tests", "category": "IELTS / PTE", "amount": 260, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-au-settlement", "category": "Initial Settlement Cost", "amount": 2200, "essential": false, "phase": "arrival" },
+      { "id": "cc-au-buffer", "category": "Miscellaneous Buffer", "amount": 2400, "essential": false, "phase": "ongoing" }
+    ]
+  },
+  "United Kingdom": {
+    "code": "UK",
+    "flag": "🇬🇧",
+    "currency": "GBP",
+    "proofOfFundsName": "28-day maintenance funds statement",
+    "note": "Funds must sit in the account for 28 consecutive days before applying.",
+    "requirements": {
+      "tuitionUsd": 33000,
+      "livingCostUsd": 14000,
+      "insuranceUsd": 1400,
+      "visaFeeUsd": 620,
+      "biometricsUsd": 25
+    },
+    "costCategories": [
+      { "id": "cc-uk-tuition", "category": "Tuition", "amount": 33000, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-living", "category": "Living Expenses", "amount": 14000, "essential": true, "phase": "ongoing" },
+      { "id": "cc-uk-ihs", "category": "Immigration Health Surcharge", "amount": 1400, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-visa", "category": "Visa Fee", "amount": 620, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-biometrics", "category": "Biometrics", "amount": 25, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-flight", "category": "Flight Tickets", "amount": 850, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-accommodation", "category": "Accommodation Deposit", "amount": 1400, "essential": true, "phase": "arrival" },
+      { "id": "cc-uk-application", "category": "Application Fees", "amount": 300, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-tests", "category": "IELTS / PTE", "amount": 260, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-uk-settlement", "category": "Initial Settlement Cost", "amount": 1500, "essential": false, "phase": "arrival" },
+      { "id": "cc-uk-buffer", "category": "Miscellaneous Buffer", "amount": 1800, "essential": false, "phase": "ongoing" }
+    ]
+  },
+  "Germany": {
+    "code": "DE",
+    "flag": "🇩🇪",
+    "currency": "EUR",
+    "proofOfFundsName": "Blocked account (Sperrkonto)",
+    "note": "A blocked account must hold a full year of living costs before the visa interview.",
+    "requirements": {
+      "tuitionUsd": 3000,
+      "livingCostUsd": 12500,
+      "insuranceUsd": 1500,
+      "visaFeeUsd": 80,
+      "biometricsUsd": 0
+    },
+    "costCategories": [
+      { "id": "cc-de-tuition", "category": "Tuition & Semester Fees", "amount": 3000, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-de-living", "category": "Living Expenses", "amount": 12500, "essential": true, "phase": "ongoing" },
+      { "id": "cc-de-insurance", "category": "Health Insurance", "amount": 1500, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-de-visa", "category": "Visa Fee", "amount": 80, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-de-flight", "category": "Flight Tickets", "amount": 780, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-de-accommodation", "category": "Accommodation Deposit", "amount": 1300, "essential": true, "phase": "arrival" },
+      { "id": "cc-de-application", "category": "Application Fees", "amount": 180, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-de-tests", "category": "IELTS / PTE", "amount": 260, "essential": true, "phase": "pre-arrival" },
+      { "id": "cc-de-settlement", "category": "Initial Settlement Cost", "amount": 1200, "essential": false, "phase": "arrival" },
+      { "id": "cc-de-buffer", "category": "Miscellaneous Buffer", "amount": 1500, "essential": false, "phase": "ongoing" }
+    ]
+  }
+}

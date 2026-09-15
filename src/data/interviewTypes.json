@@ -1,0 +1,29 @@
+[
+  {
+    "id": "itype-pre-cas",
+    "name": "Pre-CAS Interview",
+    "description": "The university's own check before it issues your CAS. Course knowledge, funding and intent.",
+    "durationMinutes": 20,
+    "questionCount": 4,
+    "passingScore": 70,
+    "accent": "blue"
+  },
+  {
+    "id": "itype-credibility",
+    "name": "UKVI Credibility Interview",
+    "description": "The Home Office interview for a Student visa. Short, recorded, and decided on whether you sound like a genuine student.",
+    "durationMinutes": 15,
+    "questionCount": 4,
+    "passingScore": 75,
+    "accent": "purple"
+  },
+  {
+    "id": "itype-academic",
+    "name": "Academic / Programme Interview",
+    "description": "Departmental questions for competitive courses — your subject, your work, and why this programme.",
+    "durationMinutes": 25,
+    "questionCount": 4,
+    "passingScore": 70,
+    "accent": "green"
+  }
+]

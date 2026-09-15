@@ -1,0 +1,150 @@
+{
+  "canada": {
+    "name": "Canada",
+    "flag": "🇨🇦",
+    "about": {
+      "title": "Studying in Canada",
+      "description": "Consistently ranked among the safest study destinations, Canada pairs research-heavy universities with one of the most direct post-study work routes available to international students.",
+      "categories": [
+        {
+          "title": "Education Excellence",
+          "items": [
+            "U15 research-intensive universities",
+            "Co-op programmes with paid placements",
+            "Strong engineering and computing faculties",
+            "Credentials recognised worldwide"
+          ]
+        },
+        {
+          "title": "Quality of Life",
+          "items": [
+            "Publicly funded healthcare in most provinces",
+            "Large, established Nepali community",
+            "Low crime rates in major student cities",
+            "Officially bilingual and multicultural"
+          ]
+        },
+        {
+          "title": "After You Graduate",
+          "items": [
+            "Post-Graduation Work Permit up to 3 years",
+            "20 hours of term-time work permitted",
+            "Express Entry points for Canadian study",
+            "Clear permanent residency pathway"
+          ]
+        }
+      ]
+    }
+  },
+  "united-kingdom": {
+    "name": "United Kingdom",
+    "flag": "🇬🇧",
+    "about": {
+      "title": "Studying in the United Kingdom",
+      "description": "The UK offers the shortest route to a recognised postgraduate degree — most taught master's finish in twelve months, which keeps total tuition and living costs well below longer programmes elsewhere.",
+      "categories": [
+        {
+          "title": "Education Excellence",
+          "items": [
+            "One-year taught master's degrees",
+            "Russell Group research universities",
+            "Centuries-old academic reputation",
+            "Strong business and law faculties"
+          ]
+        },
+        {
+          "title": "Quality of Life",
+          "items": [
+            "NHS access via the health surcharge",
+            "Compact, well-connected cities",
+            "Extensive student discount network",
+            "Easy travel across Europe"
+          ]
+        },
+        {
+          "title": "After You Graduate",
+          "items": [
+            "Graduate Route visa for 2 years",
+            "20 hours of term-time work permitted",
+            "Skilled Worker sponsorship route",
+            "Global financial and creative hub"
+          ]
+        }
+      ]
+    }
+  },
+  "australia": {
+    "name": "Australia",
+    "flag": "🇦🇺",
+    "about": {
+      "title": "Studying in Australia",
+      "description": "Australia combines Group of Eight universities with generous work rights and both February and July intakes, giving applicants two realistic entry points each year.",
+      "categories": [
+        {
+          "title": "Education Excellence",
+          "items": [
+            "Group of Eight research universities",
+            "Strong health and life sciences faculties",
+            "February and July intakes",
+            "ESOS Act protects student fees"
+          ]
+        },
+        {
+          "title": "Quality of Life",
+          "items": [
+            "High minimum wage for part-time work",
+            "Warm climate and coastal cities",
+            "Overseas Student Health Cover included",
+            "Well-established South Asian community"
+          ]
+        },
+        {
+          "title": "After You Graduate",
+          "items": [
+            "Temporary Graduate visa (subclass 485)",
+            "48 hours per fortnight during term",
+            "Skilled occupation lists for residency",
+            "Regional study incentives"
+          ]
+        }
+      ]
+    }
+  },
+  "germany": {
+    "name": "Germany",
+    "flag": "🇩🇪",
+    "about": {
+      "title": "Studying in Germany",
+      "description": "Public universities in Germany charge no tuition for most programmes, including for international students — the main financial requirement is a blocked account proving you can cover living costs.",
+      "categories": [
+        {
+          "title": "Education Excellence",
+          "items": [
+            "No tuition at most public universities",
+            "TU9 engineering institutes",
+            "Growing range of English-taught master's",
+            "Strong industry-linked research"
+          ]
+        },
+        {
+          "title": "Quality of Life",
+          "items": [
+            "Low living costs outside Munich",
+            "Subsidised student housing and transport",
+            "Central location within Europe",
+            "Mandatory but affordable health insurance"
+          ]
+        },
+        {
+          "title": "After You Graduate",
+          "items": [
+            "18-month job seeker residence permit",
+            "120 full or 240 half days of work per year",
+            "EU Blue Card for qualified graduates",
+            "Europe's largest engineering job market"
+          ]
+        }
+      ]
+    }
+  }
+}

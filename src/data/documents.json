@@ -1,0 +1,123 @@
+[
+  {
+    "id": "doc-001",
+    "studentId": "stu-001",
+    "title": "Passport Copy",
+    "description": "Scanned copy of your current passport",
+    "requirements": "PDF or JPG format, max 5MB",
+    "category": "Personal Documents",
+    "required": true,
+    "status": "completed",
+    "file": {
+      "name": "passport-richard-pokhrel.pdf",
+      "sizeBytes": 1843200,
+      "mimeType": "application/pdf",
+      "uploadedAt": "2026-06-14T07:12:00.000Z"
+    },
+    "expiryDate": "2031-05-30"
+  },
+  {
+    "id": "doc-002",
+    "studentId": "stu-001",
+    "title": "Passport Size Photo",
+    "description": "Recent photograph (last 6 months)",
+    "requirements": "JPEG format, 600x600px, max 2MB",
+    "category": "Personal Documents",
+    "required": true,
+    "status": "completed",
+    "file": {
+      "name": "profile-photo.jpg",
+      "sizeBytes": 412000,
+      "mimeType": "image/jpeg",
+      "uploadedAt": "2026-06-14T07:15:00.000Z"
+    },
+    "expiryDate": null
+  },
+  {
+    "id": "doc-003",
+    "studentId": "stu-001",
+    "title": "Academic Transcripts",
+    "description": "Official academic records from your institution",
+    "requirements": "PDF format only, max 10MB",
+    "category": "Academic Documents",
+    "required": true,
+    "status": null,
+    "file": null,
+    "expiryDate": null
+  },
+  {
+    "id": "doc-004",
+    "studentId": "stu-001",
+    "title": "Degree Certificate",
+    "description": "Copy of your highest degree certificate",
+    "requirements": "PDF format, max 5MB",
+    "category": "Academic Documents",
+    "required": true,
+    "status": "completed",
+    "file": {
+      "name": "bachelors-certificate.pdf",
+      "sizeBytes": 2210000,
+      "mimeType": "application/pdf",
+      "uploadedAt": "2026-06-20T09:40:00.000Z"
+    },
+    "expiryDate": null
+  },
+  {
+    "id": "doc-005",
+    "studentId": "stu-001",
+    "title": "Recommendation Letters",
+    "description": "Two letters from academic references",
+    "requirements": "PDF format, max 5MB per letter",
+    "category": "Academic Documents",
+    "required": true,
+    "status": null,
+    "file": null,
+    "expiryDate": null
+  },
+  {
+    "id": "doc-006",
+    "studentId": "stu-001",
+    "title": "Language Proficiency",
+    "description": "IELTS/TOEFL score report",
+    "requirements": "PDF format, max 5MB",
+    "category": "Test Scores",
+    "required": true,
+    "status": "completed",
+    "file": {
+      "name": "ielts-trf-2026.pdf",
+      "sizeBytes": 780000,
+      "mimeType": "application/pdf",
+      "uploadedAt": "2026-03-28T11:05:00.000Z"
+    },
+    "expiryDate": "2028-03-14"
+  },
+  {
+    "id": "doc-007",
+    "studentId": "stu-001",
+    "title": "Financial Documents",
+    "description": "Bank statements or sponsorship letters",
+    "requirements": "PDF format, max 10MB",
+    "category": "Financial Documents",
+    "required": true,
+    "status": null,
+    "file": null,
+    "expiryDate": null
+  },
+  {
+    "id": "doc-008",
+    "studentId": "stu-001",
+    "title": "Statement of Purpose",
+    "description": "Personal statement describing your study goals",
+    "requirements": "PDF or DOCX, max 2MB",
+    "category": "Academic Documents",
+    "required": false,
+    "status": "completed",
+    "file": {
+      "name": "sop-draft-v3.pdf",
+      "sizeBytes": 96000,
+      "mimeType": "application/pdf",
+      "uploadedAt": "2026-07-02T15:30:00.000Z"
+    },
+    "expiryDate": null
+  }
+]
