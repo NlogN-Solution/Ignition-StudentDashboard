@@ -11,8 +11,22 @@
 // Anything that filters or counts applications by phase imports from here, so
 // a tile's number and the list that tile opens are the same set by construction.
 
-/** Nobody but Ignition is holding this one yet. */
-export const IN_REVIEW_STATUSES = ["draft", "documents_pending", "ready_to_submit", "under_review"];
+/**
+ * Nobody but Ignition is holding this one yet.
+ *
+ * `requested` included: from the student's side an application they opened and
+ * one a counsellor has accepted are the same answer to "where is it" — with
+ * us, not with a university. The distinction between them is an internal one
+ * about whether work has been agreed to, and surfacing it as a separate group
+ * would ask the student to care about our queue.
+ */
+export const IN_REVIEW_STATUSES = [
+  "requested",
+  "draft",
+  "documents_pending",
+  "ready_to_submit",
+  "under_review",
+];
 
 export const SUBMITTED_STATUSES = ["submitted"];
 

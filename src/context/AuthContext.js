@@ -212,18 +212,35 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  /** Kept separate from `login` — used by the registration screen. */
+  /**
+   * Kept separate from `login` — used by the registration screen.
+   *
+   * Two failures, reported separately, because they are not the same event and
+   * the form cannot tell them apart from the outside. `apiRegister` failing
+   * means **no account was created**, and whatever the server said about the
+   * fields is the explanation. Everything after it failing means **the account
+   * exists** and only the sign-in that follows did not — telling that student
+   * to "check the fields above" sends them to correct a form that already
+   * worked, and the second attempt then fails on a duplicate email.
+   */
   const register = useCallback(async (payload) => {
     setIsAuthenticating(true);
     try {
       await apiRegister(payload);
+    } catch (error) {
+      clearTokens();
+      setIsAuthenticating(false);
+      return { ok: false, stage: "register", status: error?.status, error: error?.data };
+    }
+
+    try {
       const nextUser = await withImportedResearch(await loadSession());
       setUser(nextUser);
       setSessionHint();
       return { ok: true, user: nextUser };
     } catch (error) {
       clearTokens();
-      return { ok: false, error: error?.data };
+      return { ok: false, stage: "session", status: error?.status, error: error?.data };
     } finally {
       setIsAuthenticating(false);
     }

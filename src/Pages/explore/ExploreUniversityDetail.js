@@ -7,6 +7,7 @@ import {
   Info,
   MapPin,
   PoundSterling,
+  RefreshCw,
   Route,
   Users,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
 } from "../../components/explore/universityPanels";
 import { useAppData } from "../../context/AppDataContext";
 import { getPublicUniversity, searchPublicCourses } from "../../api/catalogue";
+import { isNotFoundError } from "../../lib/apiErrors";
 
 /**
  * One university, five questions, no navigation between them.
@@ -50,7 +52,10 @@ const ExploreUniversityDetail = () => {
 
   const [university, setUniversity] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  // `"missing"` when the catalogue answered 404, `"unavailable"` for anything
+  // else. See `isNotFoundError` — a failed request is not a withdrawal.
+  const [failure, setFailure] = useState(null);
+  const [attempt, setAttempt] = useState(0);
   const [courses, setCourses] = useState({ items: [], total: 0 });
   const [coursesLoading, setCoursesLoading] = useState(true);
 
@@ -58,14 +63,14 @@ const ExploreUniversityDetail = () => {
     let cancelled = false;
     setIsLoading(true);
     setCoursesLoading(true);
-    setNotFound(false);
+    setFailure(null);
 
     getPublicUniversity(slug)
       .then((found) => {
         if (!cancelled) setUniversity(found);
       })
-      .catch(() => {
-        if (!cancelled) setNotFound(true);
+      .catch((error) => {
+        if (!cancelled) setFailure(isNotFoundError(error) ? "missing" : "unavailable");
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -83,7 +88,7 @@ const ExploreUniversityDetail = () => {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, attempt]);
 
   if (isLoading) {
     return (
@@ -93,7 +98,28 @@ const ExploreUniversityDetail = () => {
     );
   }
 
-  if (notFound || !university) {
+  if (failure === "unavailable") {
+    return (
+      <div className="mx-auto max-w-7xl px-4 pt-9">
+        <EmptyState
+          icon={RefreshCw}
+          title="We couldn't load this university"
+          description="The catalogue didn't answer. The record is almost certainly still there — this is our end."
+          action={
+            <button
+              type="button"
+              onClick={() => setAttempt((n) => n + 1)}
+              className="rounded-lg bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Try again
+            </button>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (failure === "missing" || !university) {
     return (
       <div className="mx-auto max-w-7xl px-4 pt-9">
         <EmptyState

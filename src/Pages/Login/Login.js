@@ -5,8 +5,6 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle, Loader2, Clock3, Trophy, ShieldCh
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import IgnitionMark from '../../components/common/IgnitionMark';
-import SelectedCourseCard from '../../components/apply/SelectedCourseCard';
-import { useApplyIntentPreview } from '../../hooks/useApplyIntentPreview';
 
 const TRUST_POINTS = [
   {
@@ -30,8 +28,6 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, isAuthenticating } = useAuth();
-  // Null unless the student arrived from Apply Now. See lib/applyIntent.
-  const intent = useApplyIntentPreview();
   const { showToast } = useToast();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -139,22 +135,8 @@ const LoginPage = () => {
 
           <h2 className="text-2xl font-bold text-navy-900 sm:text-3xl">Welcome back</h2>
           <p className="mt-2 text-sm text-slate-500">
-            {intent?.course
-              ? 'Sign in and we will take you straight to your application.'
-              : 'Sign in to continue your application journey.'}
+            Sign in to continue your application journey.
           </p>
-
-          {/* The course survives choosing Login over Register.
-
-              This is the case the feature exists for: the intent is held in
-              sessionStorage by the portal, not in the registration screen's
-              state, so navigating between the two auth screens cannot drop it.
-              Showing it here is how the student knows that. */}
-          {intent?.course ? (
-            <div className="mt-5">
-              <SelectedCourseCard course={intent.course} />
-            </div>
-          ) : null}
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
             <div className="space-y-1.5">

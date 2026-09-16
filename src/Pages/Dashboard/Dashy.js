@@ -111,7 +111,13 @@ const StudentDashboard = () => {
     await markMilestoneSeen(celebrate.id);
   };
 
-  const submittedApplications = applications.filter((app) => app.status !== 'draft');
+  // `requested` alongside `draft`: neither has been handed to anyone. An
+  // application the student opened from a course page and that no counsellor
+  // has accepted is not a submission, and counting it as one told them they
+  // had done something they had not.
+  const submittedApplications = applications.filter(
+    (app) => app.status !== 'draft' && app.status !== 'requested'
+  );
 
   /**
    * Applications that have an offer.

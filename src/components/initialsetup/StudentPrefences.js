@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowRight, Calendar, Check, Compass, FileBadge, Globe2, Loader2, X } from "lucide-react";
+import { ArrowRight, Calendar, Check, Compass, FileBadge, Loader2 } from "lucide-react";
 
 import formOptions from "../../data/formOptions.json";
 import testSections from "../../data/testSections.json";
@@ -18,6 +18,9 @@ import {
 } from "../ui/kit";
 
 const emptyTest = { selected: false, score: "", date: "", sections: {} };
+
+/** The only destination Ignition places students in. */
+const DESTINATION = "United Kingdom";
 
 const seedTests = (names) =>
   names.reduce((acc, name) => ({ ...acc, [name]: { ...emptyTest, sections: {} } }), {});
@@ -222,7 +225,11 @@ const StudyPreferences = ({
   initialValues,
 }) => {
   const [studyPreferences, setStudyPreferences] = useState({
-    country: [],
+    // Pre-filled, and there is nothing else to pick. Ignition works with UK
+    // institutions only, so asking was a question with one answer that a
+    // student could still get wrong by skipping — it blocked the step with
+    // "Add at least one destination" until they chose the only option.
+    country: [DESTINATION],
     course: "",
     studyMode: "",
     feeStructure: "",
@@ -301,24 +308,8 @@ const StudyPreferences = ({
     });
   };
 
-  const handleAddCountry = (country) => {
-    if (!country || studyPreferences.country.includes(country)) return;
-    setStudyPreferences((prev) => ({ ...prev, country: [...prev.country, country] }));
-    setErrors((prev) => ({ ...prev, country: undefined }));
-  };
-
-  const handleRemoveCountry = (country) => {
-    setStudyPreferences((prev) => ({
-      ...prev,
-      country: prev.country.filter((c) => c !== country),
-    }));
-  };
-
   const validate = () => {
     const next = {};
-    if (studyPreferences.country.length === 0) {
-      next.country = "Add at least one destination.";
-    }
     if (!studyPreferences.course) next.course = "Select a preferred course.";
     if (!studyPreferences.studyMode) next.studyMode = "Select a study mode.";
 
@@ -381,11 +372,6 @@ const StudyPreferences = ({
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  // The destinations not already chosen. Offering a country that is already a
-  // chip is offering a control that does nothing when used.
-  const remainingDestinations = formOptions.destinations.filter(
-    ({ name }) => !studyPreferences.country.includes(name)
-  );
 
   return (
     <div className="space-y-6">
@@ -398,63 +384,19 @@ const StudyPreferences = ({
         />
 
         <PanelBody className="space-y-6">
-          {/* ---------------------------------------------- destinations --- */}
+          {/* ---------------------------------------------- destination --- */}
+          {/* Stated, not asked. Ignition places students at UK institutions
+              and the catalogue behind this wizard has nothing else in it, so a
+              picker here offered one option and could still be left empty. */}
           <div>
-            <span className="block text-[14px] font-semibold text-ink-soft" id="destinations-label">
-              Preferred destinations
-              <span className="ml-0.5 text-orange" aria-hidden>
-                *
-              </span>
-            </span>
-
-            {studyPreferences.country.length > 0 ? (
-              <ul className="mt-[10px] flex flex-wrap gap-2">
-                {studyPreferences.country.map((country) => (
-                  <li key={country}>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-navy-100 bg-navy-50 py-1.5 pl-3 pr-1.5 text-[14px] font-bold text-navy-900">
-                      <span aria-hidden>
-                        {formOptions.destinations.find((c) => c.name === country)?.icon}
-                      </span>
-                      {country}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCountry(country)}
-                        aria-label={`Remove ${country}`}
-                        className="flex h-[22px] w-[22px] items-center justify-center rounded-full text-navy-500 transition-colors hover:bg-navy-100 hover:text-navy-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-bright"
-                      >
-                        <X className="h-[14px] w-[14px]" strokeWidth={2.6} />
-                      </button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-
-            <div className="mt-[10px] max-w-[420px]">
-              <SelectInput
-                id="add-destination"
-                aria-labelledby="destinations-label"
-                icon={Globe2}
-                value=""
-                error={errors.country}
-                placeholder={
-                  remainingDestinations.length
-                    ? "Add a destination…"
-                    : "Every destination added"
-                }
-                disabled={remainingDestinations.length === 0}
-                options={remainingDestinations.map(({ name, icon }) => ({
-                  value: name,
-                  label: `${icon} ${name}`,
-                }))}
-                onChange={(e) => handleAddCountry(e.target.value)}
-              />
-            </div>
-            {errors.country ? (
-              <p id="add-destination-error" className="mt-[7px] text-[13.5px] font-semibold text-orange">
-                {errors.country}
-              </p>
-            ) : null}
+            <span className="block text-[14px] font-semibold text-ink-soft">Destination</span>
+            <p className="mt-[10px] inline-flex items-center gap-2 rounded-full border border-navy-100 bg-navy-50 py-1.5 pl-3 pr-4 text-[14px] font-bold text-navy-900">
+              <span aria-hidden>🇬🇧</span>
+              {DESTINATION}
+            </p>
+            <p className="mt-[7px] text-[13.5px] font-medium text-ink-faint">
+              Ignition works with UK universities. Everything below is about studying there.
+            </p>
           </div>
 
           {/* -------------------------------------------------- the rest --- */}

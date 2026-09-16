@@ -19,6 +19,7 @@ import { useAppData } from "../../context/AppDataContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { getPublicCourse } from "../../api/catalogue";
+import { isNotFoundError } from "../../lib/apiErrors";
 import {
   DOCUMENT_TYPE_LABELS,
   getApplicationChecklistApi,
@@ -128,6 +129,12 @@ const ApplyFlow = () => {
 
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Why the course is missing, when it is. A failed request used to land on
+  // the same "it may have been withdrawn" screen as a genuine 404 — which,
+  // while `GET /public/courses/{slug}` was 500ing, turned the Apply button
+  // into a dead end for every course in the catalogue.
+  const [failure, setFailure] = useState(null);
+  const [attempt, setAttempt] = useState(0);
   const [step, setStep] = useState(1);
   const [details, setDetails] = useState({});
   const [errors, setErrors] = useState({});
@@ -138,18 +145,22 @@ const ApplyFlow = () => {
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoading(true);
+    setFailure(null);
     getPublicCourse(slug)
       .then((found) => {
         if (!cancelled) setCourse(found);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled) setFailure(isNotFoundError(error) ? "missing" : "unavailable");
+      })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, attempt]);
 
   // Seed the form from the profile once the user is loaded, so the student
   // edits what they already told us rather than a blank page.
@@ -325,6 +336,27 @@ const ApplyFlow = () => {
     return (
       <div className="mx-auto max-w-4xl px-4 pt-9">
         <SkeletonList count={4} />
+      </div>
+    );
+  }
+
+  if (failure === "unavailable") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 pt-9">
+        <EmptyState
+          icon={AlertTriangle}
+          title="We couldn't load this course"
+          description="The catalogue didn't answer, so we can't start your application yet. Nothing has been lost — try again."
+          action={
+            <button
+              type="button"
+              onClick={() => setAttempt((n) => n + 1)}
+              className="rounded-lg bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Try again
+            </button>
+          }
+        />
       </div>
     );
   }

@@ -37,17 +37,58 @@ const RegistrationPage = () => {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /**
+   * The same rules the backend enforces, said in advance and one at a time.
+   *
+   * Every message here names the field's own problem, because a form that can
+   * only say "check the fields above" is a form the student has to debug. Two
+   * of these mirror a server rule that used to fail invisibly:
+   *
+   *   - **A surname is required.** `PublicRegisterRequest.last_name` is
+   *     `min_length=1`, and this form builds it by splitting the full name on
+   *     whitespace — so a student who typed one word got a 422 on a field that
+   *     does not appear on screen, and the only thing shown was the generic
+   *     sentence at the bottom.
+   *   - **The phone number is capped at 20 characters** once the dialling code
+   *     is prepended, which is now what we send.
+   */
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = "Full name is required.";
-    if (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email))
-      newErrors.email = "A valid email address is required.";
-    if (!formData.phone || !/^\d+$/.test(formData.phone))
-      newErrors.phone = "A valid phone number is required.";
-    if (!formData.password || formData.password.length < 8)
-      newErrors.password = "Use at least 8 characters.";
-    if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match.";
+
+    const nameParts = formData.fullName.trim().split(/\s+/).filter(Boolean);
+    if (nameParts.length === 0) {
+      newErrors.fullName = "Enter your full name.";
+    } else if (nameParts.length === 1) {
+      newErrors.fullName = "Enter your first and last name, as they appear on your passport.";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Enter your email address.";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+      newErrors.email = "That doesn't look like an email address — check for a typo.";
+    }
+
+    const digits = formData.phone.replace(/[\s-]/g, "");
+    if (!digits) {
+      newErrors.phone = "Enter your phone number.";
+    } else if (!/^\d+$/.test(digits)) {
+      newErrors.phone = "Digits only — leave out spaces, brackets and the country code.";
+    } else if (digits.length < 6 || `${countryCode}${digits}`.length > 20) {
+      newErrors.phone = "That number is the wrong length. Check it and try again.";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Choose a password.";
+    } else if (formData.password.length < 8) {
+      newErrors.password = `Use at least 8 characters — that one is ${formData.password.length}.`;
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Re-enter your password.";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "These two don't match.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -63,28 +104,71 @@ const RegistrationPage = () => {
     // No confirm_password — the backend's PublicRegisterRequest forbids
     // fields it doesn't declare, and confirmation is a client-side-only
     // check (already enforced by validateForm above).
+    //
+    // The dialling code travels with the number. The selector has been on this
+    // form since it was written and its value was thrown away, so every
+    // account was created with a bare local number and no country — which is
+    // not a number anyone can ring from the office.
     const result = await register({
-      email: formData.email,
+      email: formData.email.trim(),
       first_name: firstName || "",
       last_name: rest.join(" "),
-      phone: formData.phone,
+      phone: `${countryCode}${formData.phone.replace(/[\s-]/g, "")}`,
       password: formData.password,
     });
     setIsSubmitting(false);
 
     if (!result.ok) {
+      // The account was created and only the sign-in that follows failed. Do
+      // not send them back to the form — the form worked, and a second attempt
+      // would fail on a duplicate email and look like their fault.
+      if (result.stage === "session") {
+        setFormError(
+          "Your account was created, but we couldn't sign you in just now. Try signing in from the login page.",
+        );
+        return;
+      }
+
       // `result.error` is the parsed response body — either
       // `{ detail: "message" }` (a conflict, e.g. duplicate email) or
       // `{ detail: [{ loc, msg }, ...] }` (a 422 field-validation failure).
-      const { fields, message } = parseApiErrorDetail(result.error?.detail);
+      const { fields, message, isValidation } = parseApiErrorDetail(result.error?.detail);
+
+      // `last_name` has no box of its own — the form asks for one full name and
+      // splits it — so its error belongs on the field the student can actually
+      // edit, said in terms of that field.
+      const nameError =
+        fields.first_name ??
+        (fields.last_name ? "Enter your first and last name, as they appear on your passport." : undefined);
+
       setErrors((current) => ({
         ...current,
-        email: fields.email,
-        phone: fields.phone,
-        password: fields.password,
-        fullName: fields.first_name || fields.last_name,
+        email: fields.email ?? current.email,
+        phone: fields.phone ?? current.phone,
+        password: fields.password ?? current.password,
+        fullName: nameError ?? current.fullName,
       }));
-      setFormError(message || "Couldn't create the account. Check the fields above.");
+
+      // Everything the server complained about that has nowhere to go on this
+      // form. Without this the request is rejected and the screen says nothing
+      // — which is the whole complaint about this page.
+      const shown = new Set(["email", "phone", "password", "first_name", "last_name"]);
+      const orphans = Object.entries(fields)
+        .filter(([field]) => !shown.has(field))
+        .map(([field, text]) => `${field.replace(/_/g, " ")}: ${text}`);
+
+      if (message) {
+        setFormError(message);
+      } else if (orphans.length > 0) {
+        setFormError(orphans.join(" "));
+      } else if (isValidation) {
+        setFormError("Some details need correcting — see the fields marked above.");
+      } else if (result.status === undefined) {
+        // No status means the request never got an answer.
+        setFormError("We couldn't reach Ignition. Check your connection and try again.");
+      } else {
+        setFormError(`Something went wrong at our end (error ${result.status}). Please try again.`);
+      }
       return;
     }
 

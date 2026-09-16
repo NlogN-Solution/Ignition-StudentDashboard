@@ -10,6 +10,7 @@ import {
   FileCheck2,
   Info,
   Layers,
+  RefreshCw,
   MapPin,
   PoundSterling,
   Send,
@@ -29,6 +30,7 @@ import {
 } from "../../components/explore/coursePanels";
 import { useAppData } from "../../context/AppDataContext";
 import { getPublicCourse } from "../../api/catalogue";
+import { isNotFoundError } from "../../lib/apiErrors";
 import { durationLabel } from "../../lib/catalogue";
 
 /**
@@ -56,19 +58,24 @@ const ExploreCourseDetail = () => {
 
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  // `"missing"` when the catalogue answered 404, `"unavailable"` when the
+  // request failed for any other reason. They are different sentences — see
+  // `isNotFoundError`.
+  const [failure, setFailure] = useState(null);
+  // Bumped by the retry button to re-run the effect without a full reload.
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    setNotFound(false);
+    setFailure(null);
 
     getPublicCourse(slug)
       .then((found) => {
         if (!cancelled) setCourse(found);
       })
-      .catch(() => {
-        if (!cancelled) setNotFound(true);
+      .catch((error) => {
+        if (!cancelled) setFailure(isNotFoundError(error) ? "missing" : "unavailable");
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -77,7 +84,7 @@ const ExploreCourseDetail = () => {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, attempt]);
 
   if (isLoading) {
     return (
@@ -87,7 +94,28 @@ const ExploreCourseDetail = () => {
     );
   }
 
-  if (notFound || !course) {
+  if (failure === "unavailable") {
+    return (
+      <div className="mx-auto max-w-7xl px-4 pt-9">
+        <EmptyState
+          icon={RefreshCw}
+          title="We couldn't load this course"
+          description="The catalogue didn't answer. The course is almost certainly still there — this is our end."
+          action={
+            <button
+              type="button"
+              onClick={() => setAttempt((n) => n + 1)}
+              className="rounded-lg bg-navy-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Try again
+            </button>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (failure === "missing" || !course) {
     return (
       <div className="mx-auto max-w-7xl px-4 pt-9">
         <EmptyState

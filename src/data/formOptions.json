@@ -93,65 +93,29 @@
   "countryCodes": [
     {
       "value": "+977",
-      "label": "\ud83c\uddf3\ud83c\uddf5 +977"
+      "label": "🇳🇵 +977"
     },
     {
       "value": "+1",
-      "label": "\ud83c\uddfa\ud83c\uddf8 +1"
+      "label": "🇺🇸 +1"
     },
     {
       "value": "+91",
-      "label": "\ud83c\uddee\ud83c\uddf3 +91"
+      "label": "🇮🇳 +91"
     },
     {
       "value": "+44",
-      "label": "\ud83c\uddec\ud83c\udde7 +44"
+      "label": "🇬🇧 +44"
     },
     {
       "value": "+61",
-      "label": "\ud83c\udde6\ud83c\uddfa +61"
+      "label": "🇦🇺 +61"
     }
   ],
   "destinations": [
     {
-      "name": "United States",
-      "icon": "\ud83c\uddfa\ud83c\uddf8"
-    },
-    {
-      "name": "Canada",
-      "icon": "\ud83c\udde8\ud83c\udde6"
-    },
-    {
       "name": "United Kingdom",
-      "icon": "\ud83c\uddec\ud83c\udde7"
-    },
-    {
-      "name": "Australia",
-      "icon": "\ud83c\udde6\ud83c\uddfa"
-    },
-    {
-      "name": "Germany",
-      "icon": "\ud83c\udde9\ud83c\uddea"
-    },
-    {
-      "name": "Ireland",
-      "icon": "\ud83c\uddee\ud83c\uddea"
-    },
-    {
-      "name": "Malaysia",
-      "icon": "\ud83c\uddf2\ud83c\uddfe"
-    },
-    {
-      "name": "New Zealand",
-      "icon": "\ud83c\uddf3\ud83c\uddff"
-    },
-    {
-      "name": "Singapore",
-      "icon": "\ud83c\uddf8\ud83c\uddec"
-    },
-    {
-      "name": "United Arab Emirates",
-      "icon": "\ud83c\udde6\ud83c\uddea"
+      "icon": "🇬🇧"
     }
   ],
   "languageTests": [

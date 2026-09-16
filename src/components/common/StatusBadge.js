@@ -31,6 +31,9 @@ const STATUS_STYLES = {
   // The backend's `ApplicationStatus` values a student-opened application
   // moves through. Without them the badge printed the raw enum —
   // "Ready_to_submit" — which is the database talking, not the product.
+  // A request nobody has accepted yet. Blue rather than yellow: yellow on
+  // this screen means "you have something to do", and the student does not.
+  requested: "bg-blue-100 text-blue-700",
   documents_pending: "bg-yellow-100 text-yellow-700",
   // Same tone as `under_review`, because they now say the same word.
   ready_to_submit: "bg-yellow-100 text-yellow-700",
@@ -67,6 +70,10 @@ export const STATUS_LABELS = {
   preparing: "Preparing",
   waived: "Waived",
   expired: "Expired",
+  //: What a student's own "Apply" lands on. It says who is holding it,
+  //: because "Requested" would describe the student's action rather than
+  //: answer their question.
+  requested: "With Ignition",
   documents_pending: "Documents needed",
   //: What a student's own submit lands on, and what `under_review` is called
   //: too: both are "somebody is reading it, it is not with you".
