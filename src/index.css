@@ -61,3 +61,18 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@keyframes ignition-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.ignition-float {
+  animation: ignition-float 3.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ignition-float {
+    animation: none;
+  }
+}

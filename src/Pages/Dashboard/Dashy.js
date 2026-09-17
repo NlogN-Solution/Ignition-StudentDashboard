@@ -24,7 +24,26 @@ import {
   formatDeadline,
   formatDateTime,
   formatRelativeTime,
+  daysUntil,
 } from '../../lib/simulate';
+
+// Tint classes for each stage card's icon badge — kept in one place so the
+// badge background, count text and action button all read as one color.
+const STAGE_THEME = {
+  applications: { badge: 'bg-navy-50', button: 'bg-navy-50 text-navy-700 hover:bg-navy-100 border-navy-100' },
+  offers: { badge: 'bg-green-50', button: 'bg-green-50 text-green-700 hover:bg-green-100 border-green-100' },
+  documents: { badge: 'bg-ignite-50', button: 'bg-ignite-50 text-ignite-700 hover:bg-ignite-100 border-ignite-100' },
+  appointments: { badge: 'bg-indigo-50', button: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100' },
+};
+
+/** Deadline pill color driven by actual days remaining, not list position. */
+const deadlineTone = (dueDate) => {
+  const days = daysUntil(dueDate);
+  if (days === null) return 'bg-slate-100 text-slate-600';
+  if (days <= 0) return 'bg-red-100 text-red-700';
+  if (days <= 3) return 'bg-ignite-100 text-ignite-700';
+  return 'bg-slate-100 text-slate-600';
+};
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -75,8 +94,8 @@ const StudentDashboard = () => {
         icon: <Building className="w-3 h-3" />,
         text: app.universityName,
       })),
-      icon: <CustomIcons iconType="application" size={30} color="#42A5F5" />,
-      secondaryIcon: <Building className="w-4 h-4 text-blue-400" />,
+      icon: <CustomIcons iconType="application" size={30} color="#23307B" />,
+      secondaryIcon: <Building className="w-4 h-4 text-navy-500" />,
       actionIcon: <FileText className="w-4 h-4" />,
       buttonText: 'View Applications',
       onAction: () => navigate('/applications'),
@@ -90,8 +109,8 @@ const StudentDashboard = () => {
         icon: <Building className="w-3 h-3" />,
         text: app.universityName,
       })),
-      icon: <CustomIcons iconType="offerReceived" size={30} color="#66BB6A" />,
-      secondaryIcon: <ArrowUpRight className="w-4 h-4 text-green-400" />,
+      icon: <CustomIcons iconType="offerReceived" size={30} color="#16A34A" />,
+      secondaryIcon: <ArrowUpRight className="w-4 h-4 text-green-500" />,
       actionIcon: <MessageSquare className="w-4 h-4" />,
       buttonText: 'View Offers',
       onAction: () => navigate('/applications'),
@@ -107,8 +126,8 @@ const StudentDashboard = () => {
         icon: <FileText className="w-3 h-3" />,
         text: doc.title,
       })),
-      icon: <CustomIcons iconType="pendingDocument" size={30} color="#FFA726" />,
-      secondaryIcon: <Clock className="w-4 h-4 text-orange-400" />,
+      icon: <CustomIcons iconType="pendingDocument" size={30} color="#FF5A1F" />,
+      secondaryIcon: <Clock className="w-4 h-4 text-ignite-500" />,
       actionIcon: <Plus className="w-4 h-4" />,
       buttonText: 'Upload Documents',
       onAction: () => navigate('/documents'),
@@ -126,8 +145,8 @@ const StudentDashboard = () => {
             { icon: <Video className="w-3 h-3" />, text: nextAppointment.meetingType },
           ]
         : [],
-      icon: <CustomIcons iconType="application" size={30} color="#AB47BC" />,
-      secondaryIcon: <Calendar className="w-4 h-4 text-purple-400" />,
+      icon: <CustomIcons iconType="application" size={30} color="#6366F1" />,
+      secondaryIcon: <Calendar className="w-4 h-4 text-indigo-500" />,
       actionIcon: <Video className="w-4 h-4" />,
       buttonText: nextAppointment?.mode === 'Video call' ? 'Join Meeting' : 'View Details',
       onAction: handleAppointmentAction,
@@ -148,20 +167,29 @@ const StudentDashboard = () => {
     <div className="flex flex-col min-h-screen">
       {/* Main Content */}
       <motion.div
-        className="flex-1 p-4 lg:p-6 bg-gray-50"
+        className="flex-1 p-4 lg:p-6 bg-slate-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         {/* Welcome Section */}
         <motion.div
-          className="bg-white shadow-md rounded-lg p-6 mb-6 mt-6"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-900 via-navy-900 to-navy-950 p-6 mb-6 mt-6 shadow-lg"
           {...fadeIn}
-          whileHover={{ boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
         >
-          <h1 className="text-2xl font-bold">Hi, {user?.fullName}!</h1>
-          <p className="text-gray-600">
-            Welcome back, Ignite your Study Abroad Journey !!
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: '24px 24px',
+            }}
+          />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-ignite-500/20 blur-3xl" />
+          <h1 className="relative text-2xl font-bold text-white">
+            Hi, {user?.fullName}!
+          </h1>
+          <p className="relative text-navy-200 mt-1">
+            Welcome back — <span className="text-ignite-400 font-medium">ignite your study abroad journey.</span>
           </p>
         </motion.div>
 
@@ -169,14 +197,14 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Application Progress Section */}
           <motion.div
-            className="bg-white rounded-lg shadow p-6"
+            className="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
             {...fadeIn}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Application Progress</h2>
+              <h2 className="text-lg font-semibold text-navy-900">Application Progress</h2>
               <Link
                 to="/applications"
-                className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                className="text-sm font-medium text-navy-700 hover:text-navy-900 flex items-center gap-1"
               >
                 View Details
                 <ChevronRight className="w-4 h-4" />
@@ -186,7 +214,7 @@ const StudentDashboard = () => {
               {applicationStages.map((stage, index) => (
                 <motion.div
                   key={stage.key}
-                  className="p-4 border rounded-lg hover:shadow-md transition-all flex flex-col justify-between"
+                  className="p-4 border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -196,7 +224,7 @@ const StudentDashboard = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <motion.div
-                          className="p-2 bg-gray-50 rounded-lg"
+                          className={`p-2 rounded-lg ${STAGE_THEME[stage.key].badge}`}
                           whileHover={{ rotate: 360 }}
                           transition={{ duration: 0.5 }}
                         >
@@ -204,12 +232,12 @@ const StudentDashboard = () => {
                         </motion.div>
                         {stage.secondaryIcon}
                       </div>
-                      <span className="text-2xl font-bold">{stage.count}</span>
+                      <span className="text-2xl font-bold text-navy-900">{stage.count}</span>
                     </div>
-                    <p className="text-sm font-medium mb-2">{stage.label}</p>
+                    <p className="text-sm font-medium mb-2 text-slate-800">{stage.label}</p>
                     <div className="mb-3">
                       {stage.lines.length > 0 && (
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-slate-500 mt-1 space-y-0.5">
                           {stage.lines.map((line, i) => (
                             <div key={i} className="flex items-center gap-1">
                               {line.icon}
@@ -219,11 +247,11 @@ const StudentDashboard = () => {
                         </div>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 mb-3">{stage.stats}</div>
+                    <div className="text-xs text-slate-500 mb-3">{stage.stats}</div>
                   </div>
                   <motion.button
                     onClick={stage.onAction}
-                    className="mt-auto px-3 py-2 text-sm bg-gray-50 text-gray-700 border rounded-md hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                    className={`mt-auto px-3 py-2 text-sm border rounded-lg transition-colors flex items-center justify-center gap-2 font-medium ${STAGE_THEME[stage.key].button}`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -239,10 +267,10 @@ const StudentDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Priority Tasks */}
             <motion.div
-              className="lg:col-span-2 bg-white rounded-lg shadow p-6"
+              className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6"
               {...fadeIn}
             >
-              <h2 className="text-lg font-semibold mb-4">Priority Tasks</h2>
+              <h2 className="text-lg font-semibold text-navy-900 mb-4">Priority Tasks</h2>
               {priorityTasks.length === 0 ? (
                 <EmptyState
                   title="Nothing outstanding"
@@ -253,25 +281,19 @@ const StudentDashboard = () => {
                   {priorityTasks.map((task, index) => (
                     <motion.div
                       key={task.id}
-                      className="p-4 border rounded-lg"
+                      className="p-4 border border-slate-200 rounded-xl"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ x: 5 }}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium">{task.title}</h3>
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            index === 0
-                              ? "bg-red-100 text-red-600"
-                              : "bg-yellow-100 text-yellow-600"
-                          }`}
-                        >
+                        <h3 className="font-medium text-navy-900">{task.title}</h3>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${deadlineTone(task.dueDate)}`}>
                           {formatDeadline(task.dueDate)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">{task.description}</p>
+                      <p className="text-sm text-slate-600">{task.description}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -280,10 +302,10 @@ const StudentDashboard = () => {
 
             {/* Recent Updates */}
             <motion.div
-              className="bg-white rounded-lg shadow p-6"
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
               {...fadeIn}
             >
-              <h2 className="text-lg font-semibold mb-4">Recent Updates</h2>
+              <h2 className="text-lg font-semibold text-navy-900 mb-4">Recent Updates</h2>
               {activityFeed.length === 0 ? (
                 <EmptyState
                   title="No activity yet"
@@ -294,7 +316,7 @@ const StudentDashboard = () => {
                   {activityFeed.slice(0, 5).map((entry, index) => (
                     <motion.div
                       key={entry.id}
-                      className="flex items-start gap-3 p-3 border-b last:border-0"
+                      className="flex items-start gap-3 p-3 border-b border-slate-100 last:border-0"
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
@@ -304,11 +326,11 @@ const StudentDashboard = () => {
                         whileHover={{ rotate: 360 }}
                         transition={{ duration: 0.5 }}
                       >
-                        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
+                        <AlertCircle className="w-5 h-5 text-navy-500 flex-shrink-0 mt-1" />
                       </motion.div>
                       <div>
-                        <p className="text-sm">{entry.message}</p>
-                        <span className="text-xs text-gray-500">
+                        <p className="text-sm text-slate-700">{entry.message}</p>
+                        <span className="text-xs text-slate-500">
                           {formatRelativeTime(entry.createdAt)}
                         </span>
                       </div>

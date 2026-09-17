@@ -164,7 +164,7 @@ const PremiumNavigation = () => {
       >
         <div className="flex items-center gap-4">
           <button
-            className="p-2 rounded-lg hover:bg-navy-50 lg:hidden relative z-[70] text-navy-900"
+            className="p-2 rounded-lg hover:bg-navy-50 md:hidden relative z-[70] text-navy-900"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
           >

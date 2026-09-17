@@ -1,32 +1,62 @@
 import React from "react";
 
 // Shared status vocabulary for applications, appointments and documents so the
-// same status never renders two different ways across screens.
+// same status never renders two different ways across screens. Colors are
+// tuned to sit alongside the navy/ignite brand palette rather than stock
+// Tailwind hues — "in progress" states use ignite instead of amber, success
+// stays green, and neutral/danger stay legible without clashing.
 const STATUS_STYLES = {
-  draft: "bg-gray-100 text-gray-600",
-  submitted: "bg-blue-100 text-blue-600",
-  "in-review": "bg-yellow-100 text-yellow-700",
-  offer: "bg-green-100 text-green-600",
-  rejected: "bg-red-100 text-red-600",
-  withdrawn: "bg-gray-100 text-gray-500",
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-green-100 text-green-600",
-  completed: "bg-blue-100 text-blue-600",
-  cancelled: "bg-red-100 text-red-600",
-  uploading: "bg-blue-100 text-blue-600",
-  uploaded: "bg-blue-100 text-blue-600",
-  approved: "bg-green-100 text-green-600",
-  verified: "bg-green-100 text-green-600",
-  missing: "bg-red-100 text-red-600",
-  booked: "bg-green-100 text-green-600",
-  "not-booked": "bg-gray-100 text-gray-600",
-  paid: "bg-green-100 text-green-600",
-  due: "bg-yellow-100 text-yellow-700",
-  overdue: "bg-red-100 text-red-600",
-  preparing: "bg-yellow-100 text-yellow-700",
-  waived: "bg-gray-100 text-gray-500",
-  under_review: "bg-yellow-100 text-yellow-700",
-  expired: "bg-red-100 text-red-600",
+  draft: "bg-slate-100 text-slate-600",
+  submitted: "bg-navy-50 text-navy-700",
+  "in-review": "bg-ignite-50 text-ignite-700",
+  offer: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-red-50 text-red-600",
+  withdrawn: "bg-slate-100 text-slate-500",
+  pending: "bg-ignite-50 text-ignite-700",
+  confirmed: "bg-emerald-50 text-emerald-700",
+  completed: "bg-navy-50 text-navy-700",
+  cancelled: "bg-red-50 text-red-600",
+  uploading: "bg-navy-50 text-navy-700",
+  uploaded: "bg-navy-50 text-navy-700",
+  approved: "bg-emerald-50 text-emerald-700",
+  verified: "bg-emerald-50 text-emerald-700",
+  missing: "bg-red-50 text-red-600",
+  booked: "bg-emerald-50 text-emerald-700",
+  "not-booked": "bg-slate-100 text-slate-600",
+  paid: "bg-emerald-50 text-emerald-700",
+  due: "bg-ignite-50 text-ignite-700",
+  overdue: "bg-red-50 text-red-600",
+  preparing: "bg-ignite-50 text-ignite-700",
+  waived: "bg-slate-100 text-slate-500",
+  under_review: "bg-ignite-50 text-ignite-700",
+  expired: "bg-red-50 text-red-600",
+};
+
+const STATUS_DOTS = {
+  draft: "bg-slate-400",
+  submitted: "bg-navy-500",
+  "in-review": "bg-ignite-500",
+  offer: "bg-emerald-500",
+  rejected: "bg-red-500",
+  withdrawn: "bg-slate-400",
+  pending: "bg-ignite-500",
+  confirmed: "bg-emerald-500",
+  completed: "bg-navy-500",
+  cancelled: "bg-red-500",
+  uploading: "bg-navy-500",
+  uploaded: "bg-navy-500",
+  approved: "bg-emerald-500",
+  verified: "bg-emerald-500",
+  missing: "bg-red-500",
+  booked: "bg-emerald-500",
+  "not-booked": "bg-slate-400",
+  paid: "bg-emerald-500",
+  due: "bg-ignite-500",
+  overdue: "bg-red-500",
+  preparing: "bg-ignite-500",
+  waived: "bg-slate-400",
+  under_review: "bg-ignite-500",
+  expired: "bg-red-500",
 };
 
 export const STATUS_LABELS = {
@@ -58,10 +88,11 @@ export const STATUS_LABELS = {
 
 const StatusBadge = ({ status, className = "" }) => (
   <span
-    className={`px-2 py-1 rounded text-xs font-medium capitalize ${
-      STATUS_STYLES[status] ?? "bg-gray-100 text-gray-600"
+    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
+      STATUS_STYLES[status] ?? "bg-slate-100 text-slate-600"
     } ${className}`}
   >
+    <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOTS[status] ?? "bg-slate-400"}`} aria-hidden="true" />
     {STATUS_LABELS[status] ?? status}
   </span>
 );

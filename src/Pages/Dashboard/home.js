@@ -4,7 +4,7 @@ import AppLayout from '../../components/layout/AppLayout';
 import StudentDashboard from './Dashy';
 
 const DashboardLayout = () => (
-  <AppLayout contentClassName="flex-1 p-6 bg-gray-100">
+  <AppLayout contentClassName="flex-1 bg-slate-50">
     <StudentDashboard />
   </AppLayout>
 );

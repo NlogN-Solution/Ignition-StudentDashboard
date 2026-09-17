@@ -1,0 +1,130 @@
+// TEMP — design-preview only. Shared between the Applications list and the
+// Application Detail page so a preview row's "View" action opens a populated
+// detail page instead of a 404, while the auth gate is disabled and there's
+// no real studentId for AppDataContext to fetch against. Delete this file and
+// its imports once you're reviewing against a real login.
+
+export const PREVIEW_APPLICATIONS = [
+  {
+    id: "preview-1",
+    universityName: "Oxford Brookes University",
+    universityCountry: "United Kingdom",
+    courseName: "Finance",
+    degreeLevel: "MSc",
+    intake: "September/October 2026",
+    status: "in-review",
+    applicationDate: "2026-07-29T11:26:00",
+    submittedAt: "2026-08-04T09:10:00",
+    offerReceivedDate: null,
+    visaAppliedDate: null,
+    visaDecisionDate: null,
+    enrollmentDate: null,
+    tuitionFee: 18950,
+    scholarshipAmount: null,
+    universityApplicationId: "1505017",
+    deadline: "2026-08-21T00:00:00",
+    counsellorName: "Chandani Daga",
+    notes: "Chased the university for the interview outcome — awaiting an update. Student to stay ready with remaining documents in the meantime.",
+  },
+  {
+    id: "preview-2",
+    universityName: "University of Leicester",
+    universityCountry: "United Kingdom",
+    courseName: "Data Science",
+    degreeLevel: "MSc",
+    intake: "January 2027",
+    status: "offer",
+    applicationDate: "2026-06-12T10:00:00",
+    submittedAt: "2026-06-15T14:30:00",
+    offerReceivedDate: "2026-08-20T16:45:00",
+    visaAppliedDate: null,
+    visaDecisionDate: null,
+    enrollmentDate: null,
+    tuitionFee: 21500,
+    scholarshipAmount: 2000,
+    universityApplicationId: "1505042",
+    deadline: "2026-09-10T00:00:00",
+    counsellorName: "Chandani Daga",
+    notes: "Conditional offer received — meeting the English test condition is the only thing outstanding.",
+  },
+  {
+    id: "preview-3",
+    universityName: "Coventry University",
+    universityCountry: "United Kingdom",
+    courseName: "International Business",
+    degreeLevel: "BA (Hons)",
+    intake: "September 2026",
+    status: "submitted",
+    applicationDate: "2026-08-01T09:15:00",
+    submittedAt: "2026-08-01T09:15:00",
+    offerReceivedDate: null,
+    visaAppliedDate: null,
+    visaDecisionDate: null,
+    enrollmentDate: null,
+    tuitionFee: 16800,
+    scholarshipAmount: null,
+    universityApplicationId: "1505063",
+    deadline: null,
+    counsellorName: "Rohit Verma",
+    notes: "",
+  },
+  {
+    id: "preview-4",
+    universityName: "University of Sheffield",
+    universityCountry: "United Kingdom",
+    courseName: "Mechanical Engineering",
+    degreeLevel: "MSc",
+    intake: "September 2025",
+    status: "rejected",
+    applicationDate: "2025-11-03T13:00:00",
+    submittedAt: "2025-11-05T10:00:00",
+    offerReceivedDate: null,
+    visaAppliedDate: null,
+    visaDecisionDate: null,
+    enrollmentDate: null,
+    tuitionFee: 24300,
+    scholarshipAmount: null,
+    universityApplicationId: "1498211",
+    deadline: null,
+    counsellorName: "Rohit Verma",
+    notes: "Not successful this cycle — discuss a backup shortlist at the next call.",
+  },
+];
+
+// Matches the shape ApplicationDetail's <Timeline> already renders
+// (state: completed | current | upcoming), so preview rows exercise the same
+// component real timeline data does.
+export const PREVIEW_TIMELINES = {
+  "preview-1": [
+    { id: "t1", label: "submitted", state: "completed", date: "2026-08-04T09:10:00", remarks: "" },
+    {
+      id: "t2",
+      label: "in-review",
+      state: "current",
+      date: "2026-09-03T18:01:00",
+      remarks:
+        "We have chased the university for the interview outcome and are expecting an update at the earliest. Please stay ready with all other documents in the meantime.",
+    },
+  ],
+  "preview-2": [
+    { id: "t1", label: "submitted", state: "completed", date: "2026-06-15T14:30:00", remarks: "" },
+    {
+      id: "t2",
+      label: "offer",
+      state: "completed",
+      date: "2026-08-20T16:45:00",
+      remarks: "Conditional offer issued — English test result required before CAS.",
+    },
+  ],
+  "preview-3": [{ id: "t1", label: "submitted", state: "current", date: "2026-08-01T09:15:00", remarks: "" }],
+  "preview-4": [
+    { id: "t1", label: "submitted", state: "completed", date: "2025-11-05T10:00:00", remarks: "" },
+    {
+      id: "t2",
+      label: "rejected",
+      state: "completed",
+      date: "2025-12-02T11:20:00",
+      remarks: "University confirmed the application was not successful this cycle.",
+    },
+  ],
+};

@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle, Loader2, Clock3, Trophy, ShieldCh
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import IgnitionMark from '../../components/common/IgnitionMark';
+import StudyIllustration from '../../components/common/StudyIllustration';
 
 const TRUST_POINTS = [
   {
@@ -97,30 +98,32 @@ const LoginPage = () => {
           <IgnitionMark dark />
         </div>
 
-        <div className="relative max-w-md">
-          <h1 className="text-4xl font-bold leading-tight text-white xl:text-5xl">
-            Everything you need,{' '}
-            <span className="text-ignite-400">back where you left off.</span>
-          </h1>
-          <p className="mt-5 text-base leading-relaxed text-navy-200">
-            Sign in to track your applications, message your advisor, and pick
-            up your journey to the UK exactly where you left it.
-          </p>
+        <div className="relative flex flex-1 flex-col justify-center gap-8 py-8">
+          {/* Illustration — a student mid-application, in brand colors instead of a hotlinked stock photo */}
+          <div className="mx-auto w-full max-w-xs rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <StudyIllustration className="h-auto w-full" />
+          </div>
+
+          <div className="max-w-md">
+            <h1 className="text-4xl font-bold leading-tight text-white xl:text-5xl">
+              Everything you need,{' '}
+              <span className="text-ignite-400">back where you left off.</span>
+            </h1>
+            <p className="mt-5 text-base leading-relaxed text-navy-200">
+              Sign in to track your applications, message your advisor, and pick
+              up your journey to the UK exactly where you left it.
+            </p>
+          </div>
         </div>
 
-        <div className="relative space-y-3">
-          {TRUST_POINTS.map(({ icon: Icon, stat, label }) => (
+        <div className="relative grid grid-cols-3 gap-3">
+          {TRUST_POINTS.map(({ icon: Icon, stat }) => (
             <div
               key={stat}
-              className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 backdrop-blur-sm"
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-3.5 text-center backdrop-blur-sm"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                <Icon className="h-5 w-5 text-ignite-400" strokeWidth={2} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white">{stat}</p>
-                <p className="truncate text-xs text-navy-300">{label}</p>
-              </div>
+              <Icon className="mx-auto h-5 w-5 text-ignite-400" strokeWidth={2} />
+              <p className="mt-1.5 text-xs font-semibold leading-tight text-white">{stat}</p>
             </div>
           ))}
         </div>
