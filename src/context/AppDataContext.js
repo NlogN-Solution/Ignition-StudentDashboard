@@ -33,6 +33,8 @@ import {
   unsaveCourseApi,
   unsaveUniversityApi,
   uploadDocumentFile,
+  replaceDocumentFileApi,
+  deleteDocumentApi,
 } from "../api/studentPortal";
 import { getFeedbackForScore, ignitionPoints, progressMilestones as localMilestoneMeta } from "../data";
 import { generateId } from "../lib/simulate";
@@ -312,6 +314,23 @@ export const AppDataProvider = ({ children }) => {
     },
     [pushActivity]
   );
+
+  /** Swap the file behind one of the student's own uploads, in place. */
+  const replaceDocument = useCallback(
+    async (documentId, file) => {
+      const replaced = await replaceDocumentFileApi(documentId, file);
+      setDocuments((current) => current.map((doc) => (doc.id === documentId ? replaced : doc)));
+      pushActivity(`${replaced.title} replaced — back with your counsellor for review`, "document");
+      return replaced;
+    },
+    [pushActivity]
+  );
+
+  /** Remove one of the student's own, not-yet-approved uploads. */
+  const deleteDocument = useCallback(async (documentId) => {
+    await deleteDocumentApi(documentId);
+    setDocuments((current) => current.filter((doc) => doc.id !== documentId));
+  }, []);
 
   /** Re-read the student's documents — after staff verify one, or after an
    * upload made elsewhere. Same posture as `reloadApplications`. */
@@ -622,6 +641,8 @@ export const AppDataProvider = ({ children }) => {
       // documents
       reloadApplications,
       uploadDocument,
+      replaceDocument,
+      deleteDocument,
       reloadDocuments,
 
       // appointments
@@ -679,6 +700,8 @@ export const AppDataProvider = ({ children }) => {
       refetchMessages,
       reloadApplications,
       uploadDocument,
+      replaceDocument,
+      deleteDocument,
       reloadDocuments,
       requestAppointment,
       rescheduleAppointment,

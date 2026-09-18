@@ -110,6 +110,52 @@ export const getCatalogApi = async () => {
 
 /* ---------------------------------------------------------------- applications --- */
 
+const mapApplicationUniversity = (u) => ({
+  slug: u.slug,
+  logoUrl: u.logo_url,
+  monogram: u.monogram,
+  city: u.city,
+  region: u.region,
+  kind: u.kind,
+  website: u.website,
+  tagline: u.tagline,
+  heroImageUrl: u.hero_image_url,
+  rankings: u.rankings ?? [],
+  highlights: u.highlights ?? [],
+  accommodation: u.accommodation,
+  livingCostMonthly: u.living_cost_monthly,
+});
+
+const mapApplicationCourse = (c) => ({
+  slug: c.slug,
+  qualification: c.qualification,
+  durationMonths: c.duration_months,
+  durationYears: c.duration_years,
+  tuitionFee: c.tuition_fee,
+  currency: c.currency,
+  currencySymbol: c.currency ? CURRENCY_SYMBOLS[c.currency] ?? `${c.currency} ` : "£",
+  campus: c.campus,
+  courseType: c.course_type,
+  intakesSummary: c.intakes_summary ?? [],
+  overview: c.overview,
+  whatYouStudy: c.what_you_study,
+  modules: c.modules ?? [],
+  skills: c.skills ?? [],
+  careerOutcomes: c.career_outcomes ?? [],
+  highlights: c.highlights ?? [],
+  requirements: c.requirements,
+  extraRequirements: c.extra_requirements,
+  minimumIelts: c.minimum_ielts,
+  feeStructure: c.fee_structure,
+  scholarshipText: c.scholarship_text,
+  casDeposit: c.cas_deposit,
+  enrolmentFee: c.enrolment_fee,
+  academicCriteria: c.academic_criteria,
+  englishCriteria: c.english_criteria,
+  englishWaiver: c.english_waiver,
+  routeDeadlines: c.route_deadlines,
+});
+
 const mapApplication = (a) => ({
   id: a.id,
   studentId: a.student_id,
@@ -138,6 +184,30 @@ const mapApplication = (a) => ({
   missingDocumentIds: [],
   notes: a.remarks ?? "",
   counsellorName: a.counsellor?.full_name ?? "",
+  counsellorPhone: a.counsellor?.phone ?? "",
+  counsellorEmail: a.counsellor?.email ?? "",
+  createdAt: a.created_at,
+  updatedAt: a.updated_at,
+  universityMonogram: a.program?.university_monogram ?? "",
+  universityLogoUrl: a.program?.university_logo_url ?? "",
+  // Staff-set, student-facing. `applicationDeadline` falls back to the
+  // intake's own deadline where the application has none of its own.
+  applicationDeadline: a.application_deadline ?? a.intake?.application_deadline ?? null,
+  paymentDeadline: a.payment_deadline ?? null,
+  conditionDeadline: a.condition_deadline ?? null,
+  studentNotice: a.student_notice ?? "",
+  // Only on the single-application read (`getApplicationApi`); the list
+  // leaves them null.
+  university: a.program?.university ? mapApplicationUniversity(a.program.university) : null,
+  course: a.program?.course ? mapApplicationCourse(a.program.course) : null,
+  intakeDetail: a.intake
+    ? {
+        id: a.intake.id,
+        name: a.intake.name,
+        startDate: a.intake.start_date,
+        applicationDeadline: a.intake.application_deadline,
+      }
+    : null,
   // Not fetched here — the timeline is a separate, per-application call
   // (getApplicationTimeline) since /me/applications never embeds it.
   timeline: [],
@@ -146,6 +216,13 @@ const mapApplication = (a) => ({
 export const getApplicationsFor = async () => {
   const data = await apiGet("/student/me/applications?limit=100");
   return data.items.map(mapApplication);
+};
+
+/** One application with the university and course particulars the detail
+ * page renders — the list endpoint deliberately leaves those out. */
+export const getApplicationApi = async (applicationId) => {
+  const data = await apiGet(`/student/me/applications/${applicationId}`);
+  return mapApplication(data);
 };
 
 /**
@@ -278,6 +355,13 @@ const mapDocument = (d) => ({
   uploadedBy: d.uploaded_by,
   isFromIgnition: Boolean(d.uploaded_by) && d.uploaded_by !== d.student_id,
   verifiedAt: toIsoOrNull(d.verified_at),
+  // The applications this file is filed against — "Used in" on the Documents
+  // page. Only `/student/me/documents` carries it.
+  applications: (d.applications ?? []).map((app) => ({
+    id: app.id,
+    universityName: app.university_name,
+    programName: app.program_name,
+  })),
 });
 
 //: The document types the university issues and Ignition files back — never
@@ -306,6 +390,18 @@ export const uploadDocumentFile = async (documentType, file, { title, remarks, a
   const data = await apiPost("/documents/upload", form);
   return mapDocument(data);
 };
+
+/** Swap the file behind one of the student's own uploads. The record and its
+ * application links stay; the review starts again. */
+export const replaceDocumentFileApi = async (documentId, file) => {
+  const form = new FormData();
+  form.append("file", file);
+  const data = await apiPost(`/student/me/documents/${documentId}/replace`, form);
+  return mapDocument(data);
+};
+
+/** Only the student's own, not-yet-approved uploads — the backend refuses the rest. */
+export const deleteDocumentApi = (documentId) => apiDelete(`/student/me/documents/${documentId}`);
 
 /**
  * A URL the browser can actually open for a stored file.

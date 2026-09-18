@@ -1,668 +1,1041 @@
-import React, { useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Upload,
-  CheckCircle2,
-  Clock,
-  FileText,
-  ChevronRight,
-  Info,
+  AlertCircle,
   AlertTriangle,
-  Eye,
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
   Download,
-  RefreshCw,
+  Eye,
+  FileImage,
+  FileText,
+  Info,
+  Landmark,
   Lightbulb,
-  Plus,
+  Loader2,
+  Lock,
+  MoreHorizontal,
+  RefreshCw,
+  Search,
+  Trash2,
+  Upload,
   X,
 } from "lucide-react";
 
-import EmptyState from "../../components/common/EmptyState";
-import StatusBadge from "../../components/common/StatusBadge";
 import { useAppData } from "../../context/AppDataContext";
 import { useRequestedDocuments } from "../../hooks/useRequestedDocuments";
 import { useToast } from "../../context/ToastContext";
+import { useAccess } from "../../hooks/useAccess";
+import UnlockModal from "../../components/access/UnlockModal";
 import formOptions from "../../data/formOptions.json";
-import { DOCUMENT_TYPE_LABELS, ISSUED_DOCUMENT_TYPES } from "../../api/studentPortal";
+import { DOCUMENT_TYPE_LABELS, ISSUED_DOCUMENT_TYPES, getDocumentFileLink } from "../../api/studentPortal";
 import { openDocumentFile } from "../../lib/documentFile";
 import { formatDateTime, formatFileSize } from "../../lib/simulate";
 
-const GUIDELINE_ICONS = { info: Info, warning: AlertTriangle };
-const GUIDELINE_COLORS = { info: "text-blue-500", warning: "text-amber-500" };
-
-// A Document is "done" once staff has approved it — every other real
-// DocumentStatus (pending/uploaded/under_review/rejected/expired) still
-// needs the student's attention or staff review.
-const DONE_STATUSES = new Set(["approved"]);
+/* --------------------------------------------------------------- taxonomy --- */
 
 /**
- * What we know about a file, plus the two ways to open it.
- *
- * This used to draw a grey box reading "preview is simulated in this build",
- * beside a Download button that raised a toast describing the file it would
- * have given you. Neither was true: the bytes have always been in storage and
- * reachable — what was missing was a link a browser could follow, since the
- * download route needs a bearer header a new tab does not send. `openDocumentFile`
- * fetches a signed URL over the authenticated call and opens that.
+ * The five folders the page is organised by. The backend has one flat
+ * `DocumentType`; grouping is a presentation decision, so it lives here.
  */
-const PreviewModal = ({ document, onClose, onOpen }) => (
-  <div className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/50 p-4">
-    <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-lg overflow-hidden">
-      <div className="p-6 border-b border-gray-100 flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">{document.title}</h3>
-          <p className="text-sm text-gray-600 mt-1">{document.description}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-2 text-gray-400 hover:text-gray-600"
-          aria-label="Close preview"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+const CATEGORIES = [
+  { id: "identity", label: "Identity", types: ["passport", "citizenship", "national_id", "photo"] },
+  {
+    id: "academic",
+    label: "Academic",
+    types: [
+      "academic_transcript",
+      "academic_certificate",
+      "provisional_certificate",
+      "character_certificate",
+      "recommendation_letter",
+      "cv",
+      "statement_of_purpose",
+      "other",
+    ],
+  },
+  { id: "english", label: "English", types: ["english_test"] },
+  { id: "financial", label: "Financial", types: ["financial_document"] },
+  { id: "visa", label: "Visa", types: ["visa", "offer_letter", "cas_letter", "medical_report"] },
+];
 
-      <div className="p-6 space-y-4">
-        <div className="h-40 rounded-lg bg-gradient-to-br from-gray-50 to-gray-200 flex flex-col items-center justify-center gap-3 text-gray-500">
-          <FileText className="w-10 h-10" />
-          <button
-            type="button"
-            onClick={() => onOpen(document, "inline")}
-            className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:bg-blue-600"
-          >
-            <Eye className="h-4 w-4" aria-hidden />
-            Open this file
-          </button>
-        </div>
+const categoryOf = (documentType) =>
+  CATEGORIES.find((category) => category.types.includes(documentType)) ?? CATEGORIES[1];
 
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="text-gray-500">File name</dt>
-            <dd className="text-gray-900 break-all">{document.file.name}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Size</dt>
-            <dd className="text-gray-900">{formatFileSize(document.file.sizeBytes)}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Type</dt>
-            <dd className="text-gray-900">{document.file.mimeType || "Unknown"}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Uploaded</dt>
-            <dd className="text-gray-900">{formatDateTime(document.file.uploadedAt)}</dd>
-          </div>
-        </dl>
+/**
+ * How a row's status reads. "Missing" is not a `DocumentStatus` — it is a
+ * request with nothing sent against it yet.
+ */
+const ROW_STATUS = {
+  approved: { label: "Approved", pill: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500", group: "ready" },
+  rejected: { label: "Changes required", pill: "bg-amber-50 text-amber-600", dot: "bg-amber-500", group: "action" },
+  expired: { label: "Expired", pill: "bg-red-50 text-red-600", dot: "bg-red-500", group: "action" },
+  under_review: { label: "Under review", pill: "bg-blue-50 text-blue-700", dot: "bg-blue-500", group: "review" },
+  uploaded: { label: "Under review", pill: "bg-blue-50 text-blue-700", dot: "bg-blue-500", group: "review" },
+  pending: { label: "Under review", pill: "bg-blue-50 text-blue-700", dot: "bg-blue-500", group: "review" },
+  missing: { label: "Missing", pill: "bg-red-50 text-red-600", dot: "bg-red-500", group: "action" },
+};
 
-        {document.rejectionReason && (
-          <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{document.rejectionReason}</div>
-        )}
-      </div>
+const rowStatus = (status) => ROW_STATUS[status] ?? ROW_STATUS.pending;
 
-      <div className="px-6 pb-6 flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={() => onOpen(document, "attachment")}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all duration-300"
-        >
-          <Download className="h-4 w-4" aria-hidden />
-          Download
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-100 transition-all duration-300"
-        >
-          Close
-        </button>
-      </div>
+const STATUS_FILTERS = [
+  { value: "all", label: "All statuses" },
+  { value: "ready", label: "Approved" },
+  { value: "review", label: "Under review" },
+  { value: "action", label: "Action needed" },
+];
+
+const fileKind = (mimeType, name) => {
+  const value = `${mimeType ?? ""} ${name ?? ""}`.toLowerCase();
+  if (value.includes("pdf")) return "pdf";
+  if (/image|\.png|\.jpe?g|\.webp|\.heic/.test(value)) return "image";
+  if (/word|\.docx?|document/.test(value)) return "doc";
+  return "other";
+};
+
+const FILE_TYPE_LABELS = { pdf: "PDF", image: "Image", doc: "Word document", other: "File" };
+
+const shortDate = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+};
+
+/* ---------------------------------------------------------------- pieces --- */
+
+const FileBadge = ({ kind, missing }) => {
+  if (missing) {
+    return (
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+        <FileText className="h-5 w-5" aria-hidden />
+      </span>
+    );
+  }
+  if (kind === "pdf") {
+    return (
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-600 text-[10px] font-bold italic text-white">
+        pdf
+      </span>
+    );
+  }
+  if (kind === "image") {
+    return (
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-400 text-white">
+        <FileImage className="h-5 w-5" aria-hidden />
+      </span>
+    );
+  }
+  return (
+    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500 text-white">
+      <FileText className="h-5 w-5" aria-hidden />
+    </span>
+  );
+};
+
+const StatusPill = ({ status, small = false }) => {
+  const meta = rowStatus(status);
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md ${small ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-[13px]"} font-medium ${meta.pill}`}
+    >
+      <span aria-hidden className={`h-2 w-2 rounded-full ${meta.dot}`} />
+      {meta.label}
+    </span>
+  );
+};
+
+const StatCard = ({ icon: Icon, tint, count, label, hint }) => (
+  <div className="flex items-center gap-4 rounded-2xl border border-hairline bg-white px-5 py-5 shadow-card">
+    <span className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${tint}`}>
+      <Icon className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+    </span>
+    <div className="min-w-0">
+      <p className="text-2xl font-bold leading-none text-navy-900">{count}</p>
+      <p className="mt-2 text-sm font-semibold text-navy-900">{label}</p>
+      <p className="mt-0.5 truncate text-xs text-ink-muted">{hint}</p>
     </div>
   </div>
 );
 
-/**
- * What state this document is actually in.
- *
- * The card used to render one green tick and one of two words — "Verified" if
- * approved, "On file" otherwise — so a document a counsellor had *rejected*
- * showed a green tick reading "On file" next to the rejection reason. Each real
- * `DocumentStatus` gets its own line and its own colour, and a letter Ignition
- * filed says so rather than pretending the student put it there.
- */
-const STATE_CHIPS = {
-  approved: { className: "bg-green-50 text-green-600", icon: CheckCircle2, label: "Verified" },
-  rejected: { className: "bg-red-50 text-red-600", icon: AlertTriangle, label: "Needs replacing" },
-  expired: { className: "bg-red-50 text-red-600", icon: AlertTriangle, label: "Expired" },
-  under_review: { className: "bg-amber-50 text-amber-700", icon: Clock, label: "Being reviewed" },
-  pending: { className: "bg-amber-50 text-amber-700", icon: Clock, label: "Awaiting review" },
-  uploaded: { className: "bg-amber-50 text-amber-700", icon: Clock, label: "Awaiting review" },
-};
+const Select = ({ value, onChange, options, label }) => (
+  <label className="relative">
+    <span className="sr-only">{label}</span>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 appearance-none rounded-lg border border-hairline bg-white pl-3 pr-9 text-sm font-medium text-navy-900 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+  </label>
+);
 
-const StateChip = ({ document }) => {
-  const chip = STATE_CHIPS[document.status] ?? STATE_CHIPS.pending;
-  const Icon = chip.icon;
-  // Anything Ignition filed for the student is final by the time they see it —
-  // there is nobody left to review an offer letter against.
-  const label = document.isFromIgnition ? "From Ignition" : chip.label;
-  const className = document.isFromIgnition ? "bg-navy-50 text-navy-700" : chip.className;
+/** Row "…" menu. Closes on outside click and Escape. */
+const RowMenu = ({ items }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (event) => {
+      if (event.type === "keydown" && event.key !== "Escape") return;
+      if (event.type === "mousedown" && ref.current?.contains(event.target)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${className}`}>
-      <Icon className="w-5 h-5 flex-shrink-0" aria-hidden />
-      <span className="text-sm">{label}</span>
-    </div>
-  );
-};
-
-const StudyAbroadPortal = ({ onNext, onBack }) => {
-  const { documents, uploadDocument, reloadDocuments, documentProgress } = useAppData();
-  // The list of things staff have asked for, and the one correct way to answer
-  // one. Shared with the dashboard so both screens agree about what is
-  // outstanding — see `useRequestedDocuments`.
-  const {
-    items: requestedItems,
-    outstanding: outstandingItems,
-    inFlight: inFlightItems,
-    settled: settledItems,
-    isLoading: isRequestedLoading,
-    uploadingItemId,
-    fulfil,
-    reload: reloadRequested,
-  } = useRequestedDocuments();
-  const { showToast } = useToast();
-
-  const [previewId, setPreviewId] = useState(null);
-  const [isSavingProgress, setIsSavingProgress] = useState(false);
-  const [uploadingDocId, setUploadingDocId] = useState(null);
-  const [uploadType, setUploadType] = useState("");
-  const replaceInputRefs = useRef({});
-  const newUploadInputRef = useRef(null);
-
-  const categories = useMemo(
-    () => [...new Set(documents.map((doc) => doc.category))],
-    [documents]
-  );
-
-  const previewDocument = documents.find((doc) => doc.id === previewId) ?? null;
-
-  const handleFileUpload = async (docId, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    // Reset so re-picking the same file still fires a change event.
-    event.target.value = "";
-    setUploadingDocId(docId);
-    try {
-      await uploadDocument(docId, file);
-      showToast("Document uploaded.");
-    } catch {
-      showToast("Couldn't upload that document. Please try again.", "error");
-    } finally {
-      setUploadingDocId(null);
-    }
-  };
-
-  const handleUploadForRequestedItem = async (item, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    event.target.value = "";
-    const result = await fulfil(item, file);
-    showToast(
-      result.ok
-        ? `${item.label} uploaded — your counsellor will review it.`
-        : "Couldn't upload that document. Please try again.",
-      result.ok ? "success" : "error"
-    );
-  };
-
-  const handleOpen = async (document, disposition) => {
-    const result = await openDocumentFile(document.id, { disposition });
-    if (!result.ok) showToast("Couldn't open that file. Please try again.", "error");
-  };
-
-  const handleRefresh = async () => {
-    await Promise.all([reloadDocuments(), reloadRequested()]);
-    showToast("Up to date.");
-  };
-
-  const handleNewTypeUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file || !uploadType) return;
-    event.target.value = "";
-    setUploadingDocId(uploadType);
-    try {
-      await uploadDocument(uploadType, file);
-      showToast("Document uploaded.");
-      setUploadType("");
-    } catch {
-      showToast("Couldn't upload that document. Please try again.", "error");
-    } finally {
-      setUploadingDocId(null);
-    }
-  };
-
-  /**
-   * Re-read documents and requests from the backend.
-   *
-   * This button said "Save Progress" and did nothing but wait 700ms and raise
-   * "Progress saved locally" — there is no local draft to save; every upload is
-   * already written the moment it is picked. What the screen genuinely needed
-   * was the opposite: a way to pull in what *staff* have done since it loaded,
-   * which is exactly the "I was verified but it still says pending" case.
-   */
-  const handleSaveProgress = async () => {
-    setIsSavingProgress(true);
-    try {
-      await handleRefresh();
-    } finally {
-      setIsSavingProgress(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 mt-9">
-      {/* Header */}
-      <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 mt-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          {/* Left Section */}
-          <div className="flex items-start gap-4">
-            {/* Optional Back Button */}
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-sm font-medium transition-all duration-300"
-              >
-                Back
-              </button>
-            )}
-
-            {/* Title and Subtitle */}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-                Documents
-              </h1>
-              <p className="mt-2 text-sm text-gray-600">
-                Upload what your counsellor asks for, and open anything Ignition has filed for you.
-              </p>
-            </div>
-          </div>
-
-          {/* Right Section */}
-          <div>
-            <button
-              onClick={handleSaveProgress}
-              disabled={isSavingProgress}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-blue-600 transition-all duration-300 disabled:opacity-60"
-            >
-              <RefreshCw className={`w-5 h-5 ${isSavingProgress ? "animate-spin" : ""}`} />
-              {isSavingProgress ? "Refreshing…" : "Refresh"}
-            </button>
-          </div>
-        </div>
-
-        {/* Decorative Separator */}
-        <div className="mt-6 h-[1px] bg-gray-200"></div>
-
-        {/* Additional Info */}
-        <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-gray-700 text-sm">
-            <Lightbulb className="w-5 h-5 text-yellow-500" />
-            <span className="font-medium">Tip:</span> Ensure your documents are
-            in the correct format before uploading.
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 text-sm">
-            Need Help?{" "}
-            <Link
-              to="/appointments"
-              className="text-blue-500 hover:underline hover:text-blue-600"
-            >
-              Contact Support
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Document Progress
-              </h3>
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Approved documents</span>
-                  <span className="text-blue-600 font-medium">{documentProgress}%</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${documentProgress}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {categories.map((category) => (
-                  <div
-                    key={category}
-                    className="p-4 border border-gray-200 rounded-md hover:bg-gray-50 hover:shadow-sm transition-all duration-300"
-                  >
-                    <h4 className="text-sm font-medium text-gray-800 mb-3">
-                      {DOCUMENT_TYPE_LABELS[category] ?? category}
-                    </h4>
-                    <ul className="space-y-2">
-                      {documents
-                        .filter((doc) => doc.category === category)
-                        .map((doc) => (
-                          <li
-                            key={doc.id}
-                            className="flex items-center justify-between gap-2 text-sm text-gray-600"
-                          >
-                            <span
-                              className={`${
-                                DONE_STATUSES.has(doc.status)
-                                  ? "text-gray-800 font-medium"
-                                  : "text-gray-600"
-                              } hover:text-blue-600 transition-colors`}
-                            >
-                              {doc.title}
-                            </span>
-                            <StatusBadge status={doc.status} />
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Guidelines */}
-            <div className="mt-6 bg-white p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Upload Guidelines
-              </h3>
-              <ul className="space-y-3">
-                {formOptions.documentGuidelines.map((guideline) => {
-                  const Icon = GUIDELINE_ICONS[guideline.tone] ?? Info;
-                  return (
-                    <li
-                      key={guideline.text}
-                      className="flex items-start gap-3 text-sm text-gray-600 hover:bg-gray-50 p-2 rounded-md transition-all duration-300"
-                    >
-                      <Icon
-                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                          GUIDELINE_COLORS[guideline.tone] ?? "text-blue-500"
-                        }`}
-                      />
-                      <span>{guideline.text}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
-
-          <div className="lg:col-span-2 space-y-8">
-            {/* Requested documents — staff-initiated, across every application.
-
-                Three groups, not one list. The old version filtered the list
-                down to `pending`/`rejected` on arrival, so an item disappeared
-                the instant it was uploaded: the student got no confirmation
-                that what they sent had landed, and no sign of it being verified
-                afterwards. Every requested item stays on screen and moves
-                between groups as its status changes. */}
-            {!isRequestedLoading && requestedItems.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                  <h2 className="text-xl font-semibold text-gray-900">Requested Documents</h2>
-                  <p className="text-gray-600 mt-1">
-                    {outstandingItems.length > 0
-                      ? `${outstandingItems.length} still needed — upload them here.`
-                      : "Nothing outstanding. Here is where each request got to."}
-                  </p>
-                </div>
-
-                {outstandingItems.length > 0 && (
-                  <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {outstandingItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 border border-orange-200 bg-orange-50 rounded-lg flex flex-col"
-                      >
-                        <div className="flex items-center justify-between mb-2 gap-2">
-                          <h3 className="font-medium text-gray-900">{item.label}</h3>
-                          <StatusBadge status={item.status} />
-                        </div>
-                        <p className="text-xs text-gray-500 mb-3">For {item.applicationName}</p>
-                        {item.notes && <p className="text-xs text-gray-600 mb-3">{item.notes}</p>}
-                        <label htmlFor={`req-${item.id}`} className="relative cursor-pointer mt-auto">
-                          <input
-                            type="file"
-                            id={`req-${item.id}`}
-                            className="hidden"
-                            onChange={(event) => handleUploadForRequestedItem(item, event)}
-                          />
-                          <div className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-300">
-                            <Upload className="w-4 h-4" />
-                            <span className="text-sm">
-                              {uploadingItemId === item.id
-                                ? "Uploading…"
-                                : item.status === "rejected"
-                                ? "Re-upload"
-                                : "Choose File"}
-                            </span>
-                          </div>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {(inFlightItems.length > 0 || settledItems.length > 0) && (
-                  <div className="border-t border-gray-100 p-6 space-y-2">
-                    {[...inFlightItems, ...settledItems].map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-100 px-4 py-3"
-                      >
-                        <div className="min-w-0 flex items-center gap-2.5">
-                          <CheckCircle2
-                            className={`h-4 w-4 flex-shrink-0 ${
-                              item.status === "verified" ? "text-green-500" : "text-gray-300"
-                            }`}
-                            aria-hidden
-                          />
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-gray-800">{item.label}</p>
-                            <p className="truncate text-xs text-gray-500">
-                              For {item.applicationName}
-                              {item.status === "submitted" && " · with your counsellor"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-shrink-0 items-center gap-2">
-                          {item.documentId && (
-                            <button
-                              type="button"
-                              onClick={() => handleOpen({ id: item.documentId }, "inline")}
-                              className="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs text-gray-700 transition-all duration-300 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                            >
-                              <Eye className="h-3.5 w-3.5" aria-hidden />
-                              View
-                            </button>
-                          )}
-                          <StatusBadge status={item.status} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Document Upload Area */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    My Documents
-                  </h2>
-                  <p className="text-gray-600 mt-1">
-                    Everything you've uploaded, plus anything else you'd like to add
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={uploadType}
-                    onChange={(event) => setUploadType(event.target.value)}
-                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  >
-                    <option value="">Add a document…</option>
-                    {/* `ISSUED_DOCUMENT_TYPES` are left out on purpose: an offer
-                        letter and a CAS letter come from the university to
-                        Ignition, and Ignition files them. Offering a student
-                        the chance to upload their own invites a file nobody
-                        can act on into the one place staff go to verify. */}
-                    {Object.entries(DOCUMENT_TYPE_LABELS)
-                      .filter(([value]) => !ISSUED_DOCUMENT_TYPES.includes(value))
-                      .map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                  </select>
+    <div ref={ref} className="relative" onClick={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        aria-label="Document actions"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="rounded-lg p-1.5 text-navy-800 transition-colors hover:bg-blue-50"
+      >
+        <MoreHorizontal className="h-5 w-5" aria-hidden />
+      </button>
+      {open && (
+        <ul className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-hairline bg-white py-1 shadow-float">
+          {items
+            .filter((item) => !item.hidden)
+            .map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.label}>
                   <button
                     type="button"
-                    disabled={!uploadType || uploadingDocId === uploadType}
-                    onClick={() => newUploadInputRef.current?.click()}
-                    className="flex items-center gap-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all duration-300 disabled:opacity-60"
+                    disabled={item.disabled}
+                    title={item.disabledReason}
+                    onClick={() => {
+                      setOpen(false);
+                      item.onClick();
+                    }}
+                    className={`flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-40 ${
+                      item.danger ? "text-red-600 hover:bg-red-50" : "text-navy-900 hover:bg-blue-50"
+                    }`}
                   >
-                    <Plus className="w-4 h-4" />
-                    Upload
+                    <Icon className="h-4 w-4" aria-hidden />
+                    {item.label}
                   </button>
-                  <input type="file" ref={newUploadInputRef} className="hidden" onChange={handleNewTypeUpload} />
-                </div>
-              </div>
-
-              {documents.length === 0 ? (
-                <div className="p-6">
-                  <EmptyState
-                    icon={FileText}
-                    title="No documents yet"
-                    description="Upload a document above, or wait for your counsellor to request one."
-                  />
-                </div>
-              ) : (
-                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="p-4 border border-gray-200 rounded-lg hover:shadow-md hover:bg-gray-50 transition-all duration-300 flex flex-col"
-                    >
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <h3 className="font-medium text-gray-900">{doc.title}</h3>
-                          <StatusBadge status={doc.status} />
-                        </div>
-                        {doc.rejectionReason && doc.status === "rejected" && (
-                          <p className="text-xs text-red-600 mb-1">{doc.rejectionReason}</p>
-                        )}
-                        {doc.file?.name && (
-                          <p className="text-xs text-gray-500 mt-2 break-all">
-                            {doc.file.name} · {formatFileSize(doc.file.sizeBytes)}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="mt-auto">
-                        {uploadingDocId === doc.documentType ? (
-                          <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg">
-                            <Clock className="w-5 h-5 animate-spin" />
-                            <span className="text-sm">Uploading...</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {/* No delete.
-
-                                There used to be an X here wired to
-                                `removeDocument`, which has no endpoint behind
-                                it — it set the row's status to `null` in local
-                                state and the document came straight back on the
-                                next page load, still on file, still visible to
-                                staff. A control that appears to withdraw a
-                                document from a review and does not is worse
-                                than no control. Replace is the real action, and
-                                it is right below. */}
-                            <StateChip document={doc} />
-
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setPreviewId(doc.id)}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-50 text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-300"
-                              >
-                                <Eye className="w-4 h-4" />
-                                Preview
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpen(doc, "attachment")}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-50 text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-300"
-                              >
-                                <Download className="w-4 h-4" />
-                                Download
-                              </button>
-                              {!doc.isFromIgnition && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => replaceInputRefs.current[doc.id]?.click()}
-                                    className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-50 text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-300"
-                                  >
-                                    <RefreshCw className="w-4 h-4" />
-                                    Replace
-                                  </button>
-                                  <input
-                                    type="file"
-                                    className="hidden"
-                                    ref={(element) => {
-                                      replaceInputRefs.current[doc.id] = element;
-                                    }}
-                                    onChange={(event) => handleFileUpload(doc.documentType, event)}
-                                  />
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end">
-              <Link
-                to="/applications"
-                onClick={onNext}
-                className="px-6 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-blue-500 hover:bg-green-500 text-white transition-all duration-300"
-              >
-                Go to Applications
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {previewDocument?.file && (
-        <PreviewModal document={previewDocument} onClose={() => setPreviewId(null)} onOpen={handleOpen} />
+                </li>
+              );
+            })}
+        </ul>
       )}
     </div>
   );
 };
 
-export default StudyAbroadPortal;
+/* ------------------------------------------------------------ side panel --- */
+
+const PreviewPane = ({ document, hasAccess, onUnlock }) => {
+  const [state, setState] = useState({ status: "loading", url: null });
+  const kind = fileKind(document.file?.mimeType, document.file?.name);
+  const locked = ISSUED_DOCUMENT_TYPES.includes(document.documentType) && !hasAccess;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (locked) {
+      setState({ status: "locked", url: null });
+      return undefined;
+    }
+    setState({ status: "loading", url: null });
+    getDocumentFileLink(document.id, "inline")
+      .then(({ url }) => !cancelled && setState({ status: "ready", url }))
+      .catch((error) => !cancelled && setState({ status: error?.status === 402 ? "locked" : "error", url: null }));
+    return () => {
+      cancelled = true;
+    };
+  }, [document.id, document.file?.name, locked]);
+
+  const frame = "flex h-[260px] w-full items-center justify-center overflow-hidden rounded-xl bg-gray-100";
+  if (state.status === "loading") {
+    return (
+      <div className={frame}>
+        <Loader2 className="h-6 w-6 animate-spin text-ink-faint" aria-label="Loading preview" />
+      </div>
+    );
+  }
+  if (state.status === "locked") {
+    return (
+      <div className={`${frame} flex-col gap-3 text-center`}>
+        <Lock className="h-7 w-7 text-ink-faint" aria-hidden />
+        <p className="px-6 text-sm text-ink-muted">This letter is ready — unlock your package to open it.</p>
+        <button
+          type="button"
+          onClick={onUnlock}
+          className="rounded-full bg-navy-900 px-4 py-2 text-xs font-semibold text-white hover:bg-navy-800"
+        >
+          Unlock to view
+        </button>
+      </div>
+    );
+  }
+  if (state.status === "error" || !state.url) {
+    return (
+      <div className={`${frame} flex-col gap-2`}>
+        <FileText className="h-8 w-8 text-ink-faint" aria-hidden />
+        <p className="text-sm text-ink-muted">Preview isn't available for this file.</p>
+      </div>
+    );
+  }
+  if (kind === "image") {
+    return (
+      <div className={`${frame} bg-gray-200`}>
+        <img src={state.url} alt={`Preview of ${document.file?.name}`} className="max-h-full max-w-full object-contain" />
+      </div>
+    );
+  }
+  if (kind === "pdf") {
+    return (
+      <div className={frame}>
+        <iframe title={`Preview of ${document.file?.name}`} src={`${state.url}#toolbar=0&view=FitH`} className="h-full w-full" />
+      </div>
+    );
+  }
+  return (
+    <div className={`${frame} flex-col gap-2`}>
+      <FileText className="h-8 w-8 text-ink-faint" aria-hidden />
+      <p className="text-sm text-ink-muted">No inline preview for this file type.</p>
+    </div>
+  );
+};
+
+const StatusBanner = ({ document }) => {
+  if (document.status === "approved") {
+    return (
+      <div className="flex items-start gap-3 rounded-xl bg-emerald-50 px-4 py-3">
+        <CheckCircle2 className="mt-0.5 h-6 w-6 flex-shrink-0 fill-emerald-500 text-white" aria-hidden />
+        <p className="text-[13px] text-navy-900">
+          {document.isFromIgnition
+            ? "Ignition filed this for you — it's final and ready to use."
+            : "This document has been verified and is ready to use in your applications."}
+        </p>
+      </div>
+    );
+  }
+  if (document.status === "rejected" || document.status === "expired") {
+    return (
+      <div className="flex items-start gap-3 rounded-xl bg-amber-50 px-4 py-3">
+        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" aria-hidden />
+        <div className="text-[13px] text-navy-900">
+          <p className="font-medium">
+            {document.status === "expired" ? "This document has expired." : "Your counsellor asked for changes."}
+          </p>
+          {document.rejectionReason && <p className="mt-0.5 text-ink-soft">{document.rejectionReason}</p>}
+          <p className="mt-0.5 text-ink-soft">Replace the file to send it back for review.</p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start gap-3 rounded-xl bg-blue-50 px-4 py-3">
+      <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" aria-hidden />
+      <p className="text-[13px] text-navy-900">Our team is checking this document. We'll let you know once it's verified.</p>
+    </div>
+  );
+};
+
+const DetailPanel = ({ document, hasAccess, onClose, onOpen, onReplace, onDelete, onUnlock, isBusy }) => {
+  const [tab, setTab] = useState("preview");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const replaceRef = useRef(null);
+
+  useEffect(() => {
+    setTab("preview");
+    setConfirmingDelete(false);
+  }, [document.id]);
+
+  const kind = fileKind(document.file?.mimeType, document.file?.name);
+  const canChange = !document.isFromIgnition;
+  const canDelete = canChange && document.status !== "approved";
+  const category = categoryOf(document.documentType);
+
+  return (
+    <aside className="flex h-full flex-col rounded-2xl border border-hairline bg-white shadow-card">
+      <div className="flex items-start gap-3 p-5 pb-0">
+        <FileBadge kind={kind} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="truncate text-base font-semibold text-navy-900">{document.file?.name || document.title}</h2>
+            <StatusPill status={document.status} small />
+          </div>
+          <p className="mt-1 text-[13px] text-ink-muted">
+            {category.label} Document · {formatFileSize(document.file?.sizeBytes)}
+          </p>
+        </div>
+        <button type="button" onClick={onClose} aria-label="Close details" className="rounded-lg p-1 text-ink-muted hover:bg-gray-100">
+          <X className="h-5 w-5" aria-hidden />
+        </button>
+      </div>
+
+      <div role="tablist" className="mt-4 flex gap-2 border-b border-hairline px-5">
+        {[
+          { id: "preview", label: "Preview" },
+          { id: "details", label: "Details" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            role="tab"
+            type="button"
+            aria-selected={tab === item.id}
+            onClick={() => setTab(item.id)}
+            className={`relative px-5 py-3 text-sm font-medium ${tab === item.id ? "text-blue-600" : "text-ink-soft hover:text-navy-900"}`}
+          >
+            {item.label}
+            {tab === item.id && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-blue-600" />}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 space-y-5 overflow-y-auto p-5">
+        {tab === "preview" ? (
+          <PreviewPane document={document} hasAccess={hasAccess} onUnlock={onUnlock} />
+        ) : (
+          <dl className="space-y-3 text-sm">
+            <div>
+              <dt className="text-ink-muted">Document type</dt>
+              <dd className="text-navy-900">{DOCUMENT_TYPE_LABELS[document.documentType] ?? document.title}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-muted">Title</dt>
+              <dd className="text-navy-900">{document.title}</dd>
+            </div>
+            {document.expiryDate && (
+              <div>
+                <dt className="text-ink-muted">Expires</dt>
+                <dd className="text-navy-900">{shortDate(document.expiryDate)}</dd>
+              </div>
+            )}
+            {document.verifiedAt && (
+              <div>
+                <dt className="text-ink-muted">Verified</dt>
+                <dd className="text-navy-900">{formatDateTime(document.verifiedAt)}</dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-ink-muted">Added by</dt>
+              <dd className="text-navy-900">{document.isFromIgnition ? "Ignition" : "You"}</dd>
+            </div>
+            {document.remarks && (
+              <div>
+                <dt className="text-ink-muted">Notes</dt>
+                <dd className="whitespace-pre-wrap text-navy-900">{document.remarks}</dd>
+              </div>
+            )}
+          </dl>
+        )}
+
+        <StatusBanner document={document} />
+
+        <div>
+          <h3 className="text-[15px] font-semibold text-navy-900">File information</h3>
+          <dl className="mt-3 grid grid-cols-[110px_minmax(0,1fr)] gap-y-2.5 text-[13px]">
+            <dt className="text-ink-muted">File name</dt>
+            <dd className="truncate text-navy-900">{document.file?.name || "—"}</dd>
+            <dt className="text-ink-muted">File type</dt>
+            <dd className="text-navy-900">{FILE_TYPE_LABELS[kind]}</dd>
+            <dt className="text-ink-muted">File size</dt>
+            <dd className="text-navy-900">{formatFileSize(document.file?.sizeBytes)}</dd>
+            <dt className="text-ink-muted">Uploaded</dt>
+            <dd className="text-navy-900">{formatDateTime(document.file?.uploadedAt)}</dd>
+          </dl>
+        </div>
+
+        <div>
+          <h3 className="text-[15px] font-semibold text-navy-900">Used in</h3>
+          {document.applications.length === 0 ? (
+            <p className="mt-2 text-[13px] text-ink-muted">
+              Not attached to an application yet — your counsellor adds it when one needs it.
+            </p>
+          ) : (
+            <ul className="mt-2 space-y-2.5">
+              {document.applications.map((application) => (
+                <li key={application.id} className="flex items-center gap-3 text-[13px]">
+                  <Landmark className="h-5 w-5 flex-shrink-0 text-navy-900" aria-hidden />
+                  <span className="min-w-0 flex-1 truncate text-navy-900">{application.universityName}</span>
+                  <span className="flex flex-shrink-0 items-center gap-1 text-xs text-emerald-600">
+                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                    Using this document
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-t border-hairline p-5">
+        <button
+          type="button"
+          onClick={() => onOpen(document, "attachment")}
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2.5 text-sm font-medium text-blue-600 hover:border-blue-200 hover:bg-blue-50"
+        >
+          <Download className="h-4 w-4" aria-hidden />
+          Download
+        </button>
+        {canChange && (
+          <>
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={() => replaceRef.current?.click()}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2.5 text-sm font-medium text-blue-600 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-60"
+            >
+              {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <RefreshCw className="h-4 w-4" aria-hidden />}
+              Replace file
+            </button>
+            <input
+              ref={replaceRef}
+              type="file"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) onReplace(document, file);
+              }}
+            />
+            <button
+              type="button"
+              disabled={!canDelete || isBusy}
+              title={canDelete ? undefined : "Approved documents can't be deleted — replace the file instead"}
+              onClick={() => (confirmingDelete ? onDelete(document) : setConfirmingDelete(true))}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              {confirmingDelete ? "Confirm delete" : "Delete"}
+            </button>
+          </>
+        )}
+      </div>
+    </aside>
+  );
+};
+
+/* ---------------------------------------------------------------- upload --- */
+
+/** Pick a type, pick a file. Offer and CAS letters are left out on purpose:
+ * Ignition files those, and a student-uploaded one is a file nobody can act on. */
+const UploadModal = ({ onClose, onUpload, isUploading }) => {
+  const [type, setType] = useState("");
+  const [file, setFile] = useState(null);
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-navy-950/40 p-4" role="dialog" aria-modal="true">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-float">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-navy-900">Upload a document</h2>
+            <p className="mt-1 text-sm text-ink-muted">PDF, JPG or PNG. Make sure every page is clear and legible.</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1 text-ink-muted hover:bg-gray-100">
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+        <label className="mt-5 block text-sm font-medium text-navy-900">
+          Document type
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value)}
+            className="mt-1.5 h-11 w-full rounded-lg border border-hairline bg-white px-3 text-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          >
+            <option value="">Choose a type…</option>
+            {CATEGORIES.map((category) => (
+              <optgroup key={category.id} label={category.label}>
+                {category.types
+                  .filter((value) => !ISSUED_DOCUMENT_TYPES.includes(value))
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {DOCUMENT_TYPE_LABELS[value]}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 px-4 py-6 text-center hover:bg-blue-50">
+          <Upload className="h-6 w-6 text-blue-600" aria-hidden />
+          <span className="text-sm font-medium text-navy-900">{file ? file.name : "Choose a file"}</span>
+          {file && <span className="text-xs text-ink-muted">{formatFileSize(file.size)}</span>}
+          <input type="file" className="hidden" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+        </label>
+        <div className="mt-6 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2.5 text-sm font-medium text-ink-soft hover:bg-gray-100">
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!type || !file || isUploading}
+            onClick={() => onUpload(type, file)}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isUploading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+            Upload
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GuidelinesModal = ({ onClose }) => (
+  <div className="fixed inset-0 z-[80] flex items-center justify-center bg-navy-950/40 p-4" role="dialog" aria-modal="true">
+    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-float">
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="text-lg font-semibold text-navy-900">Upload guidelines</h2>
+        <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1 text-ink-muted hover:bg-gray-100">
+          <X className="h-5 w-5" aria-hidden />
+        </button>
+      </div>
+      <ul className="mt-4 space-y-3">
+        {[
+          { tone: "info", text: "Upload PDF, JPG or PNG files — one document per file." },
+          ...formOptions.documentGuidelines,
+        ].map((guideline) => {
+          const Icon = guideline.tone === "warning" ? AlertTriangle : Info;
+          return (
+            <li key={guideline.text} className="flex items-start gap-3 text-sm text-ink-soft">
+              <Icon
+                className={`mt-0.5 h-5 w-5 flex-shrink-0 ${guideline.tone === "warning" ? "text-amber-500" : "text-blue-500"}`}
+                aria-hidden
+              />
+              {guideline.text}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  </div>
+);
+
+/* ------------------------------------------------------------------ page --- */
+
+const DocumentsPage = () => {
+  const { documents, uploadDocument, replaceDocument, deleteDocument, reloadDocuments } = useAppData();
+  // Staff requests across every application — the "Missing" rows. Shared with
+  // the dashboard so both screens agree about what is outstanding.
+  const { items: requestedItems, uploadingItemId, fulfil, reload: reloadRequested } = useRequestedDocuments();
+  const { showToast } = useToast();
+  const { access, hasAccess, reload: reloadAccess } = useAccess();
+
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sort, setSort] = useState("latest");
+  const [selectedId, setSelectedId] = useState(null);
+  const [busyId, setBusyId] = useState(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
+  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const requestInputRefs = useRef({});
+
+  // Pick up anything staff verified since the documents were last fetched.
+  useEffect(() => {
+    reloadDocuments();
+  }, [reloadDocuments]);
+
+  // One row per uploaded document, plus one per request nothing has been sent
+  // against yet. A request already answered is represented by its document.
+  const rows = useMemo(() => {
+    const uploaded = documents.map((doc) => ({
+      key: doc.id,
+      kind: "document",
+      document: doc,
+      name: doc.file?.name || doc.title,
+      subtitle: formatFileSize(doc.file?.sizeBytes),
+      category: categoryOf(doc.documentType),
+      status: doc.status,
+      usedIn:
+        doc.applications.length === 0
+          ? "—"
+          : doc.applications.length === 1
+          ? doc.applications[0].universityName
+          : `${doc.applications.length} applications`,
+      date: doc.file?.uploadedAt,
+    }));
+    const missing = requestedItems
+      .filter((item) => item.status === "pending" && !item.documentId)
+      .map((item) => ({
+        key: `request-${item.id}`,
+        kind: "request",
+        item,
+        name: item.label,
+        subtitle: "Not uploaded yet",
+        category: categoryOf(item.documentType),
+        status: "missing",
+        usedIn: item.applicationName || "—",
+        date: null,
+      }));
+    return [...uploaded, ...missing];
+  }, [documents, requestedItems]);
+
+  const stats = useMemo(
+    () => ({
+      ready: rows.filter((row) => rowStatus(row.status).group === "ready").length,
+      action: rows.filter((row) => rowStatus(row.status).group === "action").length,
+      review: rows.filter((row) => rowStatus(row.status).group === "review").length,
+      total: documents.length,
+    }),
+    [rows, documents.length]
+  );
+
+  const categoryCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        CATEGORIES.map((category) => [
+          category.id,
+          rows.filter((row) => row.category.id === category.id && row.kind === "document").length,
+        ])
+      ),
+    [rows]
+  );
+
+  const visibleRows = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const filtered = rows.filter(
+      (row) =>
+        (activeCategory === "all" || row.category.id === activeCategory) &&
+        (statusFilter === "all" || rowStatus(row.status).group === statusFilter) &&
+        (!needle || row.name.toLowerCase().includes(needle) || row.usedIn.toLowerCase().includes(needle))
+    );
+    const time = (row) => (row.date ? new Date(row.date).getTime() : 0);
+    // Missing rows always sink below uploaded ones — they have no date, and a
+    // "Latest" sort that interleaved them would read as arbitrary.
+    return [...filtered].sort((a, b) => {
+      if (a.kind !== b.kind) return a.kind === "document" ? -1 : 1;
+      if (sort === "name") return a.name.localeCompare(b.name);
+      return sort === "oldest" ? time(a) - time(b) : time(b) - time(a);
+    });
+  }, [rows, activeCategory, statusFilter, query, sort]);
+
+  const selectedDocument = documents.find((doc) => doc.id === selectedId) ?? null;
+
+  const handleOpen = async (document, disposition) => {
+    const result = await openDocumentFile(document.id, { disposition });
+    if (result.ok) return;
+    if (result.error?.status === 402) {
+      setIsUnlockOpen(true);
+      return;
+    }
+    showToast("Couldn't open that file. Please try again.", "error");
+  };
+
+  const handleReplace = async (document, file) => {
+    setBusyId(document.id);
+    try {
+      await replaceDocument(document.id, file);
+      await reloadRequested();
+      showToast("File replaced — it's back with our team for review.");
+    } catch {
+      showToast("Couldn't replace that file. Please try again.", "error");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (document) => {
+    setBusyId(document.id);
+    try {
+      await deleteDocument(document.id);
+      await reloadRequested();
+      setSelectedId(null);
+      showToast("Document deleted.");
+    } catch (error) {
+      showToast(error?.message || "Couldn't delete that document.", "error");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleUploadNew = async (type, file) => {
+    setIsUploading(true);
+    try {
+      const uploaded = await uploadDocument(type, file);
+      setIsUploadOpen(false);
+      setSelectedId(uploaded.id);
+      showToast("Document uploaded.");
+    } catch {
+      showToast("Couldn't upload that document. Please try again.", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFulfil = async (item, file) => {
+    if (!file) return;
+    const result = await fulfil(item, file);
+    if (result.ok) {
+      await reloadDocuments();
+      setSelectedId(result.document.id);
+    }
+    showToast(
+      result.ok ? `${item.label} uploaded — your counsellor will review it.` : "Couldn't upload that document. Please try again.",
+      result.ok ? "success" : "error"
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-canvas pb-16">
+      <div
+        className={`mx-auto grid max-w-[1500px] grid-cols-1 gap-6 px-4 pt-8 sm:px-6 ${
+          selectedDocument ? "xl:grid-cols-[minmax(0,1fr)_380px]" : ""
+        }`}
+      >
+        <main className="min-w-0 space-y-5">
+          {/* Header */}
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] font-bold tracking-tight text-navy-900">Documents</h1>
+              <p className="mt-1 text-[15px] text-ink-soft">
+                Keep your documents organised, verified and ready for every university application.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsUploadOpen(true)}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lift transition-colors hover:bg-blue-700"
+            >
+              <Upload className="h-4 w-4" aria-hidden />
+              Upload Document
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+            <StatCard icon={CheckCircle2} tint="bg-emerald-50 text-emerald-600" count={stats.ready} label="Ready" hint="Approved & ready to use" />
+            <StatCard icon={AlertCircle} tint="bg-ignite-50 text-ignite-500" count={stats.action} label="Action needed" hint="Missing or needs changes" />
+            <StatCard icon={Clock} tint="bg-blue-50 text-blue-600" count={stats.review} label="Under review" hint="Being checked by our team" />
+            <StatCard icon={FileText} tint="bg-gray-100 text-ink-muted" count={stats.total} label="Total documents" hint="In your vault" />
+          </div>
+
+          {/* Tip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-hairline bg-white px-5 py-3.5 shadow-card">
+            <p className="flex items-center gap-2.5 text-sm text-ink-soft">
+              <Lightbulb className="h-5 w-5 text-amber-400" aria-hidden />
+              <span className="font-semibold text-navy-900">Tip:</span>
+              Ensure your documents are in the correct format before uploading.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsGuidelinesOpen(true)}
+              className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:underline"
+            >
+              View upload guidelines <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+
+          {/* Table */}
+          <section className="rounded-2xl border border-hairline bg-white shadow-card">
+            <div className="flex flex-col gap-3 border-b border-hairline px-4 pt-3 2xl:flex-row 2xl:items-end 2xl:justify-between">
+              <div role="tablist" className="-mb-px flex overflow-x-auto">
+                {[{ id: "all", label: "All", count: documents.length }, ...CATEGORIES.map((category) => ({ ...category, count: categoryCounts[category.id] }))].map(
+                  (tab) => {
+                    const active = activeCategory === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        role="tab"
+                        type="button"
+                        aria-selected={active}
+                        onClick={() => setActiveCategory(tab.id)}
+                        className={`relative whitespace-nowrap px-4 py-3.5 text-sm font-medium ${
+                          active ? "text-blue-600" : "text-ink-soft hover:text-navy-900"
+                        }`}
+                      >
+                        {tab.label} ({tab.count})
+                        {active && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-blue-600" />}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pb-3">
+                <label className="relative">
+                  <span className="sr-only">Search documents</span>
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search documents..."
+                    className="h-10 w-52 rounded-lg border border-hairline bg-[#F8F9FC] pl-9 pr-3 text-sm placeholder:text-ink-faint focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </label>
+                <Select label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS.map((f) => ({ ...f, label: f.value === "all" ? "Status" : f.label }))} />
+                <Select
+                  label="Sort"
+                  value={sort}
+                  onChange={setSort}
+                  options={[
+                    { value: "latest", label: "Latest" },
+                    { value: "oldest", label: "Oldest" },
+                    { value: "name", label: "Name" },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {visibleRows.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-6 py-14 text-center">
+                <FileText className="h-8 w-8 text-ink-faint" aria-hidden />
+                <p className="text-sm font-medium text-navy-900">
+                  {rows.length === 0 ? "No documents yet" : "Nothing matches"}
+                </p>
+                <p className="text-sm text-ink-muted">
+                  {rows.length === 0
+                    ? "Upload your first document, or wait for your counsellor to request one."
+                    : "Try another category, status or search."}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto p-2">
+                <table className="w-full min-w-[820px] border-separate border-spacing-y-0 text-left text-sm">
+                  <thead className="sr-only">
+                    <tr>
+                      <th>Document</th>
+                      <th>Category</th>
+                      <th>Used in</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map((row) => {
+                      const selected = row.kind === "document" && row.document.id === selectedId;
+                      const doc = row.document;
+                      return (
+                        <tr
+                          key={row.key}
+                          onClick={() => row.kind === "document" && setSelectedId(doc.id)}
+                          className={`${row.kind === "document" ? "cursor-pointer" : ""} ${
+                            selected ? "bg-blue-50/70" : "hover:bg-[#F8F9FC]"
+                          }`}
+                        >
+                          <td className={`rounded-l-xl border-b border-hairline px-3 py-4 ${selected ? "border-transparent" : ""}`}>
+                            <div className="flex items-center gap-3">
+                              <FileBadge kind={doc ? fileKind(doc.file?.mimeType, doc.file?.name) : "other"} missing={row.kind === "request"} />
+                              <div className="min-w-0">
+                                <p className="max-w-[260px] font-medium text-navy-900">{row.name}</p>
+                                <p className="mt-0.5 text-[13px] text-ink-muted">{row.subtitle}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className={`border-b border-hairline px-3 py-4 text-ink-soft ${selected ? "border-transparent" : ""}`}>
+                            {row.category.label}
+                          </td>
+                          <td className={`border-b border-hairline px-3 py-4 text-ink-soft ${selected ? "border-transparent" : ""}`}>
+                            {row.usedIn}
+                          </td>
+                          <td className={`border-b border-hairline px-3 py-4 ${selected ? "border-transparent" : ""}`}>
+                            <StatusPill status={row.status} />
+                          </td>
+                          <td className={`whitespace-nowrap border-b border-hairline px-3 py-4 text-ink-soft ${selected ? "border-transparent" : ""}`}>
+                            {shortDate(row.date)}
+                          </td>
+                          <td className={`rounded-r-xl border-b border-hairline px-3 py-4 text-right ${selected ? "border-transparent" : ""}`}>
+                            {row.kind === "request" ? (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={uploadingItemId === row.item.id}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    requestInputRefs.current[row.item.id]?.click();
+                                  }}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 px-5 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-60"
+                                >
+                                  {uploadingItemId === row.item.id && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+                                  Upload
+                                </button>
+                                <input
+                                  ref={(element) => {
+                                    requestInputRefs.current[row.item.id] = element;
+                                  }}
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(event) => {
+                                    const file = event.target.files?.[0];
+                                    event.target.value = "";
+                                    handleFulfil(row.item, file);
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <div className="flex justify-end">
+                                <RowMenu
+                                  items={[
+                                    { label: "View details", icon: Info, onClick: () => setSelectedId(doc.id) },
+                                    { label: "Open file", icon: Eye, onClick: () => handleOpen(doc, "inline") },
+                                    { label: "Download", icon: Download, onClick: () => handleOpen(doc, "attachment") },
+                                    {
+                                      label: "Replace file",
+                                      icon: RefreshCw,
+                                      hidden: doc.isFromIgnition,
+                                      onClick: () => setSelectedId(doc.id),
+                                    },
+                                  ]}
+                                />
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </main>
+
+        {selectedDocument && (
+          <div className="fixed inset-0 z-[70] bg-navy-950/30 p-3 xl:static xl:z-auto xl:bg-transparent xl:p-0">
+            <div className="ml-auto h-full max-w-[400px] xl:sticky xl:top-20 xl:h-[calc(100vh-6rem)] xl:max-w-none">
+              <DetailPanel
+                document={selectedDocument}
+                hasAccess={hasAccess}
+                isBusy={busyId === selectedDocument.id}
+                onClose={() => setSelectedId(null)}
+                onOpen={handleOpen}
+                onReplace={handleReplace}
+                onDelete={handleDelete}
+                onUnlock={() => setIsUnlockOpen(true)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {isUploadOpen && (
+        <UploadModal onClose={() => setIsUploadOpen(false)} onUpload={handleUploadNew} isUploading={isUploading} />
+      )}
+      {isGuidelinesOpen && <GuidelinesModal onClose={() => setIsGuidelinesOpen(false)} />}
+      {isUnlockOpen && (
+        <UnlockModal
+          access={access}
+          onClose={() => setIsUnlockOpen(false)}
+          onUnlocked={async () => {
+            setIsUnlockOpen(false);
+            await reloadAccess();
+            showToast("Unlocked — your documents are open.");
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default DocumentsPage;

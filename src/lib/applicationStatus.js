@@ -64,8 +64,8 @@ export const hasOffer = (status) => HAS_OFFER_STATUSES.includes(status);
  */
 export const STATUS_FILTERS = [
   { value: "all", label: "All", match: () => true },
-  { value: "in-review", label: "In review", match: (status) => IN_REVIEW_STATUSES.includes(status) },
   { value: "submitted", label: "Submitted", match: (status) => SUBMITTED_STATUSES.includes(status) },
+  { value: "in-review", label: "In review", match: (status) => IN_REVIEW_STATUSES.includes(status) },
   { value: "offer", label: "Offers", match: (status) => OFFER_STATUSES.includes(status) },
   { value: "visa", label: "Visa & enrolment", match: (status) => VISA_STATUSES.includes(status) },
 ];
@@ -87,3 +87,82 @@ export const OFFER_TYPE_LABELS = {
   unconditional: "Unconditional offer",
   other: "Offer",
 };
+
+/**
+ * How an application's status reads in a pill: a title-case label and one of
+ * five tones. The tone is the phase, not the individual status — every "someone
+ * is reading it" status is the same orange, so two applications at the same
+ * point in the journey never look different.
+ */
+const PILL_LABELS = {
+  requested: "Requested",
+  draft: "Preparing",
+  documents_pending: "Documents Needed",
+  ready_to_submit: "In Review",
+  under_review: "In Review",
+  submitted: "Submitted",
+  offer_received: "Offer Received",
+  offer_accepted: "Offer Accepted",
+  offer_declined: "Offer Declined",
+  cas_received: "CAS Received",
+  visa_processing: "Visa In Progress",
+  visa_approved: "Visa Approved",
+  visa_rejected: "Visa Refused",
+  enrolled: "Enrolled",
+  withdrawn: "Withdrawn",
+  rejected: "Not Successful",
+};
+
+const PILL_TONES = {
+  requested: "navy",
+  draft: "navy",
+  submitted: "navy",
+  documents_pending: "orange",
+  ready_to_submit: "orange",
+  under_review: "orange",
+  visa_processing: "orange",
+  offer_received: "green",
+  offer_accepted: "green",
+  cas_received: "green",
+  visa_approved: "green",
+  enrolled: "green",
+  rejected: "red",
+  visa_rejected: "red",
+  withdrawn: "gray",
+  offer_declined: "gray",
+};
+
+export const applicationPill = (status) => ({
+  label: PILL_LABELS[status] ?? status,
+  tone: PILL_TONES[status] ?? "gray",
+});
+
+/**
+ * The four-step progress card on the application page.
+ *
+ * Shortlisted → Submitted → Document verification → Offer letter. `reached` is
+ * the index of the step the application is currently *on*; everything before it
+ * is done. An application that was turned down or withdrawn stops where it is.
+ */
+export const PROGRESS_STEPS = [
+  "Course Shortlisted",
+  "Application Submitted",
+  "Document Verification",
+  "Offer Letter",
+];
+
+const STEP_OF_STATUS = {
+  requested: 1,
+  draft: 1,
+  documents_pending: 1,
+  ready_to_submit: 1,
+  // Filed with the university and waiting: the submission is the live step
+  // until the university starts checking documents.
+  submitted: 1,
+  under_review: 2,
+  rejected: 2,
+  withdrawn: 1,
+};
+
+/** Index of the step in progress; `PROGRESS_STEPS.length` when every step is done. */
+export const progressStepOf = (status) => STEP_OF_STATUS[status] ?? PROGRESS_STEPS.length;
