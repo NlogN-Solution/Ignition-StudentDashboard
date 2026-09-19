@@ -1,0 +1,24 @@
+{
+  "base": "USD",
+  "lastUpdated": "2026-08-07T03:00:00.000Z",
+  "source": "Static snapshot — swap for a live rates endpoint later.",
+  "currencies": [
+    { "code": "USD", "name": "US Dollar", "symbol": "$", "perUsd": 1, "changePct": 0 },
+    { "code": "NPR", "name": "Nepalese Rupee", "symbol": "Rs", "perUsd": 137.4, "changePct": 1.8 },
+    { "code": "CAD", "name": "Canadian Dollar", "symbol": "C$", "perUsd": 1.36, "changePct": -0.4 },
+    { "code": "AUD", "name": "Australian Dollar", "symbol": "A$", "perUsd": 1.52, "changePct": 0.9 },
+    { "code": "GBP", "name": "Pound Sterling", "symbol": "£", "perUsd": 0.78, "changePct": -0.2 },
+    { "code": "EUR", "name": "Euro", "symbol": "€", "perUsd": 0.92, "changePct": 0.3 },
+    { "code": "JPY", "name": "Japanese Yen", "symbol": "¥", "perUsd": 151.2, "changePct": 2.4 }
+  ],
+  "trends": {
+    "NPR": [132.1, 133.4, 134.0, 135.2, 136.1, 136.8, 137.4],
+    "CAD": [1.39, 1.38, 1.38, 1.37, 1.37, 1.36, 1.36],
+    "AUD": [1.47, 1.48, 1.49, 1.5, 1.5, 1.51, 1.52],
+    "GBP": [0.8, 0.8, 0.79, 0.79, 0.79, 0.78, 0.78],
+    "EUR": [0.9, 0.91, 0.91, 0.91, 0.92, 0.92, 0.92],
+    "JPY": [146.0, 147.2, 148.1, 149.0, 150.1, 150.7, 151.2],
+    "USD": [1, 1, 1, 1, 1, 1, 1]
+  },
+  "trendLabels": ["Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"]
+}

@@ -1,0 +1,323 @@
+{
+  "studentId": "stu-001",
+  "destinationCountry": "Canada",
+  "homeCurrency": "NPR",
+  "displayCurrency": "USD",
+  "intake": "Feb 2027",
+  "universityName": "University of Toronto",
+  "courseName": "Master of Science in Data Science",
+  "programmeStart": "2027-02-08",
+  "visaApplicationTarget": "2026-12-01",
+
+  "fundingSources": [
+    {
+      "id": "fnd-001",
+      "type": "Education Loan",
+      "provider": "International Student Bank",
+      "amount": 30000,
+      "status": "Processing",
+      "verification": "pending",
+      "proofDocumentId": "fdoc-002",
+      "remarks": "Sanction letter issued; disbursement scheduled in two tranches."
+    },
+    {
+      "id": "fnd-002",
+      "type": "Personal Savings",
+      "provider": "Self-funded",
+      "amount": 9000,
+      "status": "Available",
+      "verification": "verified",
+      "proofDocumentId": "fdoc-001",
+      "remarks": "Held in a savings account for 14 months."
+    },
+    {
+      "id": "fnd-003",
+      "type": "Parents",
+      "provider": "Mr. & Mrs. Pokhrel",
+      "amount": 8000,
+      "status": "Available",
+      "verification": "verified",
+      "proofDocumentId": "fdoc-004",
+      "remarks": "Income certificate and tax clearance on file."
+    },
+    {
+      "id": "fnd-004",
+      "type": "Relative Sponsor",
+      "provider": "Uncle — Bhim Pokhrel (Toronto)",
+      "amount": 6000,
+      "status": "Pending",
+      "verification": "unverified",
+      "proofDocumentId": "fdoc-003",
+      "remarks": "Sponsor letter drafted, affidavit not yet notarised."
+    },
+    {
+      "id": "fnd-005",
+      "type": "Employer",
+      "provider": "Nexus Software Pvt. Ltd.",
+      "amount": 2500,
+      "status": "Pending",
+      "verification": "unverified",
+      "proofDocumentId": null,
+      "remarks": "Study-support grant awaiting HR approval."
+    }
+  ],
+
+  "loan": {
+    "id": "loan-001",
+    "provider": "International Student Bank",
+    "productName": "Global Education Loan — Secured",
+    "approvedAmount": 30000,
+    "disbursedAmount": 12000,
+    "interestRate": 6.5,
+    "processingStatus": "Partially disbursed",
+    "sanctionedAt": "2026-06-18",
+    "expectedFullDisbursement": "2026-11-15",
+    "repaymentStartsAt": "2029-03-01",
+    "tenureMonths": 84,
+    "monthlyRepayment": 445,
+    "collateral": "Residential property — Kathmandu",
+    "documents": [
+      { "id": "loandoc-1", "name": "Sanction letter", "status": "verified" },
+      { "id": "loandoc-2", "name": "Loan agreement", "status": "verified" },
+      { "id": "loandoc-3", "name": "Collateral valuation", "status": "uploaded" },
+      { "id": "loandoc-4", "name": "Disbursement schedule", "status": "pending" }
+    ],
+    "disbursements": [
+      { "id": "dis-1", "label": "Tranche 1 — tuition deposit", "amount": 12000, "date": "2026-07-20", "status": "released" },
+      { "id": "dis-2", "label": "Tranche 2 — first semester tuition", "amount": 12000, "date": "2026-11-15", "status": "scheduled" },
+      { "id": "dis-3", "label": "Tranche 3 — living costs", "amount": 6000, "date": "2027-01-20", "status": "scheduled" }
+    ]
+  },
+
+  "payments": [
+    {
+      "id": "pay-001",
+      "title": "Application Fees",
+      "amount": 480,
+      "dueDate": "2026-06-25",
+      "status": "paid",
+      "paidAt": "2026-06-22",
+      "method": "Card",
+      "reference": "TXN-88213",
+      "proofUploaded": true,
+      "reminder": false
+    },
+    {
+      "id": "pay-002",
+      "title": "IELTS / PTE Test Fee",
+      "amount": 260,
+      "dueDate": "2026-03-01",
+      "status": "paid",
+      "paidAt": "2026-02-24",
+      "method": "Bank transfer",
+      "reference": "TXN-71904",
+      "proofUploaded": true,
+      "reminder": false
+    },
+    {
+      "id": "pay-003",
+      "title": "University Tuition Deposit",
+      "amount": 5000,
+      "dueDate": "2026-08-22",
+      "status": "due",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": true
+    },
+    {
+      "id": "pay-004",
+      "title": "Visa Fee",
+      "amount": 175,
+      "dueDate": "2026-09-06",
+      "status": "upcoming",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": true
+    },
+    {
+      "id": "pay-005",
+      "title": "Biometrics Fee",
+      "amount": 63,
+      "dueDate": "2026-09-12",
+      "status": "upcoming",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": false
+    },
+    {
+      "id": "pay-006",
+      "title": "Health Insurance",
+      "amount": 900,
+      "dueDate": "2026-10-05",
+      "status": "upcoming",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": false
+    },
+    {
+      "id": "pay-007",
+      "title": "First Semester Tuition",
+      "amount": 21000,
+      "dueDate": "2026-12-15",
+      "status": "upcoming",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": true
+    },
+    {
+      "id": "pay-008",
+      "title": "Flight Booking",
+      "amount": 1100,
+      "dueDate": "2027-01-05",
+      "status": "upcoming",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": false
+    },
+    {
+      "id": "pay-009",
+      "title": "Accommodation Deposit",
+      "amount": 1600,
+      "dueDate": "2027-01-18",
+      "status": "upcoming",
+      "paidAt": null,
+      "method": null,
+      "reference": null,
+      "proofUploaded": false,
+      "reminder": false
+    }
+  ],
+
+  "checklist": [
+    { "id": "fchk-001", "title": "Passport", "description": "Valid for at least six months beyond your intake", "status": "verified", "required": true },
+    { "id": "fchk-002", "title": "Bank Statement", "description": "Six months of transaction history", "status": "verified", "required": true },
+    { "id": "fchk-003", "title": "Loan Approval Letter", "description": "Sanction letter from your lender", "status": "uploaded", "required": true },
+    { "id": "fchk-004", "title": "Sponsor Letter", "description": "Signed declaration from your sponsor", "status": "pending", "required": true },
+    { "id": "fchk-005", "title": "Affidavit of Support", "description": "Notarised affidavit from the sponsoring relative", "status": "missing", "required": true },
+    { "id": "fchk-006", "title": "Income Certificate", "description": "Annual income proof for each sponsor", "status": "verified", "required": true },
+    { "id": "fchk-007", "title": "Tuition Deposit Receipt", "description": "Proof of the initial deposit payment", "status": "missing", "required": true },
+    { "id": "fchk-008", "title": "Visa Fee Receipt", "description": "Payment confirmation for the visa application", "status": "missing", "required": true },
+    { "id": "fchk-009", "title": "Property Valuation", "description": "Collateral valuation for the education loan", "status": "rejected", "required": false }
+  ],
+
+  "documents": [
+    {
+      "id": "fdoc-001",
+      "title": "Bank Statement",
+      "category": "Proof of funds",
+      "uploadStatus": "uploaded",
+      "verificationStatus": "verified",
+      "expiryDate": "2026-12-31",
+      "reviewerNotes": "Balance and holding period both acceptable.",
+      "file": { "name": "bank-statement-jun2026.pdf", "sizeBytes": 1240000, "uploadedAt": "2026-07-01T06:00:00.000Z" }
+    },
+    {
+      "id": "fdoc-002",
+      "title": "Loan Sanction Letter",
+      "category": "Loan",
+      "uploadStatus": "uploaded",
+      "verificationStatus": "verified",
+      "expiryDate": "2027-06-18",
+      "reviewerNotes": "Sanctioned amount matches the declared funding source.",
+      "file": { "name": "loan-sanction-letter.pdf", "sizeBytes": 640000, "uploadedAt": "2026-06-19T09:20:00.000Z" }
+    },
+    {
+      "id": "fdoc-003",
+      "title": "Sponsor Letter",
+      "category": "Sponsorship",
+      "uploadStatus": "uploaded",
+      "verificationStatus": "in-review",
+      "expiryDate": null,
+      "reviewerNotes": "Awaiting the notarised affidavit before this can be verified.",
+      "file": { "name": "sponsor-letter-draft.pdf", "sizeBytes": 210000, "uploadedAt": "2026-07-28T11:45:00.000Z" }
+    },
+    {
+      "id": "fdoc-004",
+      "title": "Income Certificate",
+      "category": "Sponsorship",
+      "uploadStatus": "uploaded",
+      "verificationStatus": "verified",
+      "expiryDate": "2027-03-31",
+      "reviewerNotes": "",
+      "file": { "name": "income-certificate-2026.pdf", "sizeBytes": 380000, "uploadedAt": "2026-07-04T08:10:00.000Z" }
+    },
+    {
+      "id": "fdoc-005",
+      "title": "Tax Clearance Certificate",
+      "category": "Sponsorship",
+      "uploadStatus": "missing",
+      "verificationStatus": "not-submitted",
+      "expiryDate": null,
+      "reviewerNotes": "Required for every sponsor declaring business income.",
+      "file": null
+    },
+    {
+      "id": "fdoc-006",
+      "title": "Tuition Payment Receipt",
+      "category": "Payments",
+      "uploadStatus": "missing",
+      "verificationStatus": "not-submitted",
+      "expiryDate": null,
+      "reviewerNotes": "Upload immediately after the deposit is paid.",
+      "file": null
+    },
+    {
+      "id": "fdoc-007",
+      "title": "Deposit Receipt — GIC",
+      "category": "Payments",
+      "uploadStatus": "missing",
+      "verificationStatus": "not-submitted",
+      "expiryDate": null,
+      "reviewerNotes": "Canada requires a GIC certificate at visa lodgement.",
+      "file": null
+    },
+    {
+      "id": "fdoc-008",
+      "title": "Property Valuation Report",
+      "category": "Loan",
+      "uploadStatus": "uploaded",
+      "verificationStatus": "rejected",
+      "expiryDate": null,
+      "reviewerNotes": "Valuation is older than 12 months — request a fresh report.",
+      "file": { "name": "property-valuation-2025.pdf", "sizeBytes": 890000, "uploadedAt": "2026-06-30T13:00:00.000Z" }
+    }
+  ],
+
+  "monthlyBudget": {
+    "plannedMonthlyIncome": 1450,
+    "categories": [
+      { "id": "bud-001", "category": "Accommodation", "amount": 720, "essential": true },
+      { "id": "bud-002", "category": "Food", "amount": 300, "essential": true },
+      { "id": "bud-003", "category": "Transport", "amount": 95, "essential": true },
+      { "id": "bud-004", "category": "Utilities", "amount": 85, "essential": true },
+      { "id": "bud-005", "category": "Internet & Phone", "amount": 55, "essential": true },
+      { "id": "bud-006", "category": "Entertainment", "amount": 70, "essential": false },
+      { "id": "bud-007", "category": "Shopping", "amount": 60, "essential": false },
+      { "id": "bud-008", "category": "Emergency", "amount": 100, "essential": true },
+      { "id": "bud-009", "category": "Miscellaneous", "amount": 45, "essential": false }
+    ]
+  },
+
+  "emergencyFund": {
+    "recommendedMonths": 3,
+    "currentSavings": 1800
+  },
+
+  "savingsGoal": {
+    "currentSavings": 9000,
+    "monthlyContribution": 650,
+    "targetDate": "2026-12-01"
+  }
+}

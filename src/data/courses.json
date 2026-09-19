@@ -1,0 +1,252 @@
+[
+  {
+    "id": "crs-001",
+    "name": "Master of Science in Data Science",
+    "universityId": "uni-001",
+    "universityName": "University of Toronto",
+    "faculty": "engineering",
+    "level": "Master's",
+    "image": null,
+    "tuitionFee": "$250/Sem",
+    "tuitionFeeUsd": 42000,
+    "type": "On-campus",
+    "duration": "2 years",
+    "intakes": ["Feb 2027", "Mar 2027", "Apr 2027"],
+    "url": "/course-search/coursedetails",
+    "description": "A research-led master's covering statistical learning, large-scale data engineering and applied machine learning.",
+    "highlights": [
+      "Interactive learning sessions",
+      "Industry expert mentorship",
+      "Hands-on project experience"
+    ],
+    "outcomes": [
+      "Advanced technical skills",
+      "Project management expertise",
+      "Industry-ready portfolio"
+    ],
+    "requirements": {
+      "academic": [
+        "Bachelor's degree in a quantitative discipline",
+        "Minimum 3.3 GPA or equivalent",
+        "Two semesters of calculus and linear algebra"
+      ],
+      "documents": [
+        "Academic transcripts",
+        "Statement of purpose",
+        "Two letters of recommendation",
+        "IELTS 7.0 or TOEFL 100"
+      ]
+    },
+    "keyDates": {
+      "applicationOpens": "2026-09-01",
+      "applicationDeadline": "2027-01-15",
+      "decisionRelease": "2027-03-20",
+      "programmeStart": "2027-02-08"
+    }
+  },
+  {
+    "id": "crs-002",
+    "name": "Introduction to Machine Learning",
+    "universityId": "uni-003",
+    "universityName": "University of British Columbia",
+    "faculty": "engineering",
+    "level": "Certificate",
+    "image": null,
+    "tuitionFee": "$2,000",
+    "tuitionFeeUsd": 2000,
+    "type": "Online",
+    "duration": "3 months",
+    "intakes": ["Jan 2027", "May 2027", "Sep 2027"],
+    "url": "/course-search/coursedetails",
+    "description": "A short online certificate that introduces supervised and unsupervised learning through weekly labs.",
+    "highlights": [
+      "Fully online, self-paced labs",
+      "Weekly live mentor sessions",
+      "Capstone on a real dataset"
+    ],
+    "outcomes": [
+      "Working knowledge of scikit-learn",
+      "Ability to frame an ML problem",
+      "Portfolio-ready capstone"
+    ],
+    "requirements": {
+      "academic": ["High school diploma", "Basic Python programming"],
+      "documents": ["Proof of identity", "English proficiency self-declaration"]
+    },
+    "keyDates": {
+      "applicationOpens": "2026-08-15",
+      "applicationDeadline": "2026-12-10",
+      "decisionRelease": "2026-12-20",
+      "programmeStart": "2027-01-12"
+    }
+  },
+  {
+    "id": "crs-003",
+    "name": "Full Stack Web Development",
+    "universityId": "uni-004",
+    "universityName": "University of Manchester",
+    "faculty": "engineering",
+    "level": "Diploma",
+    "image": null,
+    "tuitionFee": "$2,500",
+    "tuitionFeeUsd": 2500,
+    "type": "On-Campus",
+    "duration": "6 months",
+    "intakes": ["Feb 2027", "Aug 2027"],
+    "url": "/course-search/coursedetails",
+    "description": "An intensive diploma covering modern JavaScript, React, Node and cloud deployment workflows.",
+    "highlights": [
+      "Project-based curriculum",
+      "Employer demo day",
+      "Small cohort sizes"
+    ],
+    "outcomes": [
+      "Ship a production web application",
+      "Confident with Git-based teamwork",
+      "Cloud deployment fundamentals"
+    ],
+    "requirements": {
+      "academic": ["High school diploma", "Familiarity with HTML and CSS"],
+      "documents": ["Academic transcripts", "IELTS 6.0 or equivalent"]
+    },
+    "keyDates": {
+      "applicationOpens": "2026-09-15",
+      "applicationDeadline": "2026-12-20",
+      "decisionRelease": "2027-01-10",
+      "programmeStart": "2027-02-15"
+    }
+  },
+  {
+    "id": "crs-004",
+    "name": "MBA — Global Management",
+    "universityId": "uni-002",
+    "universityName": "McGill University",
+    "faculty": "business",
+    "level": "Master's",
+    "image": null,
+    "tuitionFee": "$38,000/yr",
+    "tuitionFeeUsd": 38000,
+    "type": "On-Campus",
+    "duration": "20 months",
+    "intakes": ["Sep 2026", "Jan 2027"],
+    "url": "/course-search/coursedetails",
+    "description": "A general management MBA with international exchange terms and a consulting practicum.",
+    "highlights": [
+      "International exchange term",
+      "Live consulting practicum",
+      "Executive mentorship"
+    ],
+    "outcomes": [
+      "Cross-functional leadership skills",
+      "Global professional network",
+      "Consulting-ready toolkit"
+    ],
+    "requirements": {
+      "academic": [
+        "Bachelor's degree in any discipline",
+        "Two years of full-time work experience",
+        "GMAT 600+ or GRE equivalent"
+      ],
+      "documents": [
+        "Academic transcripts",
+        "CV",
+        "Two professional references",
+        "IELTS 7.0"
+      ]
+    },
+    "keyDates": {
+      "applicationOpens": "2026-08-01",
+      "applicationDeadline": "2026-11-30",
+      "decisionRelease": "2027-01-15",
+      "programmeStart": "2027-01-06"
+    }
+  },
+  {
+    "id": "crs-005",
+    "name": "MSc Public Health & Epidemiology",
+    "universityId": "uni-005",
+    "universityName": "University of Melbourne",
+    "faculty": "medicine",
+    "level": "Master's",
+    "image": null,
+    "tuitionFee": "$36,000/yr",
+    "tuitionFeeUsd": 36000,
+    "type": "On-Campus",
+    "duration": "2 years",
+    "intakes": ["Mar 2027", "Jul 2027"],
+    "url": "/course-search/coursedetails",
+    "description": "Population health research training with fieldwork placements across the Asia-Pacific region.",
+    "highlights": [
+      "Fieldwork placement",
+      "Biostatistics specialisation",
+      "WHO-linked research groups"
+    ],
+    "outcomes": [
+      "Design and run population studies",
+      "Advanced biostatistics",
+      "Policy communication skills"
+    ],
+    "requirements": {
+      "academic": [
+        "Bachelor's or Master's in health sciences",
+        "Minimum 3.5 GPA"
+      ],
+      "documents": [
+        "Academic transcripts",
+        "Research proposal",
+        "Two academic references",
+        "IELTS 7.5"
+      ]
+    },
+    "keyDates": {
+      "applicationOpens": "2026-08-20",
+      "applicationDeadline": "2026-12-01",
+      "decisionRelease": "2027-01-25",
+      "programmeStart": "2027-03-01"
+    }
+  },
+  {
+    "id": "crs-006",
+    "name": "MSc Robotics & Machine Intelligence",
+    "universityId": "uni-006",
+    "universityName": "Technical University of Munich",
+    "faculty": "engineering",
+    "level": "Master's",
+    "image": null,
+    "tuitionFee": "€0 + fees",
+    "tuitionFeeUsd": 3000,
+    "type": "On-Campus",
+    "duration": "2 years",
+    "intakes": ["Oct 2026", "Apr 2027"],
+    "url": "/course-search/coursedetails",
+    "description": "An English-taught engineering master's combining control theory, perception and embedded systems.",
+    "highlights": [
+      "No tuition fee",
+      "Industry thesis with automotive partners",
+      "Access to robotics labs"
+    ],
+    "outcomes": [
+      "Embedded and control systems expertise",
+      "Publication-quality thesis",
+      "German industry network"
+    ],
+    "requirements": {
+      "academic": [
+        "Bachelor's in engineering or computer science",
+        "Strong mathematics background"
+      ],
+      "documents": [
+        "Academic transcripts",
+        "Motivation letter",
+        "CV",
+        "IELTS 6.5 or TOEFL 88"
+      ]
+    },
+    "keyDates": {
+      "applicationOpens": "2026-08-10",
+      "applicationDeadline": "2026-11-15",
+      "decisionRelease": "2026-12-18",
+      "programmeStart": "2027-04-06"
+    }
+  }
+]

@@ -1,0 +1,104 @@
+[
+  {
+    "id": "uni-001",
+    "name": "University of Toronto",
+    "country": "Canada",
+    "city": "Toronto, Ontario",
+    "worldRanking": 21,
+    "acceptanceRate": 43,
+    "annualTuitionUsd": 45000,
+    "faculties": ["engineering", "business", "science", "medicine"],
+    "campusType": "On-Campus",
+    "logoColor": "#42A5F5",
+    "highlights": [
+      "Largest research output in Canada",
+      "Co-op placements with 400+ employers",
+      "Post-graduation work permit eligible"
+    ]
+  },
+  {
+    "id": "uni-002",
+    "name": "McGill University",
+    "country": "Canada",
+    "city": "Montreal, Quebec",
+    "worldRanking": 30,
+    "acceptanceRate": 46,
+    "annualTuitionUsd": 38000,
+    "faculties": ["arts", "business", "medicine", "science"],
+    "campusType": "On-Campus",
+    "logoColor": "#EF5350",
+    "highlights": [
+      "Bilingual city with low living costs",
+      "Strong medical research faculty",
+      "Generous entrance awards"
+    ]
+  },
+  {
+    "id": "uni-003",
+    "name": "University of British Columbia",
+    "country": "Canada",
+    "city": "Vancouver, British Columbia",
+    "worldRanking": 38,
+    "acceptanceRate": 52,
+    "annualTuitionUsd": 41000,
+    "faculties": ["engineering", "science", "arts"],
+    "campusType": "On-Campus",
+    "logoColor": "#66BB6A",
+    "highlights": [
+      "Coastal campus with year-round mild weather",
+      "AI and data science research clusters",
+      "Strong international student community"
+    ]
+  },
+  {
+    "id": "uni-004",
+    "name": "University of Manchester",
+    "country": "United Kingdom",
+    "city": "Manchester, England",
+    "worldRanking": 34,
+    "acceptanceRate": 56,
+    "annualTuitionUsd": 33000,
+    "faculties": ["engineering", "business", "science"],
+    "campusType": "On-Campus",
+    "logoColor": "#AB47BC",
+    "highlights": [
+      "Two-year post-study work visa",
+      "Industry-linked master's programmes",
+      "Affordable student city"
+    ]
+  },
+  {
+    "id": "uni-005",
+    "name": "University of Melbourne",
+    "country": "Australia",
+    "city": "Melbourne, Victoria",
+    "worldRanking": 13,
+    "acceptanceRate": 70,
+    "annualTuitionUsd": 36000,
+    "faculties": ["business", "medicine", "arts", "science"],
+    "campusType": "On-Campus",
+    "logoColor": "#FFA726",
+    "highlights": [
+      "Ranked #1 in Australia",
+      "Flexible degree structure",
+      "Large Nepali student alumni network"
+    ]
+  },
+  {
+    "id": "uni-006",
+    "name": "Technical University of Munich",
+    "country": "Germany",
+    "city": "Munich, Bavaria",
+    "worldRanking": 28,
+    "acceptanceRate": 8,
+    "annualTuitionUsd": 3000,
+    "faculties": ["engineering", "science"],
+    "campusType": "On-Campus",
+    "logoColor": "#26A69A",
+    "highlights": [
+      "No tuition fee for most master's programmes",
+      "Deep automotive and robotics industry links",
+      "English-taught engineering tracks"
+    ]
+  }
+]

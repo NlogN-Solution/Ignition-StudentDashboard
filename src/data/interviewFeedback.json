@@ -1,0 +1,61 @@
+[
+  {
+    "id": "fb-excellent",
+    "minScore": 85,
+    "band": "Excellent",
+    "tone": "green",
+    "summary": "Panel-ready. Your answers were specific, structured and well paced.",
+    "strengths": [
+      "Every answer opened with a clear position",
+      "Concrete examples backed each claim",
+      "Confident, unhurried delivery"
+    ],
+    "improvements": [
+      "Trim the closing sentence on longer answers",
+      "Prepare one more research-specific reference"
+    ]
+  },
+  {
+    "id": "fb-good",
+    "minScore": 70,
+    "band": "Strong",
+    "tone": "blue",
+    "summary": "A solid performance. Tighten your examples and you are interview ready.",
+    "strengths": [
+      "Good programme knowledge",
+      "Clear motivation for studying abroad"
+    ],
+    "improvements": [
+      "Quantify results — numbers make projects memorable",
+      "Avoid repeating the question back before answering",
+      "Practise a 30-second version of your longest answer"
+    ]
+  },
+  {
+    "id": "fb-average",
+    "minScore": 50,
+    "band": "Developing",
+    "tone": "orange",
+    "summary": "The substance is there but the structure is loose. Rehearse before the real thing.",
+    "strengths": ["Honest, natural tone", "No factual contradictions"],
+    "improvements": [
+      "Use a situation → action → result structure",
+      "Name specific modules, labs or sponsors",
+      "Cut filler openings such as 'I think that maybe'",
+      "Rehearse the funding question until it is automatic"
+    ]
+  },
+  {
+    "id": "fb-weak",
+    "minScore": 0,
+    "band": "Needs work",
+    "tone": "red",
+    "summary": "Answers were too short or too general to convince a panel. Try the set again after preparing notes.",
+    "strengths": ["You completed the full set — that is the first step"],
+    "improvements": [
+      "Write bullet notes for each question before retrying",
+      "Aim for at least three sentences per answer",
+      "Book a counsellor session to review your talking points"
+    ]
+  }
+]

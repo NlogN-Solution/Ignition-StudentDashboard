@@ -1,0 +1,46 @@
+{
+  "rules": [
+    { "action": "profile.complete", "label": "Profile completed", "points": 25, "category": "profile" },
+    { "action": "document.upload", "label": "Document uploaded", "points": 15, "category": "documents" },
+    { "action": "task.complete", "label": "Checklist task completed", "points": 20, "category": "tasks" },
+    { "action": "application.submit", "label": "Application submitted", "points": 50, "category": "applications" },
+    { "action": "appointment.book", "label": "Counselling session booked", "points": 10, "category": "appointments" },
+    { "action": "interview.complete", "label": "Practice interview completed", "points": 30, "category": "interviews" },
+
+    { "action": "finance.profileComplete", "label": "Financial profile completed", "points": 30, "category": "finance" },
+    { "action": "finance.fundingComplete", "label": "Funding sources fully declared", "points": 20, "category": "finance" },
+    { "action": "finance.documentVerified", "label": "Financial document verified", "points": 15, "category": "finance" },
+    { "action": "finance.sponsorVerified", "label": "Sponsor document verified", "points": 20, "category": "finance" },
+    { "action": "finance.paymentOnTime", "label": "Payment made on time", "points": 25, "category": "finance" },
+
+    { "action": "finance.paymentMissed", "label": "Payment deadline missed", "points": -20, "category": "finance" },
+    { "action": "finance.profileIncomplete", "label": "Financial profile left incomplete", "points": -10, "category": "finance" },
+    { "action": "finance.documentMissing", "label": "Required financial document missing", "points": -10, "category": "finance" },
+    { "action": "finance.reminderIgnored", "label": "Reminder ignored", "points": -5, "category": "finance" }
+  ],
+  "levels": [
+    { "id": "lvl-spark", "name": "Spark", "minPoints": 0, "color": "#94a3b8" },
+    { "id": "lvl-ember", "name": "Ember", "minPoints": 150, "color": "#f59e0b" },
+    { "id": "lvl-blaze", "name": "Blaze", "minPoints": 350, "color": "#f97316" },
+    { "id": "lvl-inferno", "name": "Inferno", "minPoints": 600, "color": "#ef4444" },
+    { "id": "lvl-ignition", "name": "Ignition", "minPoints": 900, "color": "#2563eb" }
+  ],
+  "ledger": [
+    { "id": "pts-001", "studentId": "stu-001", "action": "profile.complete", "label": "Profile completed", "points": 25, "createdAt": "2026-02-11T04:30:00.000Z" },
+    { "id": "pts-002", "studentId": "stu-001", "action": "task.complete", "label": "Sit the IELTS exam completed", "points": 20, "createdAt": "2026-03-29T05:20:00.000Z" },
+    { "id": "pts-003", "studentId": "stu-001", "action": "document.upload", "label": "Language Proficiency uploaded", "points": 15, "createdAt": "2026-04-02T09:10:00.000Z" },
+    { "id": "pts-004", "studentId": "stu-001", "action": "document.upload", "label": "Passport Copy uploaded", "points": 15, "createdAt": "2026-06-14T07:15:00.000Z" },
+    { "id": "pts-005", "studentId": "stu-001", "action": "task.complete", "label": "Secure your passport completed", "points": 20, "createdAt": "2026-06-14T07:12:00.000Z" },
+    { "id": "pts-006", "studentId": "stu-001", "action": "appointment.book", "label": "Profile review booked", "points": 10, "createdAt": "2026-06-20T11:00:00.000Z" },
+    { "id": "pts-007", "studentId": "stu-001", "action": "interview.complete", "label": "Visa Interview completed", "points": 30, "createdAt": "2026-06-22T07:18:00.000Z" },
+    { "id": "pts-008", "studentId": "stu-001", "action": "finance.documentVerified", "label": "Bank Statement verified", "points": 15, "createdAt": "2026-07-01T06:05:00.000Z" },
+    { "id": "pts-009", "studentId": "stu-001", "action": "task.complete", "label": "Write your Statement of Purpose completed", "points": 20, "createdAt": "2026-07-02T15:30:00.000Z" },
+    { "id": "pts-010", "studentId": "stu-001", "action": "document.upload", "label": "Statement of Purpose uploaded", "points": 15, "createdAt": "2026-07-02T15:35:00.000Z" },
+    { "id": "pts-011", "studentId": "stu-001", "action": "interview.complete", "label": "Academic Interview completed", "points": 30, "createdAt": "2026-07-09T13:20:00.000Z" },
+    { "id": "pts-012", "studentId": "stu-001", "action": "finance.paymentOnTime", "label": "Application Fees paid on time", "points": 25, "createdAt": "2026-06-22T10:00:00.000Z" },
+    { "id": "pts-013", "studentId": "stu-001", "action": "document.upload", "label": "Passport Size Photo uploaded", "points": 15, "createdAt": "2026-07-11T08:00:00.000Z" },
+    { "id": "pts-014", "studentId": "stu-001", "action": "document.upload", "label": "Degree Certificate uploaded", "points": 15, "createdAt": "2026-07-18T12:40:00.000Z" },
+    { "id": "pts-015", "studentId": "stu-001", "action": "appointment.book", "label": "Financial readiness review booked", "points": 10, "createdAt": "2026-07-28T09:00:00.000Z" },
+    { "id": "pts-016", "studentId": "stu-001", "action": "finance.documentMissing", "label": "Sponsor affidavit still missing", "points": -10, "createdAt": "2026-08-01T05:00:00.000Z" }
+  ]
+}

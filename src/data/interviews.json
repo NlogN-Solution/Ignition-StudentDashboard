@@ -1,0 +1,117 @@
+{
+  "questionSets": [
+    {
+      "typeId": "itype-pre-cas",
+      "questions": [
+        {
+          "id": "q-pc-1",
+          "prompt": "Why have you chosen this university and this course over the others you applied to?",
+          "hint": "Name the modules and what they lead to. 'It was the offer I got' is the answer that fails this.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-pc-2",
+          "prompt": "How will you pay your tuition and living costs, and where is that money now?",
+          "hint": "Name the sponsor, their relationship to you, and the account the funds have been held in.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-pc-3",
+          "prompt": "What do you know about the modules in your first year?",
+          "hint": "Two or three by name, and what each one covers. Read the course page before this interview.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-pc-4",
+          "prompt": "What do you plan to do after you graduate?",
+          "hint": "A specific role and where — the Graduate Route or a plan back home both answer this well.",
+          "maxScore": 25
+        }
+      ]
+    },
+    {
+      "typeId": "itype-credibility",
+      "questions": [
+        {
+          "id": "q-cr-1",
+          "prompt": "Why do you want to study in the UK rather than in your own country?",
+          "hint": "Give a reason about the course and the sector, not about immigration.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-cr-2",
+          "prompt": "Tell me about your course. How long is it, what will you study, and how much does it cost?",
+          "hint": "Know the duration, the tuition figure and two or three modules. Vagueness here is what refusals cite.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-cr-3",
+          "prompt": "Where will you live, and how much will it cost you each month?",
+          "hint": "A city, a rough rent, and how it fits the maintenance funds you have shown.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-cr-4",
+          "prompt": "What will you do when your visa ends?",
+          "hint": "Answer plainly. A clear plan reads as genuine; a vague one reads as an intention to stay.",
+          "maxScore": 25
+        }
+      ]
+    },
+    {
+      "typeId": "itype-academic",
+      "questions": [
+        {
+          "id": "q-ac-1",
+          "prompt": "Why this programme, and how does it follow on from what you have already studied?",
+          "hint": "Name two modules and link them to a project or a paper you have actually worked on.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-ac-2",
+          "prompt": "Talk me through a piece of work you led. What went wrong, and what did you do about it?",
+          "hint": "Situation, action, result — and give the result a number.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-ac-3",
+          "prompt": "Whose research in the department interests you, and why?",
+          "hint": "Reference the work, not just the name. A paper or a lab, and what you found interesting in it.",
+          "maxScore": 25
+        },
+        {
+          "id": "q-ac-4",
+          "prompt": "What would you want to be doing five years after you graduate?",
+          "hint": "Tie it back to what this programme actually teaches.",
+          "maxScore": 25
+        }
+      ]
+    }
+  ],
+  "sessions": [
+    {
+      "id": "int-001",
+      "studentId": "stu-001",
+      "typeId": "itype-academic",
+      "typeName": "Academic Interview",
+      "status": "completed",
+      "startedAt": "2026-07-09T12:55:00.000Z",
+      "completedAt": "2026-07-09T13:20:00.000Z",
+      "score": 78,
+      "feedbackId": "fb-good",
+      "answers": []
+    },
+    {
+      "id": "int-002",
+      "studentId": "stu-001",
+      "typeId": "itype-visa",
+      "typeName": "Visa Interview",
+      "status": "completed",
+      "startedAt": "2026-06-22T07:00:00.000Z",
+      "completedAt": "2026-06-22T07:18:00.000Z",
+      "score": 64,
+      "feedbackId": "fb-average",
+      "answers": []
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "ms-001",
+    "key": "profile",
+    "label": "Profile complete",
+    "description": "Personal, academic and preference details filled in",
+    "weight": 10,
+    "order": 1
+  },
+  {
+    "id": "ms-002",
+    "key": "documents",
+    "label": "Core documents uploaded",
+    "description": "All required documents present in the vault",
+    "weight": 20,
+    "order": 2
+  },
+  {
+    "id": "ms-003",
+    "key": "shortlist",
+    "label": "Universities shortlisted",
+    "description": "At least three universities saved for comparison",
+    "weight": 10,
+    "order": 3
+  },
+  {
+    "id": "ms-004",
+    "key": "applications",
+    "label": "Applications submitted",
+    "description": "Applications sent to shortlisted universities",
+    "weight": 25,
+    "order": 4
+  },
+  {
+    "id": "ms-005",
+    "key": "interviews",
+    "label": "Interview readiness",
+    "description": "Practice interviews completed with a passing score",
+    "weight": 15,
+    "order": 5
+  },
+  {
+    "id": "ms-006",
+    "key": "offers",
+    "label": "Offer received",
+    "description": "At least one offer letter in hand",
+    "weight": 10,
+    "order": 6
+  },
+  {
+    "id": "ms-007",
+    "key": "departure",
+    "label": "Departure ready",
+    "description": "Visa granted and travel arrangements confirmed",
+    "weight": 10,
+    "order": 7
+  }
+]

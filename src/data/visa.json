@@ -1,0 +1,107 @@
+{
+  "studentId": "stu-001",
+  "destinationCountry": "Canada",
+  "visaType": "Study Permit (IRCC)",
+  "applicationNumber": null,
+  "status": "preparing",
+  "targetLodgementDate": "2026-12-01",
+  "programmeStart": "2027-02-08",
+  "processingEstimateWeeks": 9,
+
+  "stages": [
+    {
+      "id": "vst-001",
+      "label": "Offer accepted",
+      "description": "Confirm your place and pay the tuition deposit.",
+      "date": "2026-08-22",
+      "state": "current"
+    },
+    {
+      "id": "vst-002",
+      "label": "Financial evidence assembled",
+      "description": "Proof of funds, GIC certificate and sponsor documents ready.",
+      "date": "2026-10-15",
+      "state": "upcoming"
+    },
+    {
+      "id": "vst-003",
+      "label": "Medical examination",
+      "description": "Complete the panel physician exam and upload the receipt.",
+      "date": "2026-11-05",
+      "state": "upcoming"
+    },
+    {
+      "id": "vst-004",
+      "label": "Application lodged",
+      "description": "Submit the study permit application and pay the fee.",
+      "date": "2026-12-01",
+      "state": "upcoming"
+    },
+    {
+      "id": "vst-005",
+      "label": "Biometrics submitted",
+      "description": "Attend the visa application centre appointment.",
+      "date": "2026-12-12",
+      "state": "upcoming"
+    },
+    {
+      "id": "vst-006",
+      "label": "Decision received",
+      "description": "Passport request or refusal letter issued by IRCC.",
+      "date": "2027-01-20",
+      "state": "upcoming"
+    },
+    {
+      "id": "vst-007",
+      "label": "Departure",
+      "description": "Flights booked, accommodation confirmed, pre-departure briefing done.",
+      "date": "2027-01-30",
+      "state": "upcoming"
+    }
+  ],
+
+  "appointments": [
+    {
+      "id": "vap-001",
+      "title": "Medical examination",
+      "provider": "Panel physician — Norvic Hospital",
+      "scheduledAt": "2026-11-05T04:00:00.000Z",
+      "status": "not-booked",
+      "note": "Book at least four weeks before lodging the application."
+    },
+    {
+      "id": "vap-002",
+      "title": "Biometrics appointment",
+      "provider": "VFS Global — Kathmandu",
+      "scheduledAt": "2026-12-12T05:30:00.000Z",
+      "status": "not-booked",
+      "note": "Bookable only after the application is submitted."
+    }
+  ],
+
+  "requiredDocuments": [
+    { "id": "vdoc-001", "title": "Passport", "status": "verified", "note": "Valid until May 2031." },
+    { "id": "vdoc-002", "title": "Letter of Acceptance", "status": "pending", "note": "Issued once the deposit clears." },
+    { "id": "vdoc-003", "title": "Proof of Funds / GIC certificate", "status": "missing", "note": "Purchase the GIC after the deposit payment." },
+    { "id": "vdoc-004", "title": "Statement of Purpose", "status": "verified", "note": "" },
+    { "id": "vdoc-005", "title": "Academic transcripts", "status": "missing", "note": "Awaiting the official transcript." },
+    { "id": "vdoc-006", "title": "IELTS score report", "status": "verified", "note": "Band 7.5, valid to March 2028." },
+    { "id": "vdoc-007", "title": "Medical examination receipt", "status": "missing", "note": "Generated at the panel physician visit." },
+    { "id": "vdoc-008", "title": "Passport-size photographs", "status": "verified", "note": "" }
+  ],
+
+  "fees": [
+    { "id": "vfee-001", "label": "Study permit application fee", "amountUsd": 175, "dueDate": "2026-12-01", "paid": false },
+    { "id": "vfee-002", "label": "Biometrics fee", "amountUsd": 63, "dueDate": "2026-12-01", "paid": false },
+    { "id": "vfee-003", "label": "Medical examination", "amountUsd": 190, "dueDate": "2026-11-05", "paid": false }
+  ],
+
+  "departureChecklist": [
+    { "id": "vdep-001", "title": "Book flights", "completed": false },
+    { "id": "vdep-002", "title": "Confirm accommodation", "completed": false },
+    { "id": "vdep-003", "title": "Arrange airport pickup", "completed": false },
+    { "id": "vdep-004", "title": "Attend pre-departure briefing", "completed": false },
+    { "id": "vdep-005", "title": "Set up an international bank card", "completed": false },
+    { "id": "vdep-006", "title": "Buy travel insurance", "completed": false }
+  ]
+}
