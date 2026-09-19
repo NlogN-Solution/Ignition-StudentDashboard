@@ -87,14 +87,14 @@ const ExploreUniversities = () => {
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               placeholder="Search by name or city"
-              className="w-full rounded-lg border border-hairline bg-white py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-faint focus:border-blue-link focus:outline-none focus:ring-2 focus:ring-blue-link/20"
+              className="w-full rounded-lg border border-hairline bg-white py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-faint focus:border-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-900/20"
             />
           </div>
 
           <select
             value={region}
             onChange={(event) => setRegion(event.target.value)}
-            className="rounded-lg border border-hairline bg-white px-3 py-2.5 text-sm font-medium text-ink-soft focus:border-blue-link focus:outline-none"
+            className="rounded-lg border border-hairline bg-white px-3 py-2.5 text-sm font-medium text-ink-soft focus:border-navy-900 focus:outline-none"
           >
             <option value="">All regions</option>
             {regions.map((option) => (
@@ -107,7 +107,7 @@ const ExploreUniversities = () => {
           <select
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
-            className="rounded-lg border border-hairline bg-white px-3 py-2.5 text-sm font-medium text-ink-soft focus:border-blue-link focus:outline-none"
+            className="rounded-lg border border-hairline bg-white px-3 py-2.5 text-sm font-medium text-ink-soft focus:border-navy-900 focus:outline-none"
           >
             <option value="">All subjects</option>
             {subjects.map((option) => (
@@ -141,7 +141,7 @@ const ExploreUniversities = () => {
                 setRegion("");
                 setSubject("");
               }}
-              className="text-xs font-semibold text-blue-link hover:text-navy-900"
+              className="text-xs font-semibold text-navy-900 hover:text-navy-900"
             >
               Clear all
             </button>

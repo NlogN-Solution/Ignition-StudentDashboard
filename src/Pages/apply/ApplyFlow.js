@@ -465,9 +465,9 @@ const ApplyFlow = () => {
                           setDetails((prev) => ({ ...prev, [field.key]: event.target.value }));
                           setErrors((prev) => ({ ...prev, [field.key]: undefined }));
                         }}
-                        className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-blue-link/20 ${
+                        className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-navy-900/20 ${
                           errors[field.key] ? "border-orange" : "border-hairline"
-                        } ${locked ? "bg-canvas text-ink-muted" : "bg-white focus:border-blue-link"}`}
+                        } ${locked ? "bg-canvas text-ink-muted" : "bg-white focus:border-navy-900"}`}
                       />
                       {field.hint && <p className="mt-1 text-xs text-ink-faint">{field.hint}</p>}
                       {locked && (

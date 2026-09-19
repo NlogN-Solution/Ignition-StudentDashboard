@@ -11,7 +11,7 @@ import { ChevronDown } from "lucide-react";
  * scale on purpose.
  *
  * These screens used to be written in a different dialect from the rest of the
- * portal: `focus:ring-blue-500`, `border-gray-200`, `text-red-500`,
+ * portal: `focus:ring-navy-900`, `border-gray-200`, `text-red-500`,
  * `bg-green-500` submit buttons, `rounded-2xl` gradient chrome. None of those
  * are Ignition colours. A student came off a navy-and-orange public site,
  * through a navy-and-orange registration form, and the first screen inside
@@ -38,7 +38,7 @@ import { ChevronDown } from "lucide-react";
 
 const baseControl =
   "w-full rounded-xl border bg-white text-[15.5px] font-medium text-ink outline-none transition-colors " +
-  "placeholder:text-ink-faint focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15 " +
+  "placeholder:text-ink-faint focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15 " +
   "disabled:cursor-not-allowed disabled:bg-canvas disabled:text-ink-faint";
 
 const borderFor = (error) =>
@@ -186,7 +186,7 @@ export const PanelHead = ({ eyebrow, title, description, icon: Icon, actions }) 
       ) : null}
       <div>
         {eyebrow ? (
-          <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-blue-link">
+          <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-navy-900">
             {eyebrow}
           </p>
         ) : null}

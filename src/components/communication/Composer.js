@@ -153,7 +153,7 @@ const Composer = ({ onSend, isSending, placeholder = "Write a reply…", autoFoc
             event.preventDefault();
             addFiles(event.dataTransfer.files);
           }}
-          className="min-h-[86px] max-h-[280px] overflow-y-auto px-3.5 py-3 text-[14.5px] font-medium leading-[1.6] text-ink outline-none [&_a]:text-blue-link [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5"
+          className="min-h-[86px] max-h-[280px] overflow-y-auto px-3.5 py-3 text-[14.5px] font-medium leading-[1.6] text-ink outline-none [&_a]:text-navy-900 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5"
         />
       </div>
 

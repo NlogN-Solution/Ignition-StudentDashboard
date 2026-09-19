@@ -76,7 +76,7 @@ const Explore = () => {
   };
 
   return (
-    <div className="bg-gray-50 pb-12 pt-9">
+    <div className="pb-12 pt-9">
       <div className="mx-auto max-w-7xl px-4">
         <PageHeader
           icon={active.icon}

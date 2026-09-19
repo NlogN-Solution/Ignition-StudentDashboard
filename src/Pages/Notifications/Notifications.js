@@ -56,7 +56,7 @@ const Notifications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+    <div className="min-h-screen mt-9 pb-12">
       <PageHeader
         icon={Bell}
         title="Notifications"
@@ -70,7 +70,7 @@ const Notifications = () => {
             <button
               type="button"
               onClick={handleMarkAll}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-blue-600 transition-all duration-300"
+              className="flex items-center gap-2 px-6 py-3 bg-navy-900 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-navy-950 transition-all duration-300"
             >
               <CheckCheck className="w-5 h-5" />
               Mark all as read
@@ -88,7 +88,7 @@ const Notifications = () => {
               onClick={() => setFilter(option.value)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                 filter === option.value
-                  ? "bg-blue-50 text-blue-600 border border-blue-200"
+                  ? "bg-navy-50 text-navy-900 border border-navy-200"
                   : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
               }`}
             >
@@ -113,11 +113,11 @@ const Notifications = () => {
                   type="button"
                   onClick={() => markNotificationRead(notification.id)}
                   className={`w-full text-left p-5 flex items-start gap-4 hover:bg-gray-50 transition-colors ${
-                    notification.isRead ? "bg-white" : "bg-blue-50"
+                    notification.isRead ? "bg-white" : "bg-navy-50"
                   }`}
                 >
                   <div className="p-2 bg-white rounded-lg border border-gray-200 flex-shrink-0">
-                    <Icon className="w-5 h-5 text-blue-500" />
+                    <Icon className="w-5 h-5 text-navy-900" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4">
@@ -132,7 +132,7 @@ const Notifications = () => {
                     </span>
                   </div>
                   {!notification.isRead && (
-                    <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-navy-900 mt-2 flex-shrink-0" />
                   )}
                 </button>
               );

@@ -9,8 +9,8 @@ const PageHeader = ({ icon: Icon, title, description, actions }) => (
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
       <div className="flex items-start gap-4">
         {Icon && (
-          <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-sm">
-            <Icon className="w-7 h-7 text-blue-700" />
+          <div className="p-3 bg-gradient-to-br from-navy-100 to-navy-200 rounded-2xl shadow-sm">
+            <Icon className="w-7 h-7 text-navy-800" />
           </div>
         )}
         <div>

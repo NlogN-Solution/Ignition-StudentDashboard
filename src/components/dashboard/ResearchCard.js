@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Compass, GraduationCap, Building2, Sparkles } from "lucide-react";
 import { fetchMyResearch } from "../../api/students";
+import { Card, buttonClass } from "./ui";
 
 /**
  * "Your research came with you."
@@ -28,9 +29,9 @@ const Row = ({ icon: Icon, label, children }) => (
   <div className="flex items-start gap-3">
     <span
       aria-hidden
-      className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-card"
+      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navy-50"
     >
-      <Icon className="h-[18px] w-[18px] text-blue-link" />
+      <Icon className="h-4 w-4 text-navy-900" />
     </span>
     <div className="min-w-0">
       <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-ink-faint">{label}</p>
@@ -69,15 +70,15 @@ const ResearchCard = ({ research }) => {
   if (!career && !courses.length && !universities.length) return null;
 
   return (
-    <div className="rounded-2xl border border-white/60 bg-white/50 p-6 shadow-[0_8px_32px_rgba(15,23,42,0.10)] backdrop-blur-xl backdrop-saturate-150 sm:p-7">
+    <Card className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <Sparkles className="h-5 w-5 text-orange" aria-hidden />
-          <h2 className="text-[19px] font-bold tracking-[-0.015em] text-navy-900">
+          <Sparkles className="h-4 w-4 text-navy-900" aria-hidden />
+          <h2 className="text-[16px] font-semibold tracking-[-0.01em] text-navy-900">
             Your research came with you
           </h2>
         </div>
-        <span className="rounded-full border border-navy-200 bg-white px-3 py-1 text-[12px] font-bold text-navy-700">
+        <span className="rounded-full border border-navy-200 bg-white px-3 py-1 text-[12px] font-bold text-navy-900">
           From Ignition
         </span>
       </div>
@@ -164,18 +165,18 @@ const ResearchCard = ({ research }) => {
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           to="/explore"
-          className="inline-flex h-[46px] items-center rounded-xl bg-navy-900 px-5 text-[14.5px] font-bold text-white transition-colors hover:bg-navy-ink"
+          className={buttonClass('primary')}
         >
           Browse the Ignition catalogue
         </Link>
         <Link
           to="/messages"
-          className="inline-flex h-[46px] items-center rounded-xl border border-ring-idle bg-white px-5 text-[14.5px] font-semibold text-ink-soft transition-colors hover:border-nav/40 hover:text-navy-900"
+          className={buttonClass('secondary')}
         >
           Talk to my advisor
         </Link>
       </div>
-    </div>
+    </Card>
   );
 };
 

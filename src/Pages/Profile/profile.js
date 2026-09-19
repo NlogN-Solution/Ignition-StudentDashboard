@@ -235,7 +235,7 @@ const EditProfile = () => {
     <AppLayout>
       <div className="mx-auto max-w-[1120px] px-5 py-8 sm:px-8 sm:py-10">
         <header>
-          <p className="text-[12.5px] font-bold uppercase tracking-[0.16em] text-blue-link">
+          <p className="text-[12.5px] font-bold uppercase tracking-[0.16em] text-navy-900">
             Your profile
           </p>
           <h1 className="mt-2 text-[clamp(1.8rem,3vw,2.4rem)] font-extrabold leading-[1.1] tracking-[-0.025em] text-navy-900">
@@ -265,7 +265,7 @@ const EditProfile = () => {
                     would otherwise draw off-screen. */}
                 <label
                   htmlFor="profileImage"
-                  className="inline-flex h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-ring-idle bg-white px-5 text-[14.5px] font-semibold text-ink-soft transition-colors hover:border-nav/40 hover:text-navy-900 focus-within:ring-4 focus-within:ring-blue-bright/15"
+                  className="inline-flex h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-ring-idle bg-white px-5 text-[14.5px] font-semibold text-ink-soft transition-colors hover:border-nav/40 hover:text-navy-900 focus-within:ring-4 focus-within:ring-navy-900/15"
                 >
                   <Camera className="h-[17px] w-[17px]" aria-hidden />
                   Change photo
@@ -604,7 +604,7 @@ const EditProfile = () => {
                         onChange={(e) =>
                           setExperienceDraft((c) => ({ ...c, isCurrent: e.target.checked }))
                         }
-                        className="h-[18px] w-[18px] rounded border-ring-idle text-navy-900 focus:ring-4 focus:ring-blue-bright/15"
+                        className="h-[18px] w-[18px] rounded border-ring-idle text-navy-900 focus:ring-4 focus:ring-navy-900/15"
                       />
                       Currently working here
                     </label>

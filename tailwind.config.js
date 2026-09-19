@@ -42,10 +42,15 @@ module.exports = {
           600: "#23307B",
           700: "#182463",
           800: "#101A4C",
-          900: "#0B1345",
-          950: "#060A28",
-          ink: "#060A28",
-          DEFAULT: "#0B1345",
+          // 900 is the public website's primary navy (`--color-navy` in
+          // Ignition-Landing/app/globals.css) and 950/ink its hover step
+          // (`--color-navy-ink`), so a button, heading or link in the portal is
+          // the same colour as its counterpart on the site. It was #0B1345, a
+          // greyer navy that read as a near-miss next to the logo.
+          900: "#01166f",
+          950: "#020f53",
+          ink: "#020f53",
+          DEFAULT: "#01166f",
         },
         ignite: {
           50: "#FFF4ED",
@@ -85,14 +90,24 @@ module.exports = {
         },
       },
       boxShadow: {
-        // The three elevations the portal uses, and no others. `card` is the
-        // resting state of every panel, `lift` is what it becomes under the
-        // cursor, and `float` is for things that genuinely leave the page —
-        // menus, the wizard's summary rail. Tinted navy rather than black:
-        // a neutral drop shadow on a warm canvas reads as grey dirt.
-        card: "0 1px 2px 0 rgba(11,19,69,0.04), 0 1px 3px 0 rgba(11,19,69,0.06)",
-        lift: "0 4px 12px -2px rgba(11,19,69,0.08), 0 2px 6px -2px rgba(11,19,69,0.06)",
-        float: "0 18px 40px -16px rgba(11,19,69,0.28), 0 4px 12px -4px rgba(11,19,69,0.12)",
+        // Soft, two-sided elevation — a light "neumorphic" treatment. Each
+        // shadow pairs a navy-tinted drop below with a white highlight above
+        // (and a hairline inner top light), so surfaces read as gently raised
+        // out of the canvas rather than floating on a hard drop shadow. Kept
+        // low-contrast on purpose: depth, not decoration.
+        //
+        // The Tailwind defaults (`shadow-sm` … `shadow-2xl`) are redefined in
+        // the same family so the older screens that still use them match the
+        // redesigned ones without being touched.
+        card: "inset 0 1px 0 0 rgba(255,255,255,0.8), 0 1px 2px 0 rgba(1,22,111,0.04), 6px 8px 22px -10px rgba(1,22,111,0.14), -6px -6px 16px -10px rgba(255,255,255,0.9)",
+        lift: "inset 0 1px 0 0 rgba(255,255,255,0.85), 0 2px 4px 0 rgba(1,22,111,0.05), 10px 14px 30px -12px rgba(1,22,111,0.20), -8px -8px 20px -10px rgba(255,255,255,0.95)",
+        float: "0 24px 48px -18px rgba(1,22,111,0.30), 0 6px 16px -6px rgba(1,22,111,0.12)",
+        sm: "0 1px 2px 0 rgba(1,22,111,0.05), 3px 4px 10px -6px rgba(1,22,111,0.10), -3px -3px 8px -6px rgba(255,255,255,0.9)",
+        DEFAULT: "inset 0 1px 0 0 rgba(255,255,255,0.8), 0 1px 2px 0 rgba(1,22,111,0.04), 6px 8px 22px -10px rgba(1,22,111,0.14), -6px -6px 16px -10px rgba(255,255,255,0.9)",
+        md: "inset 0 1px 0 0 rgba(255,255,255,0.8), 0 2px 4px 0 rgba(1,22,111,0.05), 8px 12px 26px -12px rgba(1,22,111,0.18), -6px -6px 18px -10px rgba(255,255,255,0.95)",
+        lg: "inset 0 1px 0 0 rgba(255,255,255,0.85), 0 2px 4px 0 rgba(1,22,111,0.05), 10px 14px 30px -12px rgba(1,22,111,0.20), -8px -8px 20px -10px rgba(255,255,255,0.95)",
+        xl: "0 20px 40px -16px rgba(1,22,111,0.26), 0 6px 14px -6px rgba(1,22,111,0.10)",
+        "2xl": "0 28px 56px -20px rgba(1,22,111,0.32), 0 8px 18px -8px rgba(1,22,111,0.12)",
       },
     },
   },

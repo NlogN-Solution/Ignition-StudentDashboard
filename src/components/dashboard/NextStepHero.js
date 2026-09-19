@@ -1,26 +1,78 @@
 import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Upload, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Upload, Zap } from 'lucide-react';
 
 import { formatDeadline } from '../../lib/simulate';
+import { buttonClass } from './ui';
 
 /**
  * The one thing on this page the student has to do, full stop.
  *
- * This used to be two cards: "N documents needed" (whatever a counsellor is
- * waiting on) sitting above a separate "Your next step" checklist hero. Both
- * were framed as *the* most urgent thing on the dashboard, which is a
- * contradiction a student has to resolve themselves. A requested document
- * outranks a checklist task — it's something a person is actively waiting on,
- * not a self-paced to-do — so it takes the hero whenever one is outstanding;
- * the checklist task only surfaces here once there's nothing owed.
+ * A requested document outranks a checklist task — someone is actively waiting
+ * on it, rather than it being a self-paced to-do — so it takes the card
+ * whenever one is outstanding; the checklist task only surfaces here once
+ * there's nothing owed.
  *
- * The sideways gradient behind the copy is a one-off experiment (asked for by
- * name, not a new design-system colour) — an actual photo like the reference
- * mockup's would need a licensed asset this project doesn't have, so this is
- * a CSS mesh gradient standing in for "image" instead.
+ * ## Why it always renders
+ *
+ * It used to return `null` until it had something to say. Its inputs arrive
+ * last on the page — requested documents are read per application, so they
+ * wait for the application list first — which meant the whole card appeared a
+ * beat after everything else and shoved the page down when it did. Now the
+ * card is always there at the same height: a skeleton while loading, then the
+ * step, or "you're all caught up" when there is none. The layout never moves.
+ *
+ * Solid Ignition navy, not the navy→blue→violet→orange gradient it
+ * had: that was four hues on one surface, and the card is important because
+ * of what it says, not because it is the loudest thing on the page.
  */
+
+const Shell = ({ children, label = 'Your next step' }) => (
+  <section
+    aria-label={label}
+    className="relative overflow-hidden rounded-2xl bg-navy-900 p-6 text-white shadow-card sm:p-7"
+  >
+    {/* One soft highlight for depth — not a gradient wash. */}
+    <span
+      aria-hidden
+      className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/[0.06] blur-2xl"
+    />
+    <div className="relative flex min-h-[168px] flex-col">{children}</div>
+  </section>
+);
+
+const Eyebrow = ({ icon: Icon = Zap, children = 'Your next step' }) => (
+  <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.08em] text-white/80">
+    <Icon className="h-3.5 w-3.5" aria-hidden />
+    {children}
+  </span>
+);
+
+const Meter = ({ value }) => (
+  <div className="h-1.5 w-full max-w-[240px] overflow-hidden rounded-full bg-white/15">
+    <div
+      className="h-full rounded-full bg-white transition-[width] duration-500"
+      style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+    />
+  </div>
+);
+
+const Chip = ({ children }) => (
+  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[12px] font-semibold text-white/90">{children}</span>
+);
+
+const Skeleton = () => (
+  <Shell label="Loading your next step">
+    <span aria-hidden className="block h-3 w-28 animate-pulse rounded bg-white/15" />
+    <span aria-hidden className="mt-4 block h-7 w-2/3 max-w-[420px] animate-pulse rounded-md bg-white/15" />
+    <span aria-hidden className="mt-3 block h-4 w-1/2 max-w-[360px] animate-pulse rounded bg-white/10" />
+    <span aria-hidden className="mt-auto block h-10 w-36 animate-pulse rounded-xl bg-white/15" />
+    <span className="sr-only">Loading your next step…</span>
+  </Shell>
+);
+
 const NextStepHero = ({
+  isLoading = false,
   documentItem,
   documentCount = 0,
   documentProgress = 0,
@@ -32,7 +84,28 @@ const NextStepHero = ({
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  if (!documentItem && !task) return null;
+  if (isLoading) return <Skeleton />;
+
+  if (!documentItem && !task) {
+    return (
+      <Shell>
+        <Eyebrow icon={CheckCircle2}>All caught up</Eyebrow>
+        <h2 className="mt-3 text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:text-[24px]">
+          Nothing needs you right now
+        </h2>
+        <p className="mt-2 max-w-[60ch] text-[14px] leading-[1.6] text-white/75">
+          No documents are outstanding and every unlocked task is done. We'll put the next step here the moment
+          there is one.
+        </p>
+        <div className="mt-auto pt-5">
+          <button type="button" onClick={() => navigate('/applications')} className={buttonClass('inverse')}>
+            View applications
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      </Shell>
+    );
+  }
 
   const handleFile = (event) => {
     const file = event.target.files?.[0];
@@ -41,78 +114,32 @@ const NextStepHero = ({
   };
 
   const progress = documentItem ? documentProgress : taskProgress;
+  const title = documentItem ? documentItem.label : task.title;
+  const body = documentItem
+    ? `Requested for ${documentItem.applicationName}${documentItem.status === 'rejected' ? ' — needs replacing' : ''}${
+        documentItem.notes ? ` · ${documentItem.notes}` : ''
+      }`
+    : task.description;
+  const chip = documentItem
+    ? documentCount > 1 && `+${documentCount - 1} more needed`
+    : task.dueDate && formatDeadline(task.dueDate);
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl p-6 text-white shadow-card sm:p-8"
-      style={{
-        backgroundImage:
-          'linear-gradient(100deg, #0B1345 0%, #1071f6 42%, #7c3aed 68%, #FF5A1F 100%)',
-      }}
-    >
-      {/* Frosted glass scrim so copy stays legible over the vibrant gradient,
-          without flattening it to a solid colour. */}
-      <div className="pointer-events-none absolute inset-0 bg-navy-950/25 backdrop-blur-[2px]" />
+    <Shell>
+      <Eyebrow />
+      <h2 className="mt-3 line-clamp-2 text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:text-[24px]">
+        {title}
+      </h2>
+      {body && <p className="mt-2 line-clamp-2 max-w-[60ch] text-[14px] leading-[1.6] text-white/75">{body}</p>}
 
-      <div className="relative">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[12.5px] font-bold uppercase tracking-[0.08em] text-white backdrop-blur-md">
-          <Zap className="h-3.5 w-3.5" aria-hidden />
-          Your next step
-        </span>
-
-        {documentItem ? (
-          <>
-            <h2 className="mt-4 text-[26px] font-extrabold leading-tight tracking-[-0.02em] sm:text-[30px]">
-              {documentItem.label}
-            </h2>
-            <p className="mt-2 max-w-[60ch] text-[15px] font-medium leading-[1.6] text-white/80">
-              Requested for {documentItem.applicationName}
-              {documentItem.status === 'rejected' ? ' — needs replacing' : ''}
-              {documentItem.notes ? ` · ${documentItem.notes}` : ''}
-            </p>
-          </>
-        ) : (
-          <>
-            <h2 className="mt-4 text-[26px] font-extrabold leading-tight tracking-[-0.02em] sm:text-[30px]">
-              {task.title}
-            </h2>
-            {task.description && (
-              <p className="mt-2 max-w-[60ch] text-[15px] font-medium leading-[1.6] text-white/80">
-                {task.description}
-              </p>
-            )}
-          </>
-        )}
-
-        <div className="mt-6 flex flex-wrap items-center gap-4">
-          <div className="h-1.5 w-full max-w-[280px] overflow-hidden rounded-full border border-white/20 bg-white/15 backdrop-blur-md">
-            <div
-              className="h-full rounded-full bg-white transition-[width] duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-            />
-          </div>
-          {documentItem ? (
-            documentCount > 1 && (
-              <span className="rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[12.5px] font-bold text-white backdrop-blur-md">
-                +{documentCount - 1} more needed
-              </span>
-            )
-          ) : (
-            task.dueDate && (
-              <span className="rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[12.5px] font-bold text-white backdrop-blur-md">
-                {formatDeadline(task.dueDate)}
-              </span>
-            )
-          )}
-        </div>
-
+      <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-4 pt-5">
         {documentItem ? (
           <>
             <button
               type="button"
               disabled={isUploadingDocument}
               onClick={() => fileInputRef.current?.click()}
-              className="mt-6 inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-white px-6 text-[14.5px] font-bold text-navy-900 transition-colors hover:bg-navy-50 disabled:opacity-60"
+              className={buttonClass('inverse')}
             >
               <Upload className="h-4 w-4" aria-hidden />
               {isUploadingDocument ? 'Uploading…' : documentItem.status === 'rejected' ? 'Re-upload' : 'Upload'}
@@ -120,17 +147,17 @@ const NextStepHero = ({
             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFile} />
           </>
         ) : (
-          <button
-            type="button"
-            onClick={() => navigate('/tasks')}
-            className="mt-6 inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-white px-6 text-[14.5px] font-bold text-navy-900 transition-colors hover:bg-navy-50"
-          >
+          <button type="button" onClick={() => navigate('/tasks')} className={buttonClass('inverse')}>
             Complete task
             <ArrowRight className="h-4 w-4" aria-hidden />
           </button>
         )}
+        <div className="flex min-w-[180px] flex-1 items-center gap-3">
+          <Meter value={progress} />
+          {chip && <Chip>{chip}</Chip>}
+        </div>
       </div>
-    </div>
+    </Shell>
   );
 };
 

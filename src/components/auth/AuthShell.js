@@ -232,7 +232,7 @@ export const AuthField = ({
         id={id}
         aria-invalid={error ? "true" : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`h-[44px] w-full rounded-xl border bg-white text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15 ${
+        className={`h-[44px] w-full rounded-xl border bg-white text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15 ${
           Icon ? "pl-[42px]" : "pl-4"
         } ${trailing ? "pr-[46px]" : "pr-4"} ${
           error ? "border-orange" : "border-ring-idle hover:border-nav/40"

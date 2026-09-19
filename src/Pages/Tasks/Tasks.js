@@ -33,7 +33,7 @@ const Tasks = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+    <div className="min-h-screen mt-9 pb-12">
       <PageHeader
         icon={ListChecks}
         title="My Checklist"
@@ -49,7 +49,7 @@ const Tasks = () => {
           </p>
           <div className="w-full bg-gray-100 rounded-full h-2 mt-3">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+              className="bg-navy-900 h-2 rounded-full transition-all duration-500"
               style={{ width: `${taskProgress}%` }}
             />
           </div>
@@ -104,7 +104,7 @@ const Tasks = () => {
                       {task.completed ? (
                         <CircleCheck className="w-7 h-7 text-green-500" />
                       ) : unlocked ? (
-                        <Circle className="w-7 h-7 text-gray-300 hover:text-blue-400 transition-colors" />
+                        <Circle className="w-7 h-7 text-gray-300 hover:text-navy-400 transition-colors" />
                       ) : (
                         <Lock className="w-7 h-7 text-gray-300 p-1" />
                       )}
@@ -121,7 +121,7 @@ const Tasks = () => {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-navy-100 text-navy-900">
                             {task.stage}
                           </span>
                           <h3

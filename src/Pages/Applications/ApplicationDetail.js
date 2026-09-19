@@ -5,12 +5,10 @@ import {
   ArrowLeft,
   ArrowRight,
   Award,
-  BedDouble,
   BookOpen,
   Building2,
   CalendarDays,
   CheckCircle2,
-  ChevronRight,
   Clock,
   Download,
   Eye,
@@ -19,15 +17,14 @@ import {
   GraduationCap,
   Globe,
   Landmark,
-  Link2,
   Lock,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
   Send,
   ShieldCheck,
   Stamp,
-  Star,
   Timer,
   Upload,
   UserRound,
@@ -57,6 +54,7 @@ import {
   OFFER_STATUSES,
   OFFER_TYPE_LABELS,
   PROGRESS_STEPS,
+  STOPPED_STATUSES,
   VISA_STATUSES,
   applicationPill,
   hasOffer,
@@ -71,8 +69,9 @@ const HERO_FALLBACK_IMAGE = "/images/campus-historic.webp";
 
 const TABS = [
   { id: "overview", label: "Overview" },
+  // Fees & Funding lives inside Course Details: a seventh tab pushed the strip
+  // past the column width and made it scroll sideways.
   { id: "course", label: "Course Details" },
-  { id: "fees", label: "Fees & Funding" },
   { id: "requirements", label: "Requirements" },
   { id: "timeline", label: "Timeline" },
   { id: "documents", label: "Documents" },
@@ -133,7 +132,7 @@ const locationOf = (application) => {
 const SectionTitle = ({ icon: Icon, children, action }) => (
   <div className="flex items-center justify-between gap-3">
     <h2 className="flex items-center gap-3 text-[17px] font-semibold text-navy-900">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-50 text-navy-900">
         <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
       </span>
       {children}
@@ -146,17 +145,43 @@ const Card = ({ children, className = "" }) => (
   <section className={`rounded-2xl border border-hairline bg-white shadow-card ${className}`}>{children}</section>
 );
 
-const HeroFact = ({ icon: Icon, label, value, divider }) => (
-  <div className={`flex items-start gap-3 ${divider ? "sm:border-l sm:border-hairline sm:pl-5" : ""}`}>
-    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-navy-50 text-ink-muted">
-      <Icon className="h-4 w-4" aria-hidden />
+const HeroFact = ({ icon: Icon, label, value }) => (
+  <div className="flex min-w-0 items-center gap-3">
+    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-900">
+      <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
     </span>
     <div className="min-w-0">
-      <p className="text-[13px] text-ink-muted">{label}</p>
-      <p className="mt-0.5 text-sm font-medium text-navy-900">{value || "To be confirmed"}</p>
+      <p className="text-[12px] leading-tight text-ink-muted">{label}</p>
+      {/* Wraps rather than overflowing: a fee range or a long intake name
+          must never push the card wider than its column. */}
+      <p className="mt-1 break-words text-[14px] font-semibold leading-snug text-navy-900">
+        {value || "To be confirmed"}
+      </p>
     </div>
   </div>
 );
+
+/**
+ * One headline figure out of the catalogue's fee prose.
+ *
+ * Route fee text is written for people, not layouts — "Full time: £15,500
+ * Extended Master's: £15,500+£3,500" — and printed verbatim it wrapped the hero
+ * into a column of fragments. The hero states the first figure the way the
+ * design does ("£15,500.00 / year"), or a range where the text opens with one;
+ * the full wording stays in Course Details, where there is room for it.
+ */
+const feeHeadline = (text, symbol = "£") => {
+  if (!text) return null;
+  const pattern = /([£$€])\s?(\d[\d,]*(?:\.\d+)?)(?:\s*(?:-|–|to)\s*[£$€]?\s?(\d[\d,]*(?:\.\d+)?))?/;
+  const match = String(text).match(pattern);
+  if (!match) return null;
+  const currency = match[1] || symbol;
+  const low = Number(match[2].replace(/,/g, ""));
+  const high = match[3] ? Number(match[3].replace(/,/g, "")) : null;
+  if (!low) return null;
+  const whole = (n) => `${currency}${n.toLocaleString("en-GB")}`;
+  return high && high !== low ? `${whole(low)} – ${whole(high)} / year` : `${money(low, currency)} / year`;
+};
 
 const DetailFact = ({ icon: Icon, label, value }) => (
   <div className="flex items-start gap-3">
@@ -181,60 +206,85 @@ const TabEmpty = ({ children }) => <p className="text-sm text-ink-muted">{childr
 
 /* ------------------------------------------------------------- progress --- */
 
-const ProgressCard = ({ application, stepDates }) => {
+/** The line under a step: a date, a state, or why the journey stopped. */
+const stepCaption = (application, index, current, date) => {
+  const { status } = application;
+  if (index === current) {
+    if (STOPPED_STATUSES.includes(status)) return applicationPill(status).label;
+    if (status === "visa_processing") return date ? `Lodged ${date} · awaiting decision` : "Awaiting decision";
+    return "In progress";
+  }
+  if (index < current) {
+    // The visa step is "done" once it is decided; say which way.
+    if (PROGRESS_STEPS[index] === "Visa Lodged") {
+      const decided = formatDay(application.visaDecisionDate);
+      return decided ? `Approved · ${decided}` : "Approved";
+    }
+    return date ?? "Completed";
+  }
+  return "Pending";
+};
+
+/* Compact rows — label and caption on one line — so seven steps sit beside
+   the hero card at the same height instead of running a screen down. */
+const ProgressCard = ({ application, stepDates, className = "" }) => {
   const current = progressStepOf(application.status);
-  const stopped = ["rejected", "withdrawn"].includes(application.status);
+  const stopped = STOPPED_STATUSES.includes(application.status);
   const stepNumber = Math.min(current + 1, PROGRESS_STEPS.length);
 
   return (
-    <Card className="p-6">
+    <Card className={`flex flex-col p-5 ${className}`}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-navy-900">Application Progress</h2>
-        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">
-          Step {stepNumber} of {PROGRESS_STEPS.length}
+        <h2 className="text-[17px] font-semibold text-navy-900">Application Progress</h2>
+        <span className="rounded-full bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-900">
+          {current >= PROGRESS_STEPS.length ? "Complete" : `Step ${stepNumber} of ${PROGRESS_STEPS.length}`}
         </span>
       </div>
 
-      <ol className="mt-5">
+      <ol className="mt-4 flex flex-1 flex-col justify-between">
         {PROGRESS_STEPS.map((label, index) => {
           const done = index < current;
           const isCurrent = index === current;
           const last = index === PROGRESS_STEPS.length - 1;
-          const date = formatDay(stepDates[index]);
+          const caption = stepCaption(application, index, current, formatDay(stepDates[index]));
           return (
-            <li key={label} className="relative flex gap-4 pb-6 last:pb-0">
+            <li key={label} className="relative flex items-center gap-3 py-[5px]">
               {!last && (
                 <span
                   aria-hidden
-                  className={`absolute left-[14px] top-8 h-[calc(100%-32px)] w-0.5 ${done ? "bg-emerald-400" : "bg-gray-200"}`}
+                  className={`absolute left-[12px] top-[calc(50%+13px)] h-[calc(100%-16px)] w-0.5 ${
+                    done ? "bg-emerald-400" : "bg-gray-200"
+                  }`}
                 />
               )}
               <span
                 aria-hidden
-                className={`relative z-10 flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                className={`relative z-10 flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
                   done
                     ? "bg-emerald-500 text-white"
                     : isCurrent
                     ? stopped
                       ? "border-2 border-red-500 bg-white text-red-600"
-                      : "border-2 border-indigo-600 bg-white text-indigo-600"
+                      : "border-2 border-navy-500 bg-white text-navy-900"
                     : "border border-gray-300 bg-white text-ink-faint"
                 }`}
               >
-                {done ? <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} /> : index + 1}
+                {done ? <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} /> : index + 1}
               </span>
-              <div className="min-w-0 pt-1">
+              <div className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
                 <p
-                  className={`text-sm ${
-                    isCurrent ? (stopped ? "font-semibold text-red-600" : "font-semibold text-indigo-600") : "font-medium text-navy-900"
+                  className={`truncate text-sm ${
+                    isCurrent ? (stopped ? "font-semibold text-red-600" : "font-semibold text-navy-900") : "font-medium text-navy-900"
                   }`}
                 >
-                  {index + 1}. {label}
+                  {label}
                 </p>
-                <p className="mt-1 text-[13px] text-ink-muted">
-                  {isCurrent && stopped
-                    ? applicationPill(application.status).label
-                    : date ?? (done ? "Completed" : "Pending")}
+                <p
+                  className={`flex-shrink-0 text-right text-xs ${
+                    isCurrent && stopped ? "font-medium text-red-600" : done ? "text-emerald-700" : "text-ink-muted"
+                  }`}
+                >
+                  {caption}
                 </p>
               </div>
             </li>
@@ -318,22 +368,22 @@ const nextStepOf = (application, outstandingCount) => {
 const NextStepCard = ({ step, onTab }) => {
   if (!step) return null;
   const buttonClass =
-    "mt-5 inline-flex items-center gap-2 rounded-full bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navy-800";
+    "mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-950";
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-hairline bg-gradient-to-br from-indigo-50 via-white to-ignite-50 p-6 shadow-card">
-      <span aria-hidden className="absolute right-10 top-5 h-5 w-5 rounded-full bg-ignite-100" />
-      <span aria-hidden className="absolute -bottom-10 -right-10 h-32 w-32 rounded-full bg-indigo-100/60 blur-2xl" />
-      <Send className="relative h-5 w-5 text-indigo-600" aria-hidden />
-      <p className="relative mt-3 text-sm font-medium text-indigo-600">Next Step</p>
-      <h2 className="relative mt-0.5 text-[17px] font-bold text-navy-900">{step.title}</h2>
-      <p className="relative mt-3 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
+    <section className="relative rounded-2xl border border-hairline bg-white p-5 shadow-card">
+      <p className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-muted">
+        <Send className="h-3.5 w-3.5" aria-hidden />
+        Next step
+      </p>
+      <h2 className="mt-2 text-[16px] font-semibold text-navy-900">{step.title}</h2>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
       {step.to ? (
-        <Link to={step.to} className={`relative ${buttonClass}`}>
+        <Link to={step.to} className={buttonClass}>
           {step.cta}
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       ) : (
-        <button type="button" onClick={() => onTab(step.tab)} className={`relative ${buttonClass}`}>
+        <button type="button" onClick={() => onTab(step.tab)} className={buttonClass}>
           {step.cta}
           <ArrowRight className="h-4 w-4" aria-hidden />
         </button>
@@ -342,63 +392,101 @@ const NextStepCard = ({ step, onTab }) => {
   );
 };
 
-const QuickLinksCard = ({ application, onTab }) => {
-  const slug = application.university?.slug;
-  const profile = slug ? `/explore/universities/${slug}` : "/explore";
-  const links = [
-    { label: "View University Profile", icon: Building2, to: profile },
-    { label: "Course Curriculum", icon: BookOpen, tab: "course" },
-    { label: "Scholarship Opportunities", icon: Award, tab: "fees" },
-    { label: "Accommodation Options", icon: BedDouble, to: profile },
-  ];
-  const rowClass =
-    "flex w-full items-center gap-3 rounded-lg px-1 py-2.5 text-left text-sm text-ink-soft transition-colors hover:text-indigo-600";
+/**
+ * The assigned counsellor and how to reach them.
+ *
+ * Name, phone and email come from the application detail API — the
+ * application's `counsellor` relation, summarised server-side as
+ * `ApplicationCounsellorSummary` — never from anything in the frontend.
+ * WhatsApp is offered only when there is a phone number to open it with.
+ */
+const CounsellorCard = ({ application }) => {
+  const { counsellorName: name, counsellorPhone: phone, counsellorEmail: email } = application;
+  const dial = phone ? phone.replace(/[^\d+]/g, "") : null;
+  const initials = (name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+  const actionClass =
+    "inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-navy-900 text-[13px] font-semibold text-white transition-colors hover:bg-navy-950";
+
   return (
-    <Card className="p-6">
-      <h2 className="flex items-center gap-2.5 text-lg font-semibold text-navy-900">
-        <Link2 className="h-5 w-5 text-indigo-600" aria-hidden />
-        Quick Links
-      </h2>
-      <ul className="mt-3">
-        {links.map((link) => {
-          const Icon = link.icon;
-          const inner = (
-            <>
-              <Icon className="h-4 w-4 flex-shrink-0 text-ink-faint" aria-hidden />
-              <span className="flex-1">{link.label}</span>
-              <ChevronRight className="h-4 w-4 text-ink-faint" aria-hidden />
-            </>
-          );
-          return (
-            <li key={link.label}>
-              {link.to ? (
-                <Link to={link.to} className={rowClass}>
-                  {inner}
-                </Link>
-              ) : (
-                <button type="button" onClick={() => onTab(link.tab)} className={rowClass}>
-                  {inner}
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+    <Card className="p-5">
+      <h2 className="text-[16px] font-semibold text-navy-900">Your counsellor</h2>
+      {name ? (
+        <>
+          <div className="mt-4 flex items-center gap-3">
+            <span
+              aria-hidden
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-900 text-[13px] font-semibold text-white"
+            >
+              {initials || <UserRound className="h-4 w-4" />}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[14px] font-semibold text-navy-900">{name}</p>
+              <p className="text-[12px] text-ink-muted">Assigned to this application</p>
+            </div>
+          </div>
+          <div className="mt-4 space-y-2 text-[13px]">
+            {phone && (
+              <a href={`tel:${dial}`} className="flex items-center gap-2.5 text-ink-soft hover:text-navy-900">
+                <Phone className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
+                {phone}
+              </a>
+            )}
+            {email && (
+              <a href={`mailto:${email}`} className="flex min-w-0 items-center gap-2.5 text-ink-soft hover:text-navy-900">
+                <Mail className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
+                <span className="truncate">{email}</span>
+              </a>
+            )}
+          </div>
+          <div className={`mt-4 grid gap-2 ${phone ? "grid-cols-3" : "grid-cols-2"}`}>
+            {phone && (
+              <a href={`tel:${dial}`} className={actionClass}>
+                <Phone className="h-3.5 w-3.5" aria-hidden />
+                Call
+              </a>
+            )}
+            {email ? (
+              <a href={`mailto:${email}`} className={actionClass}>
+                <Mail className="h-3.5 w-3.5" aria-hidden />
+                Email
+              </a>
+            ) : (
+              <Link to="/messages" className={actionClass}>
+                <Mail className="h-3.5 w-3.5" aria-hidden />
+                Message
+              </Link>
+            )}
+            {phone ? (
+              <a
+                href={`https://wa.me/${dial.replace(/^\+/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={actionClass}
+              >
+                <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+                WhatsApp
+              </a>
+            ) : (
+              <Link to="/messages" className={actionClass}>
+                <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+                Chat
+              </Link>
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="mt-3 text-[13px] leading-5 text-ink-muted">
+          A counsellor will be assigned to your application shortly — their name, phone and email will appear here.
+        </p>
+      )}
     </Card>
   );
 };
-
-const DreamsCard = () => (
-  <section className="relative overflow-hidden rounded-2xl border border-hairline bg-gradient-to-br from-white via-indigo-50/40 to-indigo-100/70 p-6 shadow-card">
-    <svg aria-hidden viewBox="0 0 200 100" className="absolute bottom-0 right-0 h-28 w-56 text-indigo-200" preserveAspectRatio="none">
-      <path d="M0 100 C60 90 110 40 200 10 L200 100 Z" fill="currentColor" opacity="0.55" />
-      <path d="M40 100 C90 85 140 60 200 45 L200 100 Z" fill="currentColor" opacity="0.6" />
-    </svg>
-    <Star className="relative h-5 w-5 fill-ignite-400 text-ignite-400" aria-hidden />
-    <p className="relative mt-4 text-[15px] font-semibold text-navy-900">Big dreams. Real pathways.</p>
-    <p className="relative mt-1.5 text-xs text-ink-muted">You're one step closer to your future.</p>
-  </section>
-);
 
 /* ---------------------------------------------------------------- tabs --- */
 
@@ -439,16 +527,16 @@ const OverviewTab = ({ application }) => {
                 href={website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-900 hover:underline"
               >
-                View on Website <ArrowRight className="h-4 w-4" aria-hidden />
+                View on Details <ArrowRight className="h-4 w-4" aria-hidden />
               </a>
             ) : (
               <Link
                 to={website}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-900 hover:underline"
               >
-                View on Website <ArrowRight className="h-4 w-4" aria-hidden />
+                View Details <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             ))
           }
@@ -470,14 +558,14 @@ const OverviewTab = ({ application }) => {
                 {badges.map((badge, index) => (
                   <span
                     key={badge}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50/70 px-3 py-1 text-xs font-medium text-navy-900"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-navy-50/70 px-3 py-1 text-xs font-medium text-navy-900"
                   >
                     {index === 0 ? (
                       <CheckCircle2 className="h-3.5 w-3.5 fill-emerald-500 text-white" aria-hidden />
                     ) : (
-                      <Globe className="h-3.5 w-3.5 text-indigo-600" aria-hidden />
+                      <Globe className="h-3.5 w-3.5 text-navy-900" aria-hidden />
                     )}
-                    <span className={index === 0 ? "" : "text-indigo-600"}>{badge}</span>
+                    <span className={index === 0 ? "" : "text-navy-900"}>{badge}</span>
                   </span>
                 ))}
               </div>
@@ -498,57 +586,6 @@ const OverviewTab = ({ application }) => {
             }
           />
         </div>
-      </div>
-
-      {/* Advisor */}
-      <div className="border-t border-hairline p-6">
-        <SectionTitle icon={UserRound}>Assigned Advisor &amp; Contact Details</SectionTitle>
-        {application.counsellorName ? (
-          <div className="mt-4 grid grid-cols-1 gap-4 rounded-xl border border-hairline bg-[#F7F8FC] p-5 sm:grid-cols-3 sm:gap-0">
-            <div className="sm:pr-5">
-              <p className="text-sm font-medium text-navy-900">Assigned Advisor</p>
-              <p className="mt-2 text-sm text-ink-muted">
-                <span className="font-semibold text-navy-900">Name : </span>
-                {application.counsellorName}
-              </p>
-            </div>
-            <div className="sm:border-l sm:border-hairline sm:px-5">
-              <p className="text-sm font-medium text-navy-900">Contact Number</p>
-              {application.counsellorPhone ? (
-                <a
-                  href={`tel:${application.counsellorPhone.replace(/[^\d+]/g, "")}`}
-                  className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-indigo-600"
-                >
-                  <span className="font-semibold text-navy-900">Mobile No : </span>
-                  {application.counsellorPhone}
-                  <Phone className="h-4 w-4 text-navy-900" aria-hidden />
-                </a>
-              ) : (
-                <p className="mt-2 text-sm text-ink-muted">Reach them through Messages</p>
-              )}
-            </div>
-            <div className="min-w-0 sm:border-l sm:border-hairline sm:pl-5">
-              <p className="text-sm font-medium text-navy-900">Email</p>
-              {application.counsellorEmail ? (
-                <a
-                  href={`mailto:${application.counsellorEmail}`}
-                  className="mt-2 inline-flex max-w-full items-center gap-1.5 text-sm text-ink-muted hover:text-indigo-600"
-                >
-                  <span className="truncate">{application.counsellorEmail}</span>
-                  <Mail className="h-4 w-4 flex-shrink-0 text-navy-900" aria-hidden />
-                </a>
-              ) : (
-                <Link to="/messages" className="mt-2 inline-block text-sm text-indigo-600 hover:underline">
-                  Send a message
-                </Link>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4 rounded-xl border border-hairline bg-[#F7F8FC] p-5 text-sm text-ink-muted">
-            An advisor will be assigned to your application shortly — their name and number will appear here.
-          </div>
-        )}
       </div>
 
       {/* Deadlines + notice */}
@@ -595,96 +632,119 @@ const OverviewTab = ({ application }) => {
   );
 };
 
-const CourseTab = ({ application }) => {
-  const course = application.course;
-  if (!course) return <Card className="p-6"><TabEmpty>Course details aren't available yet.</TabEmpty></Card>;
-  const modules = course.modules.map((module) =>
-    typeof module === "string" ? module : module.title ?? module.name ?? null
-  ).filter(Boolean);
-  return (
-    <Card className="space-y-6 p-6">
-      <SectionTitle icon={GraduationCap}>Course Details</SectionTitle>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <DetailFact icon={GraduationCap} label="Qualification" value={course.qualification || application.degreeLevel} />
-        <DetailFact icon={Timer} label="Duration" value={durationLabel(course, application.courseName)} />
-        <DetailFact icon={MapPin} label="Campus" value={course.campus} />
-        <DetailFact icon={CalendarDays} label="Intake" value={application.intakeDetail?.name || application.intake} />
-        <DetailFact icon={BookOpen} label="Study mode" value={course.courseType} />
-        <DetailFact
-          icon={CalendarDays}
-          label="Other intakes"
-          value={course.intakesSummary.length ? course.intakesSummary.join(", ") : null}
-        />
-      </div>
-      <Prose title="Overview">{course.overview}</Prose>
-      <Prose title="What you'll study">{course.whatYouStudy}</Prose>
-      {modules.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-navy-900">Modules</h3>
-          <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {modules.map((module) => (
-              <li key={module} className="rounded-lg bg-[#F7F8FC] px-3 py-2 text-sm text-ink-soft">
-                {module}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {course.careerOutcomes.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-navy-900">Career outcomes</h3>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {course.careerOutcomes.map((outcome) => (
-              <span key={outcome} className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
-                {outcome}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      {!course.overview && !course.whatYouStudy && modules.length === 0 && application.university?.slug && (
-        <Link
-          to={`/explore/universities/${application.university.slug}`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline"
-        >
-          See the full course listing <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
-      )}
-    </Card>
-  );
-};
+/** A labelled block inside Course Details — Course, Fees, Funding. */
+const SubSection = ({ title, children }) => (
+  <div className="border-t border-hairline pt-5 first:border-t-0 first:pt-0">
+    <h3 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-ink-muted">{title}</h3>
+    <div className="mt-4 space-y-5">{children}</div>
+  </div>
+);
 
-const FeesTab = ({ application }) => {
+/**
+ * Course Details, with Fees and Funding folded in.
+ *
+ * One card with three labelled sub-sections rather than two tabs: fees are a
+ * property of the course, and a separate tab both hid them from anyone reading
+ * about the course and pushed the tab strip past the column width. Only fields
+ * the API actually returns are shown — there is no per-application application
+ * fee or funding status on the backend, so neither is invented here.
+ */
+const CourseTab = ({ application }) => {
   const course = application.course;
   const symbol = course?.currencySymbol ?? "£";
   const tuition = application.tuitionFee ?? course?.tuitionFee ?? null;
+  const hasTuition = tuition !== null && tuition !== undefined;
   const scholarship = application.scholarshipAmount;
-  const payable = tuition !== null && tuition !== undefined ? Number(tuition) - Number(scholarship ?? 0) : null;
+  const payable = hasTuition ? Number(tuition) - Number(scholarship ?? 0) : null;
+  const modules = (course?.modules ?? [])
+    .map((module) => (typeof module === "string" ? module : module.title ?? module.name ?? null))
+    .filter(Boolean);
+
   return (
     <Card className="space-y-6 p-6">
-      <SectionTitle icon={Wallet}>Fees &amp; Funding</SectionTitle>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <DetailFact
-          icon={Wallet}
-          label="Tuition fees"
-          value={tuition !== null && tuition !== undefined ? `${money(tuition, symbol)} / year` : course?.feeStructure}
-        />
-        <DetailFact icon={Award} label="Scholarship" value={scholarship ? money(scholarship, symbol) : "None recorded"} />
-        <DetailFact
-          icon={CheckCircle2}
-          label="Payable after scholarship"
-          value={payable !== null ? money(payable, symbol) : null}
-        />
-      </div>
-      <Prose title="Fee structure">{course?.feeStructure}</Prose>
-      <Prose title="Scholarships">{course?.scholarshipText}</Prose>
-      <Prose title="CAS deposit">{course?.casDeposit}</Prose>
-      <Prose title="Enrolment fee">{course?.enrolmentFee}</Prose>
-      {application.university?.livingCostMonthly ? (
-        <Prose title="Living costs">
-          {`Around ${money(application.university.livingCostMonthly, "£")} a month.`}
-        </Prose>
-      ) : null}
+      <SectionTitle icon={GraduationCap}>Course Details</SectionTitle>
+
+      <SubSection title="Course">
+        {!course && <TabEmpty>Full course details aren't available yet.</TabEmpty>}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <DetailFact icon={BookOpen} label="Course" value={application.courseName} />
+          <DetailFact icon={Building2} label="University" value={application.universityName} />
+          <DetailFact icon={MapPin} label="Campus" value={course?.campus} />
+          <DetailFact icon={CalendarDays} label="Intake" value={application.intakeDetail?.name || application.intake} />
+          <DetailFact icon={GraduationCap} label="Study level" value={course?.qualification || application.degreeLevel} />
+          <DetailFact icon={Timer} label="Duration" value={durationLabel(course, application.courseName)} />
+          <DetailFact icon={Clock} label="Study mode" value={course?.courseType} />
+          {course?.intakesSummary?.length > 0 && (
+            <DetailFact icon={CalendarDays} label="Other intakes" value={course.intakesSummary.join(", ")} />
+          )}
+        </div>
+        <Prose title="Overview">{course?.overview}</Prose>
+        <Prose title="What you'll study">{course?.whatYouStudy}</Prose>
+        {modules.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-navy-900">Modules</h4>
+            <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {modules.map((module) => (
+                <li key={module} className="rounded-lg bg-canvas px-3 py-2 text-sm text-ink-soft ring-1 ring-hairline">
+                  {module}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {course?.careerOutcomes?.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-navy-900">Career outcomes</h4>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {course.careerOutcomes.map((outcome) => (
+                <span key={outcome} className="rounded-full bg-navy-50 px-3 py-1 text-xs font-medium text-navy-900">
+                  {outcome}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {course && !course.overview && !course.whatYouStudy && modules.length === 0 && application.university?.slug && (
+          <Link
+            to={`/explore/universities/${application.university.slug}`}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-900 hover:text-navy-600"
+          >
+            See the full course listing <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        )}
+      </SubSection>
+
+      <SubSection title="Fees">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <DetailFact
+            icon={Wallet}
+            label="Tuition fee"
+            value={hasTuition ? `${money(tuition, symbol)} / year` : feeHeadline(course?.feeStructure, symbol)}
+          />
+          <DetailFact icon={Landmark} label="CAS deposit" value={course?.casDeposit} />
+          <DetailFact icon={FileCheck} label="Enrolment fee" value={course?.enrolmentFee} />
+        </div>
+        <Prose title="Fee structure">{course?.feeStructure}</Prose>
+      </SubSection>
+
+      <SubSection title="Funding">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <DetailFact icon={Award} label="Scholarship" value={scholarship ? money(scholarship, symbol) : "None recorded"} />
+          <DetailFact
+            icon={CheckCircle2}
+            label="Payable after scholarship"
+            value={payable !== null ? money(payable, symbol) : null}
+          />
+          {application.university?.livingCostMonthly ? (
+            <DetailFact
+              icon={Wallet}
+              label="Living costs"
+              value={`Around ${money(application.university.livingCostMonthly, "£")} / month`}
+            />
+          ) : null}
+        </div>
+        <Prose title="Scholarships available">{course?.scholarshipText}</Prose>
+      </SubSection>
     </Card>
   );
 };
@@ -745,14 +805,14 @@ const TimelineTab = ({ steps, isLoading }) => (
                 <span aria-hidden className="absolute left-[11px] top-7 h-[calc(100%-28px)] w-0.5 bg-gray-200" />
               )}
               {step.state === "current" ? (
-                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-indigo-600 bg-white">
-                  <span className="h-2 w-2 rounded-full bg-indigo-600" />
+                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-navy-500 bg-white">
+                  <span className="h-2 w-2 rounded-full bg-navy-900" />
                 </span>
               ) : (
                 <CheckCircle2 className="relative z-10 h-6 w-6 fill-emerald-500 text-white" aria-hidden />
               )}
               <div className="min-w-0">
-                <p className={`text-sm ${step.state === "current" ? "font-semibold text-indigo-600" : "font-medium text-navy-900"}`}>
+                <p className={`text-sm ${step.state === "current" ? "font-semibold text-navy-900" : "font-medium text-navy-900"}`}>
                   {STATUS_LABELS[step.label] ?? step.label}
                 </p>
                 {step.date && <p className="mt-0.5 text-[13px] text-ink-muted">{formatDate(step.date)}</p>}
@@ -773,7 +833,7 @@ const TimelineTab = ({ steps, isLoading }) => (
  * presentation over an enforced boundary rather than the boundary itself.
  */
 const LockedDocumentRow = ({ label, onUnlock }) => (
-  <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-[#F7F8FC] p-3">
+  <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-canvas p-3">
     <div className="flex min-w-0 items-center gap-2.5">
       <Lock className="h-4 w-4 flex-shrink-0 text-ink-faint" aria-hidden />
       <div className="min-w-0">
@@ -784,7 +844,7 @@ const LockedDocumentRow = ({ label, onUnlock }) => (
     <button
       type="button"
       onClick={onUnlock}
-      className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-navy-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-navy-800"
+      className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-navy-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-navy-950"
     >
       <Lock className="h-3 w-3" aria-hidden />
       Unlock to view
@@ -810,7 +870,7 @@ const DocumentRow = ({ document, onOpen }) => (
       <button
         type="button"
         onClick={() => onOpen(document, "inline")}
-        className="flex items-center gap-1 rounded-lg border border-hairline px-3 py-1.5 text-xs text-ink-soft transition-colors hover:border-indigo-200 hover:text-indigo-600"
+        className="flex items-center gap-1 rounded-lg border border-hairline px-3 py-1.5 text-xs text-ink-soft transition-colors hover:border-navy-200 hover:text-navy-600"
       >
         <Eye className="h-3.5 w-3.5" aria-hidden />
         View
@@ -818,7 +878,7 @@ const DocumentRow = ({ document, onOpen }) => (
       <button
         type="button"
         onClick={() => onOpen(document, "attachment")}
-        className="flex items-center gap-1 rounded-lg border border-hairline px-3 py-1.5 text-xs text-ink-soft transition-colors hover:border-indigo-200 hover:text-indigo-600"
+        className="flex items-center gap-1 rounded-lg border border-hairline px-3 py-1.5 text-xs text-ink-soft transition-colors hover:border-navy-200 hover:text-navy-600"
       >
         <Download className="h-3.5 w-3.5" aria-hidden />
         Download
@@ -903,7 +963,7 @@ const DocumentsTab = ({
       {showCas && (
         <Card className="p-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-navy-50 text-navy-900">
               <Stamp className="h-5 w-5" aria-hidden />
             </span>
             <div>
@@ -951,7 +1011,7 @@ const DocumentsTab = ({
                       <button
                         type="button"
                         onClick={() => onOpen({ id: item.documentId }, "inline")}
-                        className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                        className="flex items-center gap-1 text-xs font-medium text-navy-900 hover:text-navy-600"
                       >
                         <Eye className="h-3.5 w-3.5" aria-hidden />
                         View what you sent
@@ -963,7 +1023,7 @@ const DocumentsTab = ({
                           type="button"
                           onClick={() => fileInputRefs.current[item.id]?.click()}
                           disabled={uploadingItemId === item.id}
-                          className="flex items-center gap-1 rounded-full bg-navy-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-800 disabled:opacity-60"
+                          className="flex items-center gap-1 rounded-lg bg-navy-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-950 disabled:opacity-60"
                         >
                           <Upload className="h-3.5 w-3.5" aria-hidden />
                           {uploadingItemId === item.id ? "Uploading…" : item.status === "rejected" ? "Re-upload" : "Upload"}
@@ -1107,6 +1167,7 @@ const ApplicationDetail = () => {
     tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+
   const handleOpenDocument = async (document, disposition) => {
     const result = await openDocumentFile(document.id, { disposition });
     if (result.ok) return;
@@ -1141,8 +1202,10 @@ const ApplicationDetail = () => {
     return [
       application.createdAt ?? application.applicationDate,
       application.submittedAt ?? firstAt(["submitted"]),
-      firstAt(["under_review"]),
       application.offerReceivedDate ?? firstAt(["offer_received"]),
+      application.casReceivedDate ?? firstAt(["cas_received"]),
+      application.visaAppliedDate ?? firstAt(["visa_processing"]),
+      application.enrollmentDate ?? firstAt(["enrolled"]),
     ];
   }, [application, timeline]);
 
@@ -1150,7 +1213,7 @@ const ApplicationDetail = () => {
 
   if (!application && (isListLoading || (!detail && !detailError))) {
     return (
-      <div className="min-h-screen bg-canvas">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-4 py-8">
           <SkeletonList count={3} />
         </main>
@@ -1160,7 +1223,7 @@ const ApplicationDetail = () => {
 
   if (!application) {
     return (
-      <div className="min-h-screen bg-canvas">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-4 py-8">
           <EmptyState
             icon={FileCheck}
@@ -1169,7 +1232,7 @@ const ApplicationDetail = () => {
             action={
               <Link
                 to="/applications"
-                className="rounded-full bg-navy-900 px-6 py-2 text-sm font-medium text-white hover:bg-navy-800"
+                className="inline-flex h-10 items-center rounded-xl bg-navy-900 px-5 text-sm font-semibold text-white hover:bg-navy-950"
               >
                 Back to My Applications
               </Link>
@@ -1185,87 +1248,105 @@ const ApplicationDetail = () => {
   const tuitionLabel =
     tuition !== null && tuition !== undefined
       ? `${money(tuition, course?.currencySymbol ?? "£")} / year`
-      : course?.feeStructure || null;
+      : feeHeadline(course?.feeStructure, course?.currencySymbol ?? "£");
+  const intakeLabel =
+    application.intakeDetail?.name || application.intake || course?.intakesSummary?.[0] || null;
   const heroImage = application.university?.heroImageUrl || HERO_FALLBACK_IMAGE;
   const heroLabel = application.status === "submitted" ? "Applied" : applicationPill(application.status).label;
 
+  /* Hero. The photo is a backdrop, not a column: it sits under the right of
+     the card and fades towards the text, so the text keeps most of the width.
+     Below `lg` it becomes a band across the top instead.
+
+     From `xl` it shares a row with the progress card and stretches to its
+     height; the content centres vertically in whatever height that gives. */
+  const hero = (
+    <section className="relative flex flex-col overflow-hidden rounded-2xl border border-hairline bg-white shadow-card">
+      <div className="relative h-36 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[44%]">
+        <img
+          src={heroImage}
+          alt=""
+          onError={(event) => {
+            if (!event.currentTarget.src.endsWith(HERO_FALLBACK_IMAGE)) {
+              event.currentTarget.src = HERO_FALLBACK_IMAGE;
+            }
+          }}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent lg:bg-gradient-to-r lg:from-[#F4F5FD] lg:via-[#F4F5FD]/55 lg:to-transparent" />
+      </div>
+
+      <div className="relative bg-gradient-to-r from-white via-[#F8F9FE] to-[#F4F5FD] px-6 py-7 sm:px-8 lg:flex lg:w-[68%] lg:flex-1 lg:flex-col lg:justify-center lg:bg-none lg:pr-4">
+        <div className="flex items-start gap-5">
+          <UniversityCrest
+            name={application.universityName}
+            monogram={application.university?.monogram || application.universityMonogram}
+            logoUrl={application.university?.logoUrl || application.universityLogoUrl}
+            size={76}
+          />
+          <div className="min-w-0 flex-1 pt-1.5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <h1 className="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-navy-900">
+                {application.universityName}
+              </h1>
+              <span className="rounded-full bg-navy-50 px-2.5 py-0.5 text-xs font-medium text-navy-900 ring-1 ring-navy-100">
+                {heroLabel}
+              </span>
+            </div>
+            <p className="mt-2 text-[15px] text-ink-soft">{application.courseName}</p>
+            {application.universityCountry && (
+              <p className="mt-3 flex items-center gap-1.5 text-[13px] text-ink-muted">
+                <MapPin className="h-4 w-4" aria-hidden />
+                {application.universityCountry}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* The three facts, as an even strip across the full width of the card
+          rather than squeezed into the text column beside the photo: three
+          equal columns from `sm`, stacked below it. Over the photo on wide
+          screens, so the strip is an opaque surface of its own. */}
+      <div className="relative grid grid-cols-1 gap-4 border-t border-hairline bg-white/95 px-6 py-4 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-hairline sm:px-8">
+        {[
+          { icon: CalendarDays, label: "Course Intake", value: intakeLabel },
+          { icon: Clock, label: "Course Duration", value: durationLabel(course, application.courseName) },
+          { icon: Wallet, label: "Tuition Fees", value: tuitionLabel },
+        ].map((fact) => (
+          <div key={fact.label} className="min-w-0 sm:px-5 sm:first:pl-0 sm:last:pr-0">
+            <HeroFact icon={fact.icon} label={fact.label} value={fact.value} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
   return (
-    <div className="min-h-screen bg-canvas pb-16">
-      <main className="mx-auto max-w-[1440px] px-4 pt-6 sm:px-8">
+    <div className="min-h-screen">
+      <main className="mx-auto max-w-[1480px] px-4 pt-6 sm:px-6">
         <Link
           to="/applications"
-          className="inline-flex items-center gap-3 text-sm font-medium text-navy-900 hover:text-indigo-600"
+          className="inline-flex items-center gap-3 text-sm font-medium text-navy-900 hover:text-navy-600"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to Applications
         </Link>
 
-        <div className="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
+        {/* Hero and progress side by side, the same height. */}
+        <div className="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          {hero}
+          <ProgressCard application={application} stepDates={stepDates} />
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           {/* ---------------------------------------------------- main --- */}
           <div className="min-w-0">
-            {/* Hero */}
-            <section className="relative overflow-hidden rounded-2xl border border-hairline bg-gradient-to-r from-white via-[#F5F6FD] to-[#EEF0FB] shadow-card">
-              <div className="absolute inset-y-0 right-0 hidden w-[48%] md:block">
-                <img
-                  src={heroImage}
-                  alt=""
-                  onError={(event) => {
-                    if (!event.currentTarget.src.endsWith(HERO_FALLBACK_IMAGE)) {
-                      event.currentTarget.src = HERO_FALLBACK_IMAGE;
-                    }
-                  }}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#F2F3FC] via-[#F2F3FC]/40 to-transparent" />
-              </div>
-
-              <div className="relative p-6 md:w-[64%]">
-                <div className="flex items-start gap-5 border-b border-hairline pb-6">
-                  <UniversityCrest
-                    name={application.universityName}
-                    monogram={application.university?.monogram || application.universityMonogram}
-                    logoUrl={application.university?.logoUrl || application.universityLogoUrl}
-                    size={72}
-                  />
-                  <div className="min-w-0 pt-1">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h1 className="text-xl font-semibold text-navy-900 sm:text-[22px]">
-                        {application.universityName}
-                      </h1>
-                      <span className="rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-600">
-                        {heroLabel}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-[15px] text-ink-soft">{application.courseName}</p>
-                    {application.universityCountry && (
-                      <p className="mt-2.5 flex items-center gap-1.5 text-[13px] text-ink-muted">
-                        <MapPin className="h-4 w-4" aria-hidden />
-                        {application.universityCountry}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-3 sm:gap-5">
-                  <HeroFact
-                    icon={CalendarDays}
-                    label="Course Intake"
-                    value={application.intakeDetail?.name || application.intake}
-                  />
-                  <HeroFact icon={Wallet} label="Tuition Fees" value={tuitionLabel} divider />
-                  <HeroFact
-                    icon={Clock}
-                    label="Course Duration"
-                    value={durationLabel(course, application.courseName)}
-                    divider
-                  />
-                </div>
-              </div>
-            </section>
-
             {/* Tabs */}
-            <div ref={tabsRef} className="mt-6 scroll-mt-20 overflow-x-auto border-b border-hairline">
-              <div role="tablist" className="flex min-w-max gap-2">
+            {/* Wrapping, never scrolling sideways: five short labels fit a
+                laptop column on one row and fall to a second on a phone. */}
+            <div ref={tabsRef} className="scroll-mt-20 border-b border-hairline">
+              <div role="tablist" className="flex flex-wrap gap-x-1">
                 {TABS.map((tab) => {
                   const active = activeTab === tab.id;
                   return (
@@ -1275,8 +1356,8 @@ const ApplicationDetail = () => {
                       type="button"
                       aria-selected={active}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`relative px-5 py-3.5 text-sm font-medium transition-colors ${
-                        active ? "text-indigo-600" : "text-ink-soft hover:text-navy-900"
+                      className={`relative px-3.5 py-3 text-sm font-medium transition-colors sm:px-4 ${
+                        active ? "font-semibold text-navy-900" : "text-ink-muted hover:text-navy-900"
                       }`}
                     >
                       {tab.label}
@@ -1285,7 +1366,7 @@ const ApplicationDetail = () => {
                           {outstandingCount}
                         </span>
                       )}
-                      {active && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-indigo-600" />}
+                      {active && <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-navy-900" />}
                     </button>
                   );
                 })}
@@ -1295,7 +1376,6 @@ const ApplicationDetail = () => {
             <div className="mt-4">
               {activeTab === "overview" && <OverviewTab application={application} />}
               {activeTab === "course" && <CourseTab application={application} />}
-              {activeTab === "fees" && <FeesTab application={application} />}
               {activeTab === "requirements" && <RequirementsTab application={application} />}
               {activeTab === "timeline" && <TimelineTab steps={timeline} isLoading={isTimelineLoading} />}
               {activeTab === "documents" && (
@@ -1318,10 +1398,8 @@ const ApplicationDetail = () => {
 
           {/* --------------------------------------------------- aside --- */}
           <aside className="space-y-6">
-            <ProgressCard application={application} stepDates={stepDates} />
+            <CounsellorCard application={application} />
             <NextStepCard step={nextStepOf(application, outstandingCount)} onTab={openTab} />
-            <QuickLinksCard application={application} onTab={openTab} />
-            <DreamsCard />
           </aside>
         </div>
       </main>

@@ -191,7 +191,7 @@ const ResetPassword = () => {
           Remembered it?{' '}
           <Link
             to="/login"
-            className="font-bold text-blue-link transition-colors hover:text-navy"
+            className="font-bold text-navy-900 transition-colors hover:text-navy"
           >
             Back to sign in
           </Link>

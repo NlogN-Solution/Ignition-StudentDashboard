@@ -192,7 +192,7 @@ const PremiumNavigation = () => {
   return (
     <>
       {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 h-16 bg-white z-[60] flex items-center justify-between px-4 transition-all duration-500
+      <header className={`fixed top-0 left-0 right-0 h-16 bg-white/75 backdrop-blur-xl backdrop-saturate-150 z-[60] flex items-center justify-between px-4 transition-all duration-500
         ${isScrolled ? "shadow-lg border-b border-slate-100" : "shadow-sm border-b border-transparent"}`}
       >
         <div className="flex items-center gap-4">
@@ -234,7 +234,7 @@ const PremiumNavigation = () => {
           {/* Priority Tasks */}
           <div className="relative" ref={priorityTasksRef} data-tour="priority-tasks">
             <button
-              className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-700 transition-colors"
+              className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-600 transition-colors"
               onClick={() => setShowPriorityTasks(!showPriorityTasks)}
               aria-label="Priority tasks"
             >
@@ -283,7 +283,7 @@ const PremiumNavigation = () => {
                   <Link
                     to="/tasks"
                     onClick={() => setShowPriorityTasks(false)}
-                    className="text-sm font-medium text-navy-700 hover:text-navy-900"
+                    className="text-sm font-medium text-navy-900 hover:text-navy-600"
                   >
                     View all tasks
                   </Link>
@@ -295,7 +295,7 @@ const PremiumNavigation = () => {
           {/* Notifications */}
           <div className="relative" ref={notificationRef} data-tour="notifications">
             <button
-              className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-700 transition-colors"
+              className="relative p-2 rounded-full text-slate-500 hover:bg-navy-50 hover:text-navy-600 transition-colors"
               onClick={() => setShowNotifications(!showNotifications)}
               aria-label="Notifications"
             >
@@ -312,7 +312,7 @@ const PremiumNavigation = () => {
                   {unreadNotificationCount > 0 && (
                     <button
                       onClick={markAllNotificationsRead}
-                      className="text-sm font-medium text-navy-700 hover:text-navy-900"
+                      className="text-sm font-medium text-navy-900 hover:text-navy-600"
                     >
                       Mark all as read
                     </button>
@@ -347,7 +347,7 @@ const PremiumNavigation = () => {
                   <Link
                     to="/notifications"
                     onClick={() => setShowNotifications(false)}
-                    className="text-sm font-medium text-navy-700 hover:text-navy-900"
+                    className="text-sm font-medium text-navy-900 hover:text-navy-600"
                   >
                     View notification history
                   </Link>
@@ -370,7 +370,7 @@ const PremiumNavigation = () => {
                   className="h-8 w-8 shrink-0 rounded-full object-cover"
                 />
               ) : (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-700">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-900">
                   <UserCircle className="h-6 w-6" />
                 </span>
               )}
@@ -394,7 +394,7 @@ const PremiumNavigation = () => {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <UserCircle className="h-full w-full p-2 text-navy-700" />
+                          <UserCircle className="h-full w-full p-2 text-navy-900" />
                         )}
                       </div>
                       <button
@@ -403,7 +403,7 @@ const PremiumNavigation = () => {
                         className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
                         aria-label="Change profile photo"
                       >
-                        <Camera className={`h-4 w-4 text-navy-700 ${isUploadingPhoto ? "animate-pulse" : ""}`} />
+                        <Camera className={`h-4 w-4 text-navy-900 ${isUploadingPhoto ? "animate-pulse" : ""}`} />
                       </button>
                       <input
                         type="file"
@@ -423,7 +423,7 @@ const PremiumNavigation = () => {
                   <Link
                     to="/profile"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
+                    className="flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-600"
                   >
                     <UserCircle className="h-5 w-5 mr-3" />
                     Profile
@@ -431,7 +431,7 @@ const PremiumNavigation = () => {
                   <Link
                     to="/settings"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
+                    className="flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-600"
                   >
                     <Settings className="h-5 w-5 mr-3" />
                     Settings
@@ -443,7 +443,7 @@ const PremiumNavigation = () => {
                         setIsUserMenuOpen(false);
                         tour.restartTour();
                       }}
-                      className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
+                      className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-600"
                     >
                       <Compass className="h-5 w-5 mr-3" />
                       Take dashboard tour again
@@ -478,7 +478,7 @@ const PremiumNavigation = () => {
       <aside
         ref={sidebarRef}
         data-tour="sidebar"
-        className={`fixed top-16 h-[calc(100vh-4rem)] bg-white w-72 transform ${
+        className={`fixed top-16 h-[calc(100vh-4rem)] bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-r border-white/60 w-72 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 transition-transform duration-500 shadow-xl md:shadow-none border-r border-slate-100 overflow-y-auto z-[50]`}
       >
@@ -492,7 +492,7 @@ const PremiumNavigation = () => {
                 className={`flex items-center gap-4 px-4 py-3 rounded-lg group transition-all duration-300 relative
                   ${
                     activeItem === item.path
-                      ? "bg-navy-50 text-navy-800"
+                      ? "bg-navy-50 text-navy-900"
                       : "text-slate-600 hover:bg-slate-50 hover:-translate-y-0.5"
                   }`}
                 onClick={(e) => {
@@ -512,8 +512,8 @@ const PremiumNavigation = () => {
                   name={item.icon}
                   className={`w-5 h-5 transition-all duration-300 ${
                     activeItem === item.path
-                      ? "text-navy-700 transform scale-110"
-                      : "text-slate-400 group-hover:text-navy-700 group-hover:scale-110"
+                      ? "text-navy-900 transform scale-110"
+                      : "text-slate-400 group-hover:text-navy-600 group-hover:scale-110"
                   }`}
                 />
                 <span className="text-sm font-medium">{item.label}</span>
@@ -527,8 +527,8 @@ const PremiumNavigation = () => {
                       className={`absolute right-4 px-2 py-0.5 rounded-full text-xs font-medium
                       ${
                         activeItem === item.path
-                          ? "bg-navy-200 text-navy-800"
-                          : "bg-slate-100 text-slate-600 group-hover:bg-navy-100 group-hover:text-navy-700"
+                          ? "bg-navy-900 text-white"
+                          : "bg-slate-100 text-slate-600 group-hover:bg-navy-100 group-hover:text-navy-600"
                       }`}
                     >
                       {item.badge}
@@ -549,7 +549,7 @@ const PremiumNavigation = () => {
 
           <div className="px-4 mt-24">
             <div
-              className="p-4 bg-gradient-to-br from-navy-900 to-navy-800 rounded-xl"
+              className="p-4 bg-navy-900 rounded-xl"
               data-tour="help-support"
             >
               <h4 className="text-sm font-semibold text-white mb-1">
@@ -572,7 +572,7 @@ const PremiumNavigation = () => {
       {/* Overlay — mobile only, closes the sidebar on tap-away */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 top-16 bg-navy-950/30 backdrop-blur-sm z-[45] md:hidden transition-opacity duration-500"
+          className="fixed inset-0 top-16 bg-slate-900/30 backdrop-blur-sm z-[45] md:hidden transition-opacity duration-500"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}

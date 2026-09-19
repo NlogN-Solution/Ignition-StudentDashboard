@@ -538,7 +538,7 @@ const FinancialPlanning = () => {
                               type="button"
                               onClick={() => fileInputs.current[document.id]?.click()}
                               disabled={uploadingId === document.id}
-                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-60"
+                              className="flex items-center gap-1 text-xs text-navy-900 hover:text-navy-800 disabled:opacity-60"
                             >
                               <Upload className="h-3 w-3" />
                               {uploadingId === document.id

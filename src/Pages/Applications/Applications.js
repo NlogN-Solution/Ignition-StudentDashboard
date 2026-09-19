@@ -3,15 +3,17 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowDown,
   ArrowUp,
-  Clock,
+  Award,
+  ChevronRight,
   Eye,
   FileCheck2,
   FileCheck,
+  ListChecks,
   MapPin,
   MessageSquare,
   Search,
   Send,
-  Trophy,
+  Stamp,
 } from "lucide-react";
 
 import EmptyState from "../../components/common/EmptyState";
@@ -22,19 +24,21 @@ import {
   formatStamp,
 } from "../../components/applications/ApplicationBits";
 import { useAppData } from "../../context/AppDataContext";
-import { STATUS_FILTERS, isKnownFilter } from "../../lib/applicationStatus";
+import { STATUS_FILTERS, SUMMARY_STAGES, normalizeFilter } from "../../lib/applicationStatus";
 
 /**
- * The four tiles double as filters: clicking "Offers received" is the same as
- * pressing the Offers chip, and the tile for the active filter carries the
- * navy outline — so the number and the list under it are always the same set.
+ * The four tiles are the four journey stages — the same `SUMMARY_STAGES` the
+ * dashboard's Application progress cards are built from — and double as
+ * filters: pressing one is the same as pressing its chip, so the number and
+ * the list under it are always the same set.
  */
-const STAT_TILES = [
-  { filter: "all", label: "Total applications", icon: FileCheck, tint: "bg-navy-50 text-navy-800" },
-  { filter: "submitted", label: "Submitted", icon: Send, tint: "bg-navy-50 text-navy-800" },
-  { filter: "in-review", label: "In review", icon: Clock, tint: "bg-ignite-50 text-ignite-600" },
-  { filter: "offer", label: "Offers received", icon: Trophy, tint: "bg-emerald-50 text-emerald-600" },
-];
+const STAGE_ICONS = { shortlisted: ListChecks, submitted: Send, offer: Award, cas: Stamp };
+const STAT_TILES = SUMMARY_STAGES.map((stage) => ({
+  filter: stage.key,
+  label: stage.label,
+  icon: STAGE_ICONS[stage.key] ?? FileCheck,
+  tint: "bg-navy-50 text-navy-900",
+}));
 
 const StatTile = ({ tile, count, active, onSelect }) => {
   const Icon = tile.icon;
@@ -43,14 +47,14 @@ const StatTile = ({ tile, count, active, onSelect }) => {
       type="button"
       onClick={onSelect}
       aria-pressed={active}
-      className={`flex flex-col items-start rounded-2xl border bg-white p-5 text-left transition-all duration-200 hover:shadow-lift ${
-        active ? "border-navy-300 ring-1 ring-navy-200" : "border-hairline"
+      className={`flex flex-col items-start rounded-2xl border bg-white p-4 text-left shadow-card transition-[border-color,box-shadow] duration-150 hover:shadow-lift sm:p-5 ${
+        active ? "border-navy-500 ring-1 ring-navy-500" : "border-hairline"
       }`}
     >
-      <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${tile.tint}`}>
-        <Icon className="h-5 w-5" strokeWidth={2} aria-hidden />
+      <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${tile.tint}`}>
+        <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
       </span>
-      <span className="mt-4 text-[28px] font-bold leading-none text-navy-900">{count}</span>
+      <span className="mt-3 text-[24px] font-semibold leading-none tabular-nums text-navy-900">{count}</span>
       <span className="mt-2 text-sm text-ink-muted">{tile.label}</span>
     </button>
   );
@@ -62,17 +66,17 @@ const Applications = () => {
   const { applications, isLoading } = useAppData();
   const navigate = useNavigate();
 
-  // `?status=offer` is how the dashboard's Offers tile gets here.
+  // `?status=offer` is how the dashboard's stage cards get here.
   const [searchParams, setSearchParams] = useSearchParams();
-  const requested = searchParams.get("status");
-  const [statusFilter, setStatusFilter] = useState(isKnownFilter(requested) ? requested : "all");
+  const requested = normalizeFilter(searchParams.get("status"));
+  const [statusFilter, setStatusFilter] = useState(requested ?? "all");
   const [query, setQuery] = useState("");
   // Newest change first by default — the row that moved is the one the
   // student came to look at.
   const [sortDescending, setSortDescending] = useState(true);
 
   useEffect(() => {
-    if (isKnownFilter(requested)) setStatusFilter(requested);
+    if (requested) setStatusFilter(requested);
   }, [requested]);
 
   const selectFilter = (value) => {
@@ -91,9 +95,7 @@ const Applications = () => {
     [applications]
   );
 
-  // Visa & enrolment only earns a chip once something is in it; the four the
-  // page is built around are always there.
-  const chips = STATUS_FILTERS.filter((filter) => filter.value !== "visa" || counts.visa > 0);
+  const chips = STATUS_FILTERS;
 
   const visibleApplications = useMemo(() => {
     const active = STATUS_FILTERS.find((filter) => filter.value === statusFilter);
@@ -112,7 +114,7 @@ const Applications = () => {
   const SortIcon = sortDescending ? ArrowDown : ArrowUp;
 
   return (
-    <div className="min-h-screen bg-canvas pb-16">
+    <div className="min-h-screen pb-16">
       {/* Header band */}
       <div className="relative overflow-hidden border-b border-hairline bg-white">
         <div
@@ -156,7 +158,7 @@ const Applications = () => {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by university or course"
-              className="h-12 w-full rounded-xl border border-hairline bg-white pl-11 pr-4 text-[15px] text-ink placeholder:text-ink-faint focus:border-navy-300 focus:outline-none focus:ring-2 focus:ring-navy-100"
+              className="h-12 w-full rounded-xl border border-hairline bg-white pl-11 pr-4 text-[15px] text-navy-900 placeholder:text-ink-faint focus:border-navy-300 focus:outline-none focus:ring-2 focus:ring-navy-100"
             />
           </label>
 
@@ -171,7 +173,7 @@ const Applications = () => {
                   aria-pressed={active}
                   className={`flex h-11 items-center gap-2 rounded-full border px-4 text-[15px] font-medium transition-colors ${
                     active
-                      ? "border-navy-900 bg-navy-900 text-white"
+                      ? "border-navy-500 bg-navy-900 text-white"
                       : "border-hairline bg-white text-ink-soft hover:border-navy-200"
                   }`}
                 >
@@ -203,16 +205,47 @@ const Applications = () => {
             }
           />
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-hairline bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-left">
+          <div className="overflow-hidden rounded-2xl border border-hairline bg-white shadow-card">
+            {/* Below lg: one stacked row per application. A six-column table
+                does not fit a phone, and scrolling it sideways hid the status
+                — the one column the student came for. */}
+            <ul className="divide-y divide-hairline lg:hidden">
+              {visibleApplications.map((application) => (
+                <li key={application.id}>
+                  <Link
+                    to={`/applications/${application.id}`}
+                    className="flex items-start gap-3 px-4 py-4 transition-colors hover:bg-navy-50/40 sm:px-5"
+                  >
+                    <UniversityMonogram
+                      name={application.universityName}
+                      monogram={application.universityMonogram}
+                      logoUrl={application.universityLogoUrl}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] font-semibold leading-snug text-navy-900">{application.universityName}</p>
+                      <p className="mt-0.5 text-[13px] text-ink-muted">{application.courseName}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <ApplicationStatusPill status={application.status} />
+                        <span className="text-[12px] text-ink-faint">
+                          Updated {formatStamp(application.updatedAt ?? application.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <div className="hidden lg:block">
+              <table className="w-full table-fixed text-left">
                 <thead>
-                  <tr className="bg-[#F3F5FD] text-[13px] font-semibold uppercase tracking-wide text-navy-900">
-                    <th className="px-6 py-4 font-semibold">University</th>
-                    <th className="px-4 py-4 font-semibold">Course</th>
-                    <th className="px-4 py-4 font-semibold">Status</th>
-                    <th className="px-4 py-4 font-semibold">Date added</th>
-                    <th className="px-4 py-4 font-semibold">
+                  <tr className="bg-canvas text-[12px] font-semibold uppercase tracking-wide text-ink-muted">
+                    <th className="w-[28%] px-6 py-3.5 font-semibold">University</th>
+                    <th className="w-[26%] px-4 py-3.5 font-semibold">Course</th>
+                    <th className="w-[20%] px-4 py-3.5 font-semibold">Status</th>
+                    <th className="hidden px-4 py-3.5 font-semibold xl:table-cell">Date added</th>
+                    <th className="px-4 py-3.5 font-semibold">
                       <button
                         type="button"
                         onClick={() => setSortDescending((current) => !current)}
@@ -220,10 +253,10 @@ const Applications = () => {
                         aria-label={`Sort by date modified, ${sortDescending ? "newest" : "oldest"} first`}
                       >
                         Date modified
-                        <SortIcon className="h-3.5 w-3.5 text-navy-500" aria-hidden />
+                        <SortIcon className="h-3.5 w-3.5 text-navy-900" aria-hidden />
                       </button>
                     </th>
-                    <th className="px-6 py-4 text-right font-semibold">Action</th>
+                    <th className="w-24 px-6 py-3.5 text-right font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
@@ -241,7 +274,7 @@ const Applications = () => {
                             logoUrl={application.universityLogoUrl}
                           />
                           <div className="min-w-0">
-                            <p className="text-[17px] font-medium leading-snug text-navy-900">
+                            <p className="text-[15px] font-semibold leading-snug text-navy-900">
                               {application.universityName}
                             </p>
                             {application.universityCountry && (
@@ -254,7 +287,7 @@ const Applications = () => {
                         </div>
                       </td>
                       <td className="px-4 py-5">
-                        <p className="text-[17px] leading-snug text-navy-900">{application.courseName}</p>
+                        <p className="text-[15px] leading-snug text-navy-900">{application.courseName}</p>
                         {application.intake && (
                           <p className="mt-0.5 text-sm text-ink-muted">Intake: {application.intake}</p>
                         )}
@@ -265,10 +298,10 @@ const Applications = () => {
                           {application.counsellorName ? `With ${application.counsellorName}` : "Awaiting an advisor"}
                         </p>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-5 text-[15px] text-ink-soft">
+                      <td className="hidden whitespace-nowrap px-4 py-5 text-[14px] text-ink-soft xl:table-cell">
                         {formatStamp(application.createdAt ?? application.applicationDate)}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-5 text-[15px] text-ink-soft">
+                      <td className="whitespace-nowrap px-4 py-5 text-[14px] text-ink-soft">
                         {formatStamp(application.updatedAt ?? application.createdAt)}
                       </td>
                       <td className="px-6 py-5">
@@ -277,7 +310,7 @@ const Applications = () => {
                             to={`/applications/${application.id}`}
                             onClick={(event) => event.stopPropagation()}
                             aria-label={`View ${application.universityName} application`}
-                            className="rounded-lg p-1.5 text-navy-800 transition-colors hover:bg-navy-50"
+                            className="rounded-lg p-1.5 text-navy-900 transition-colors hover:bg-navy-50"
                           >
                             <Eye className="h-5 w-5" aria-hidden />
                           </Link>
@@ -285,7 +318,7 @@ const Applications = () => {
                             to="/messages"
                             onClick={(event) => event.stopPropagation()}
                             aria-label="Message your counsellor"
-                            className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-navy-50 hover:text-navy-800"
+                            className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-navy-50 hover:text-navy-600"
                           >
                             <MessageSquare className="h-5 w-5" aria-hidden />
                           </Link>

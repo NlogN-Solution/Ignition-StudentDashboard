@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, Building, ChevronRight, Download, Eye, FileText } from 'lucide-react';
+import { Award, Download, Eye, FileText, GraduationCap } from 'lucide-react';
 
 import StatusBadge from '../common/StatusBadge';
-import { PanelBody, PanelHead } from '../ui/kit';
-import GlassPanel from './GlassPanel';
+import { Card, CardHeader, CardLink, buttonClass } from './ui';
 import { getApplicationDocumentsApi, DOCUMENT_TYPE_LABELS, ISSUED_DOCUMENT_TYPES } from '../../api/studentPortal';
 import { openDocumentFile } from '../../lib/documentFile';
 import { formatDate } from '../../lib/simulate';
@@ -27,16 +26,16 @@ import { formatDate } from '../../lib/simulate';
  */
 
 const DocumentRow = ({ document, onOpen }) => (
-  <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-white px-4 py-3">
+  <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-white px-3.5 py-2.5">
     <div className="flex min-w-0 items-center gap-2.5">
-      <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-700">
+      <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-900">
         <FileText className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[14.5px] font-semibold text-navy-900">
+        <p className="truncate text-[13px] font-semibold text-navy-900">
           {DOCUMENT_TYPE_LABELS[document.documentType] ?? document.title}
         </p>
-        <p className="truncate text-[13px] font-medium text-ink-faint">
+        <p className="truncate text-[12px] text-ink-faint">
           {document.file?.name}
           {document.file?.uploadedAt ? ` · added ${formatDate(document.file.uploadedAt)}` : ''}
         </p>
@@ -46,7 +45,7 @@ const DocumentRow = ({ document, onOpen }) => (
       <button
         type="button"
         onClick={() => onOpen(document, 'inline')}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-ring-idle bg-white px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors hover:border-nav/40 hover:bg-navy-50 hover:text-navy-900"
+        className={buttonClass('secondary', 'sm')}
       >
         <Eye className="h-3.5 w-3.5" aria-hidden />
         View
@@ -54,7 +53,7 @@ const DocumentRow = ({ document, onOpen }) => (
       <button
         type="button"
         onClick={() => onOpen(document, 'attachment')}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-ring-idle bg-white px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors hover:border-nav/40 hover:bg-navy-50 hover:text-navy-900"
+        className={buttonClass('secondary', 'sm')}
       >
         <Download className="h-3.5 w-3.5" aria-hidden />
         Download
@@ -96,69 +95,56 @@ const OffersPanel = ({ offers, onError }) => {
   if (offers.length === 0) return null;
 
   return (
-    <GlassPanel>
-      <PanelHead
+    <Card className="p-5 sm:p-6">
+      <CardHeader
+        icon={GraduationCap}
         title="Your offers"
-        actions={
-          <Link
-            to="/applications?status=offer"
-            className="inline-flex items-center gap-1 text-[14.5px] font-bold text-blue-link transition-colors hover:text-navy-900"
-          >
-            All offers
-            <ChevronRight className="h-4 w-4" aria-hidden />
-          </Link>
-        }
+        action={<CardLink to="/applications?status=offer">All offers</CardLink>}
       />
-      <PanelBody>
-        <ul className="space-y-4">
-          {offers.map((application) => {
-            const documents = (documentsByApplication[application.id] ?? []).filter((document) =>
-              ISSUED_DOCUMENT_TYPES.includes(document.documentType)
-            );
-            return (
-              <li key={application.id} className="rounded-xl border border-hairline bg-canvas p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-2 text-[16.5px] font-bold tracking-[-0.01em] text-navy-900">
-                      <Building className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
-                      {application.universityName}
+      <ul className="mt-5 space-y-3">
+        {offers.map((application) => {
+          const documents = (documentsByApplication[application.id] ?? []).filter((document) =>
+            ISSUED_DOCUMENT_TYPES.includes(document.documentType)
+          );
+          return (
+            <li key={application.id} className="rounded-xl border border-hairline bg-canvas p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold tracking-[-0.01em] text-navy-900">{application.universityName}</p>
+                  <p className="mt-0.5 text-[13px] text-ink-muted">{application.courseName}</p>
+                  {application.offerReceivedDate && (
+                    <p className="mt-0.5 text-[12px] text-ink-faint">
+                      Offer received {formatDate(application.offerReceivedDate)}
                     </p>
-                    <p className="mt-1 text-[14.5px] font-medium text-ink-muted">{application.courseName}</p>
-                    {application.offerReceivedDate && (
-                      <p className="mt-1 text-[13px] font-semibold text-ink-faint">
-                        Offer received {formatDate(application.offerReceivedDate)}
-                      </p>
-                    )}
-                  </div>
-                  <StatusBadge status={application.status} />
+                  )}
                 </div>
+                <StatusBadge status={application.status} />
+              </div>
 
-                {documents.length > 0 ? (
-                  <ul className="mt-4 space-y-2">
-                    {documents.map((document) => (
-                      <DocumentRow key={document.id} document={document} onOpen={handleOpen} />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-4 flex items-center gap-2 rounded-xl border border-hairline bg-white px-4 py-3 text-[13.5px] font-medium text-ink-muted">
-                    <Award className="h-4 w-4 shrink-0 text-ignite-600" aria-hidden />
-                    Your counsellor is filing the letter — it will appear here as soon as it is uploaded.
-                  </p>
-                )}
+              {documents.length > 0 ? (
+                <ul className="mt-3 space-y-2">
+                  {documents.map((document) => (
+                    <DocumentRow key={document.id} document={document} onOpen={handleOpen} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 flex items-center gap-2 text-[13px] text-ink-muted">
+                  <Award className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
+                  Your counsellor is filing the letter — it will appear here once uploaded.
+                </p>
+              )}
 
-                <Link
-                  to={`/applications/${application.id}`}
-                  className="mt-4 inline-flex items-center gap-1 text-[14px] font-bold text-blue-link transition-colors hover:text-navy-900"
-                >
-                  Open application
-                  <ChevronRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </PanelBody>
-    </GlassPanel>
+              <Link
+                to={`/applications/${application.id}`}
+                className="mt-3 inline-block text-[13px] font-semibold text-navy-900 hover:text-navy-600"
+              >
+                Open application →
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
   );
 };
 

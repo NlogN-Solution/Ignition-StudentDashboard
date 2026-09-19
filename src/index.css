@@ -18,15 +18,16 @@
     --input: 214.3 31.8% 91.4%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Ignition navy (#01166f), so shadcn primitives share the portal's primary. */
+    --primary: 229 98% 22%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
-    --ring: 215 20.2% 65.1%;
+    --ring: 229 60% 60%;
     --radius: 0.5rem;
   }
 
@@ -59,5 +60,44 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+ * Glass surfaces — signed-in portal only (`.app-shell`, set by AppLayout).
+ *
+ * Glass only reads as glass with colour behind it, so the shell paints a very
+ * faint navy and orange wash on the canvas (`.app-shell-wash`), fixed so it
+ * does not scroll. Panels are then frosted white over it: 76% white, a blur,
+ * and a white hairline edge in place of the grey one.
+ *
+ * Applied by rule rather than by editing every screen: any white, rounded
+ * container (a card, panel, list row surface) picks it up. Controls are left
+ * alone on purpose — buttons, links, inputs and selects stay solid, because a
+ * translucent field is harder to read and harder to see as a field.
+ * ------------------------------------------------------------------------- */
+.app-shell-wash {
+  background:
+    radial-gradient(42rem 32rem at 8% -6%, rgba(1, 22, 111, 0.07), transparent 60%),
+    radial-gradient(38rem 30rem at 100% 12%, rgba(255, 90, 31, 0.06), transparent 60%),
+    radial-gradient(46rem 34rem at 55% 105%, rgba(1, 22, 111, 0.05), transparent 60%);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-shell :is(section, article, aside, div, li, form).bg-white:is(.rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-\[20px\]) {
+    background-color: rgba(255, 255, 255, 0.76);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+
+  .app-shell :is(section, article, aside, div, li, form).bg-white.border:is(.rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-\[20px\]) {
+    border-color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* Inner surfaces that sit on a card (canvas-tinted rows, entry cards) get
+     a lighter frost so nesting stays legible. */
+  .app-shell :is(div, li, section).bg-canvas:is(.rounded-lg, .rounded-xl, .rounded-2xl) {
+    background-color: rgba(251, 250, 254, 0.6);
   }
 }

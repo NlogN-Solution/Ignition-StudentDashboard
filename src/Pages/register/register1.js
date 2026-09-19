@@ -207,7 +207,7 @@ const RegistrationPage = () => {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="font-bold text-blue-link transition-colors hover:text-navy-900"
+            className="font-bold text-navy-900 transition-colors hover:text-navy-900"
           >
             Sign in
           </Link>
@@ -261,7 +261,7 @@ const RegistrationPage = () => {
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
               aria-label="Country dialling code"
-              className="h-[44px] shrink-0 rounded-xl border border-ring-idle bg-white px-3 text-[15px] font-medium text-ink outline-none transition-colors hover:border-nav/40 focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15"
+              className="h-[44px] shrink-0 rounded-xl border border-ring-idle bg-white px-3 text-[15px] font-medium text-ink outline-none transition-colors hover:border-nav/40 focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15"
             >
               {formOptions.countryCodes.map((code) => (
                 <option key={code.value} value={code.value}>
@@ -278,7 +278,7 @@ const RegistrationPage = () => {
               placeholder="123 456 7890"
               aria-invalid={errors.phone ? "true" : undefined}
               aria-describedby={errors.phone ? "phone-error" : undefined}
-              className={`h-[44px] min-w-0 flex-1 rounded-xl border bg-white px-4 text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15 ${
+              className={`h-[44px] min-w-0 flex-1 rounded-xl border bg-white px-4 text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15 ${
                 errors.phone ? "border-orange" : "border-ring-idle hover:border-nav/40"
               }`}
             />

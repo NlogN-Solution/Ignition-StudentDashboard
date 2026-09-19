@@ -46,7 +46,7 @@ const RelatedCourses = ({ programId, heading = "You may also be interested in" }
             <div className="min-w-0">
               <Link
                 to={`/explore/courses/${course.slug}`}
-                className="text-[14.5px] font-semibold text-navy-900 transition-colors hover:text-blue-link"
+                className="text-[14.5px] font-semibold text-navy-900 transition-colors hover:text-navy-900"
               >
                 {course.title}
               </Link>
@@ -70,7 +70,7 @@ const RelatedCourses = ({ programId, heading = "You may also be interested in" }
 
       <Link
         to="/explore"
-        className="mt-4 inline-flex items-center gap-1 text-[13.5px] font-bold text-blue-link transition-colors hover:text-navy-900"
+        className="mt-4 inline-flex items-center gap-1 text-[13.5px] font-bold text-navy-900 transition-colors hover:text-navy-900"
       >
         Explore more courses
         <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />

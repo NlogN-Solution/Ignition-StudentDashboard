@@ -29,11 +29,11 @@ const STATUS_STYLES = {
   // funding sources
   Available: "bg-green-100 text-green-600",
   Processing: "bg-yellow-100 text-yellow-600",
-  Pending: "bg-blue-100 text-blue-600",
+  Pending: "bg-navy-100 text-navy-900",
   Declined: "bg-red-100 text-red-600",
   // verification / documents / checklist
   verified: "bg-green-100 text-green-600",
-  uploaded: "bg-blue-100 text-blue-600",
+  uploaded: "bg-navy-100 text-navy-900",
   pending: "bg-yellow-100 text-yellow-600",
   rejected: "bg-red-100 text-red-600",
   missing: "bg-gray-100 text-gray-600",
@@ -41,11 +41,11 @@ const STATUS_STYLES = {
   // payments
   paid: "bg-green-100 text-green-600",
   due: "bg-yellow-100 text-yellow-600",
-  upcoming: "bg-blue-100 text-blue-600",
+  upcoming: "bg-navy-100 text-navy-900",
   overdue: "bg-red-100 text-red-600",
   // loan tranches
   released: "bg-green-100 text-green-600",
-  scheduled: "bg-blue-100 text-blue-600",
+  scheduled: "bg-navy-100 text-navy-900",
 };
 
 const STATUS_LABELS = {
@@ -100,7 +100,7 @@ export const HeaderPill = ({ children, tone = "green" }) => (
         : tone === "yellow"
         ? "bg-yellow-100 text-yellow-600"
         : tone === "blue"
-        ? "bg-blue-100 text-blue-600"
+        ? "bg-navy-100 text-navy-900"
         : "bg-green-100 text-green-600"
     }`}
   >
@@ -110,7 +110,7 @@ export const HeaderPill = ({ children, tone = "green" }) => (
 
 const METER_TONES = {
   green: "bg-green-500",
-  blue: "bg-blue-500",
+  blue: "bg-navy-900",
   yellow: "bg-yellow-500",
   orange: "bg-orange-500",
   red: "bg-red-500",

@@ -211,7 +211,7 @@ const ExploreCourses = () => {
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               placeholder="Search 4,800 courses by title or university"
-              className="w-full rounded-lg border border-hairline bg-white py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-faint focus:border-blue-link focus:outline-none focus:ring-2 focus:ring-blue-link/20"
+              className="w-full rounded-lg border border-hairline bg-white py-2.5 pl-10 pr-3 text-sm text-ink placeholder:text-ink-faint focus:border-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-900/20"
             />
           </div>
 
@@ -239,7 +239,7 @@ const ExploreCourses = () => {
           <select
             value={sort}
             onChange={(event) => update({ sort: event.target.value })}
-            className="rounded-lg border border-hairline bg-white px-3 py-2.5 text-sm font-medium text-ink-soft focus:border-blue-link focus:outline-none"
+            className="rounded-lg border border-hairline bg-white px-3 py-2.5 text-sm font-medium text-ink-soft focus:border-navy-900 focus:outline-none"
           >
             {SORTS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -268,7 +268,7 @@ const ExploreCourses = () => {
             <button
               type="button"
               onClick={() => setParams(new URLSearchParams())}
-              className="text-xs font-semibold text-blue-link hover:text-navy-900"
+              className="text-xs font-semibold text-navy-900 hover:text-navy-900"
             >
               Clear all
             </button>

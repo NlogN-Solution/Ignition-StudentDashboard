@@ -29,7 +29,7 @@ const ProgressBar = ({ value, label, className = "" }) => {
         className="mt-2 h-2 w-full overflow-hidden rounded-full bg-hairline"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-navy-900 to-blue-bright transition-[width] duration-700 ease-out"
+          className="h-full rounded-full bg-gradient-to-r from-navy-900 to-navy-900 transition-[width] duration-700 ease-out"
           style={{ width: `${safe}%` }}
         />
       </div>

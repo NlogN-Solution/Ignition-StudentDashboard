@@ -99,7 +99,7 @@ const TestCard = ({ type, testName, data, onToggle, onInputChange, onSectionChan
         />
         <span
           aria-hidden
-          className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border-2 transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-blue-bright/25 ${
+          className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border-2 transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-navy-900/25 ${
             data.selected
               ? "border-navy-900 bg-navy-900 text-white"
               : "border-ring-idle bg-white text-transparent"
@@ -138,7 +138,7 @@ const TestCard = ({ type, testName, data, onToggle, onInputChange, onSectionChan
                       step={section.step}
                       value={data.sections?.[section.key] ?? ""}
                       onChange={(e) => onSectionChange(type, testName, section.key, e.target.value)}
-                      className="mt-1.5 h-[44px] w-full rounded-lg border border-ring-idle bg-white px-3 text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint hover:border-nav/40 focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15"
+                      className="mt-1.5 h-[44px] w-full rounded-lg border border-ring-idle bg-white px-3 text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-ink-faint hover:border-nav/40 focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15"
                       placeholder={`${section.min}–${section.max}`}
                     />
                   </div>
@@ -173,7 +173,7 @@ const TestCard = ({ type, testName, data, onToggle, onInputChange, onSectionChan
                 step={spec?.overall?.step}
                 value={data.score}
                 onChange={(e) => onInputChange(type, testName, e.target.value, "score")}
-                className="mt-1.5 h-[44px] w-full rounded-lg border border-ring-idle bg-white px-3 text-[15px] font-semibold text-ink outline-none transition-colors placeholder:font-medium placeholder:text-ink-faint hover:border-nav/40 focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15"
+                className="mt-1.5 h-[44px] w-full rounded-lg border border-ring-idle bg-white px-3 text-[15px] font-semibold text-ink outline-none transition-colors placeholder:font-medium placeholder:text-ink-faint hover:border-nav/40 focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15"
                 placeholder={spec ? `${spec.overall.min}–${spec.overall.max}` : "Enter your score"}
               />
             </div>
@@ -199,7 +199,7 @@ const TestCard = ({ type, testName, data, onToggle, onInputChange, onSectionChan
                   required
                   value={data.date}
                   onChange={(e) => onInputChange(type, testName, e.target.value, "date")}
-                  className="h-[44px] w-full rounded-lg border border-ring-idle bg-white pl-9 pr-3 text-[15px] font-medium text-ink outline-none transition-colors hover:border-nav/40 focus:border-blue-bright focus:ring-4 focus:ring-blue-bright/15"
+                  className="h-[44px] w-full rounded-lg border border-ring-idle bg-white pl-9 pr-3 text-[15px] font-medium text-ink outline-none transition-colors hover:border-nav/40 focus:border-navy-900 focus:ring-4 focus:ring-navy-900/15"
                 />
               </div>
             </div>

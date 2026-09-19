@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Award, PartyPopper, Stamp, X } from "lucide-react";
 
@@ -13,9 +14,18 @@ import { Award, PartyPopper, Stamp, X } from "lucide-react";
  *   milestone, not a localStorage flag — so it does not reappear on another
  *   device and cannot be lost by clearing site data. The notification behind
  *   it survives, so a student who dismisses this can still find the offer.
- * - **It is not childish.** Confetti, briefly, behind a calm card. No
- *   full-screen animation, no sound, no bouncing type. A CAS gets the same
- *   card with the confetti off, because it is good news of a quieter kind.
+ * - **It fills the screen, briefly.** Confetti falls across the whole
+ *   viewport for a few seconds — the offer is the moment of the journey and a
+ *   burst inside a small card undersold it — while the card itself stays calm:
+ *   no sound, no bouncing type. A CAS gets the same card with the confetti
+ *   off, because it is good news of a quieter kind.
+ *
+ * ## Portal
+ *
+ * Rendered into `document.body`, not where it is mounted. The app shell's
+ * content column is its own stacking context (it sits above the background
+ * wash), so a `fixed` overlay rendered inside it would sit *under* the header
+ * and sidebar however high its z-index.
  *
  * ## Reduced motion
  *
@@ -83,12 +93,14 @@ const Confetti = ({ active }) => {
     context.scale(ratio, ratio);
 
     // Ignition's own palette. Rainbow confetti belongs to a different product.
-    const colours = ["#FF5A1F", "#0B1345", "#1071f6", "#FFC5A3", "#2450dc"];
-    const pieces = Array.from({ length: 90 }, () => ({
+    const colours = ["#FF5A1F", "#01166f", "#01166f", "#FFC5A3", "#01166f"];
+    // Scaled to the screen, so a phone is not buried and a monitor is not bare.
+    const count = Math.round(Math.min(260, Math.max(120, (width * height) / 9000)));
+    const pieces = Array.from({ length: count }, () => ({
       x: Math.random() * width,
-      y: -20 - Math.random() * height * 0.5,
-      size: 4 + Math.random() * 5,
-      speed: 1.4 + Math.random() * 2.4,
+      y: -20 - Math.random() * height * 0.9,
+      size: 5 + Math.random() * 6,
+      speed: 2 + Math.random() * 3.2,
       drift: (Math.random() - 0.5) * 1.1,
       spin: (Math.random() - 0.5) * 0.22,
       angle: Math.random() * Math.PI,
@@ -97,7 +109,7 @@ const Confetti = ({ active }) => {
 
     let frame;
     const started = performance.now();
-    const DURATION = 2600;
+    const DURATION = 4200;
 
     const draw = (now) => {
       const elapsed = now - started;
@@ -126,7 +138,8 @@ const Confetti = ({ active }) => {
   }, [active]);
 
   if (!active) return null;
-  return <canvas ref={canvas} aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" />;
+  // The whole viewport, above the dimmed page and the card alike.
+  return <canvas ref={canvas} aria-hidden className="pointer-events-none fixed inset-0 z-[130] h-full w-full" />;
 };
 
 const CelebrationModal = ({ milestone, studentName, onDismiss }) => {
@@ -184,9 +197,9 @@ const CelebrationModal = ({ milestone, studentName, onDismiss }) => {
   if (!kind || !copy) return null;
   const Icon = kind.icon;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-navy-900/55 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-navy-900/55 p-4 backdrop-blur-[3px]"
       onClick={(event) => {
         if (event.target === event.currentTarget) onDismiss();
       }}
@@ -198,8 +211,6 @@ const CelebrationModal = ({ milestone, studentName, onDismiss }) => {
         aria-labelledby="celebration-title"
         className="relative w-full max-w-[460px] overflow-hidden rounded-2xl border border-hairline bg-white shadow-float"
       >
-        <Confetti active={kind.confetti && !reduceMotion} />
-
         <button
           ref={closeButton}
           type="button"
@@ -254,7 +265,9 @@ const CelebrationModal = ({ milestone, studentName, onDismiss }) => {
           </div>
         </div>
       </div>
-    </div>
+      <Confetti active={kind.confetti && !reduceMotion} />
+    </div>,
+    document.body
   );
 };
 

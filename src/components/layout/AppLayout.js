@@ -1,6 +1,7 @@
 import React from "react";
 
 import SideNavigation from "../navigation/sidenav";
+import CelebrationHost from "../milestones/CelebrationHost";
 
 /**
  * The shell every signed-in screen sits in: fixed header + sidebar from
@@ -15,10 +16,14 @@ import SideNavigation from "../navigation/sidenav";
  * against a grey of the same temperature.
  */
 const AppLayout = ({ children, contentClassName }) => (
-  <div className="min-h-screen bg-canvas font-sans text-ink antialiased">
+  <div className="app-shell relative min-h-screen bg-canvas font-sans text-ink antialiased">
+    {/* The faint colour the glass panels frost over — see index.css. */}
+    <div aria-hidden className="app-shell-wash pointer-events-none fixed inset-0 z-0" />
     <SideNavigation />
+    {/* Offer / CAS / visa celebrations, on whichever page the student is on. */}
+    <CelebrationHost />
 
-    <div className="pt-16 md:pl-72">
+    <div className="relative z-[1] pt-16 md:pl-72">
       {contentClassName ? (
         <div className={contentClassName}>{children}</div>
       ) : (

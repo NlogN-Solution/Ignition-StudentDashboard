@@ -56,7 +56,7 @@ const Figure = ({ icon: Icon, label, value, note, tone = "navy" }) => (
  * the same on a second device.
  */
 const STATE_STYLES = {
-  applied: "border-blue-bright/30 bg-blue-bright/[0.07] text-blue-link",
+  applied: "border-navy-900/30 bg-navy-900/[0.07] text-navy-900",
   selected: "border-ignite-300 bg-ignite-50 text-ignite-700",
   offer: "border-green-300 bg-green-50 text-green-700",
 };
@@ -111,7 +111,7 @@ export const CourseCard = ({ course, saved, onToggleSave, state, onApply }) => {
                 {course.subject}
               </p>
             )}
-            <h3 className="mt-1.5 text-[15.5px] font-bold leading-snug tracking-tight text-navy-900 transition-colors group-hover:text-blue-link">
+            <h3 className="mt-1.5 text-[15.5px] font-bold leading-snug tracking-tight text-navy-900 transition-colors group-hover:text-navy-900">
               <Link
                 to={`/explore/courses/${course.slug}`}
                 className="after:absolute after:inset-0 after:rounded-xl after:content-['']"
@@ -248,7 +248,7 @@ export const UniversityCard = ({ university, saved, onToggleSave }) => (
             {university.monogram ?? university.name.slice(0, 2).toUpperCase()}
           </span>
           <div className="min-w-0">
-            <h3 className="text-[15.5px] font-bold leading-snug tracking-tight text-navy-900 transition-colors group-hover:text-blue-link">
+            <h3 className="text-[15.5px] font-bold leading-snug tracking-tight text-navy-900 transition-colors group-hover:text-navy-900">
               <Link
                 to={`/explore/universities/${university.slug}`}
                 className="after:absolute after:inset-0 after:rounded-xl after:content-['']"

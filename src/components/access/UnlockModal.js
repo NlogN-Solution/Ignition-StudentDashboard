@@ -198,8 +198,8 @@ const UnlockModal = ({ access, onClose, onUnlocked }) => {
           )}
 
           {access?.simulated ? (
-            <p className="mt-3 flex items-start gap-2 rounded-xl border border-blue-bright/20 bg-blue-bright/[0.06] px-4 py-3 text-[13px] font-medium leading-[1.5] text-ink-soft">
-              <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-bright" aria-hidden />
+            <p className="mt-3 flex items-start gap-2 rounded-xl border border-navy-900/20 bg-navy-900/[0.06] px-4 py-3 text-[13px] font-medium leading-[1.5] text-ink-soft">
+              <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-navy-900" aria-hidden />
               {/* Said out loud. A student in a demo must never wonder whether
                   they were actually charged. */}
               Test mode — no payment gateway is connected yet, so no money will move and nothing

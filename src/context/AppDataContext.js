@@ -36,7 +36,7 @@ import {
   replaceDocumentFileApi,
   deleteDocumentApi,
 } from "../api/studentPortal";
-import { getFeedbackForScore, ignitionPoints, progressMilestones as localMilestoneMeta } from "../data";
+import { getFeedbackForScore, ignitionPoints } from "../data";
 import { generateId } from "../lib/simulate";
 import { useAuth } from "./AuthContext";
 
@@ -67,7 +67,7 @@ export const AppDataProvider = ({ children }) => {
   const [interviewSessions, setInterviewSessions] = useState([]);
   const [pointsLedger, setPointsLedger] = useState([]);
   const [pointsBalance, setPointsBalance] = useState(0);
-  const [progress, setProgress] = useState({ completionPercentage: 0, milestones: [] });
+  const [progress, setProgress] = useState({ completionPercentage: 0, nextMilestone: null, milestones: [] });
   const [saved, setSaved] = useState({
     courseIds: [],
     universityIds: [],
@@ -75,6 +75,18 @@ export const AppDataProvider = ({ children }) => {
   });
   const [maxCompare, setMaxCompare] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
+  /**
+   * The student whose data has finished its first load, or null.
+   *
+   * `isLoading` alone cannot tell "not started yet" from "loaded and empty":
+   * it is false on the very first render, before the effect below has run, so
+   * a screen reading it painted its empty state for a frame and then swapped
+   * in real content — the dashboard's Next Step card popped into the layout
+   * late for exactly this reason. Keyed by student so a sign-out/sign-in
+   * resets it without a separate effect.
+   */
+  const [loadedStudentId, setLoadedStudentId] = useState(null);
+  const isReady = Boolean(studentId) && loadedStudentId === studentId;
 
   // Re-fetch whenever the signed-in student changes.
   useEffect(() => {
@@ -91,7 +103,7 @@ export const AppDataProvider = ({ children }) => {
       setInterviewSessions([]);
       setPointsLedger([]);
       setPointsBalance(0);
-      setProgress({ completionPercentage: 0, milestones: [] });
+      setProgress({ completionPercentage: 0, nextMilestone: null, milestones: [] });
       setSaved({ courseIds: [], universityIds: [], compareCourseIds: [] });
       return undefined;
     }
@@ -121,7 +133,7 @@ export const AppDataProvider = ({ children }) => {
           getTasksFor().catch(() => []),
           getInterviewSessionsFor().catch(() => []),
           getPointsFor().catch(() => ({ balance: 0, ledger: [] })),
-          getProgressFor().catch(() => ({ completionPercentage: 0, milestones: [] })),
+          getProgressFor().catch(() => ({ completionPercentage: 0, nextMilestone: null, milestones: [] })),
           getSavedItemsApi().catch(() => ({ courseIds: [], universityIds: [], compareCourseIds: [], maxCompare: 3 })),
         ]);
         if (cancelled) return;
@@ -144,7 +156,10 @@ export const AppDataProvider = ({ children }) => {
         });
         setMaxCompare(nextSaved.maxCompare ?? 3);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+          setLoadedStudentId(studentId);
+        }
       }
     };
 
@@ -584,16 +599,35 @@ export const AppDataProvider = ({ children }) => {
 
   const requiredDocuments = useMemo(() => documents, [documents]);
 
-  /** The real ladder (`progress.milestones`, from `/me/progress`) drives
-   * `completed`; `localMilestoneMeta`'s icon/description dressing — nothing
-   * server-side carries that — is merged in by `key` since the seeded
-   * milestone keys match this fixture's on purpose (see scripts/seed.py). */
+  /**
+   * The student's journey, exactly as the backend states it.
+   *
+   * `/me/progress` returns the whole ladder — every active `ProgressMilestone`
+   * row, its label, its order, and whether this student has reached it — plus
+   * `next_milestone`, the first rung not yet reached. That is the only source
+   * of truth. This used to walk a local JSON copy of the ladder and look each
+   * key up in the response, so a milestone added or renamed on the server
+   * silently vanished from the dashboard, and the labels shown were the
+   * fixture's, not the server's.
+   *
+   * `isCurrent` is the server's `next_milestone`, not "first incomplete in the
+   * order we happen to hold": the two agree today, and if they ever stop
+   * agreeing the server is the one that knows why.
+   */
   const milestoneStatus = useMemo(() => {
-    const byKey = new Map(progress.milestones.map((m) => [m.key, m]));
-    return [...localMilestoneMeta]
-      .sort((a, b) => a.order - b.order)
-      .map((milestone) => ({ ...milestone, completed: Boolean(byKey.get(milestone.key)?.completed) }));
-  }, [progress.milestones]);
+    const currentKey = progress.nextMilestone?.key ?? null;
+    return [...progress.milestones]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((milestone) => ({
+        key: milestone.key,
+        label: milestone.label || milestone.key,
+        description: milestone.description ?? null,
+        order: milestone.order,
+        completed: Boolean(milestone.completed),
+        completedAt: milestone.completedAt ?? null,
+        isCurrent: milestone.key === currentKey,
+      }));
+  }, [progress.milestones, progress.nextMilestone]);
 
   const overallProgress = progress.completionPercentage ?? 0;
 
@@ -627,6 +661,7 @@ export const AppDataProvider = ({ children }) => {
       pointsLedger,
       saved,
       isLoading,
+      isReady,
 
       // notifications
       unreadNotificationCount,
@@ -692,6 +727,7 @@ export const AppDataProvider = ({ children }) => {
       pointsLedger,
       saved,
       isLoading,
+      isReady,
       unreadNotificationCount,
       markNotificationRead,
       markAllNotificationsRead,

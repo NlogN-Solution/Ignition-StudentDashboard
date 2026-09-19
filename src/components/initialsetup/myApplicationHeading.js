@@ -38,7 +38,7 @@ const ApplicationHeader = ({ currentStep, applicationId }) => {
         </p>
       </div>
 
-      <p className="mt-9 text-[12.5px] font-bold uppercase tracking-[0.16em] text-blue-link">
+      <p className="mt-9 text-[12.5px] font-bold uppercase tracking-[0.16em] text-navy-900">
         Step {currentStep} of {total}
       </p>
       <h1 className="mt-2 text-[clamp(1.9rem,3.2vw,2.5rem)] font-extrabold leading-[1.08] tracking-[-0.025em] text-navy-900">

@@ -177,7 +177,7 @@ export const UniversityAboutPanel = ({ university }) => {
           href={university.website}
           target="_blank"
           rel="noreferrer noopener"
-          className="inline-flex items-center gap-2 text-sm font-bold text-blue-link hover:text-navy-900"
+          className="inline-flex items-center gap-2 text-sm font-bold text-navy-900 hover:text-navy-900"
         >
           <Globe className="h-4 w-4" />
           Official site
@@ -231,7 +231,7 @@ export const UniversityCoursesPanel = ({
           {total > courses.length && (
             <Link
               to={`/explore?university=${university.slug}`}
-              className="inline-flex items-center gap-2 text-sm font-bold text-blue-link hover:text-navy-900"
+              className="inline-flex items-center gap-2 text-sm font-bold text-navy-900 hover:text-navy-900"
             >
               Search all {total.toLocaleString()} courses here
             </Link>

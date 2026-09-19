@@ -8,7 +8,7 @@ import { applicationPill } from "../../lib/applicationStatus";
  */
 
 const PILL_TONE_CLASSES = {
-  navy: "bg-navy-50 text-navy-800",
+  navy: "bg-navy-50 text-navy-900",
   orange: "bg-ignite-50 text-ignite-600",
   green: "bg-emerald-50 text-emerald-600",
   red: "bg-red-50 text-red-600",
@@ -103,7 +103,7 @@ export const UniversityCrest = ({ name, monogram, logoUrl, size = 72 }) => {
         <svg viewBox="0 0 48 56" aria-label={`${name} crest`} role="img" className="h-[72%] w-[72%]">
           <path
             d="M4 4h40v22c0 14-9.5 22.5-20 26C13.5 48.5 4 40 4 26V4z"
-            fill="#0B1345"
+            fill="#01166f"
             stroke="#C8102E"
             strokeWidth="2.5"
           />

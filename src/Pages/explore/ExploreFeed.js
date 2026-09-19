@@ -187,13 +187,6 @@ const ExploreFeed = () => {
 
   return (
     <div className="mt-2">
-      {intent?.course ? (
-        <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-ignite-200 bg-ignite-50 px-3.5 py-1.5 text-[13px] font-semibold text-ignite-700">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden />
-          Tuned to {intent.course.course_name}
-        </p>
-      ) : null}
-
       {sections.map((section) => (
         <Row
           key={section.key}

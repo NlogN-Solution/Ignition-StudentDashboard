@@ -71,9 +71,9 @@ const ROW_STATUS = {
   approved: { label: "Approved", pill: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500", group: "ready" },
   rejected: { label: "Changes required", pill: "bg-amber-50 text-amber-600", dot: "bg-amber-500", group: "action" },
   expired: { label: "Expired", pill: "bg-red-50 text-red-600", dot: "bg-red-500", group: "action" },
-  under_review: { label: "Under review", pill: "bg-blue-50 text-blue-700", dot: "bg-blue-500", group: "review" },
-  uploaded: { label: "Under review", pill: "bg-blue-50 text-blue-700", dot: "bg-blue-500", group: "review" },
-  pending: { label: "Under review", pill: "bg-blue-50 text-blue-700", dot: "bg-blue-500", group: "review" },
+  under_review: { label: "Under review", pill: "bg-navy-50 text-navy-800", dot: "bg-navy-900", group: "review" },
+  uploaded: { label: "Under review", pill: "bg-navy-50 text-navy-800", dot: "bg-navy-900", group: "review" },
+  pending: { label: "Under review", pill: "bg-navy-50 text-navy-800", dot: "bg-navy-900", group: "review" },
   missing: { label: "Missing", pill: "bg-red-50 text-red-600", dot: "bg-red-500", group: "action" },
 };
 
@@ -128,7 +128,7 @@ const FileBadge = ({ kind, missing }) => {
     );
   }
   return (
-    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500 text-white">
+    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-navy-900 text-white">
       <FileText className="h-5 w-5" aria-hidden />
     </span>
   );
@@ -165,7 +165,7 @@ const Select = ({ value, onChange, options, label }) => (
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="h-10 appearance-none rounded-lg border border-hairline bg-white pl-3 pr-9 text-sm font-medium text-navy-900 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+      className="h-10 appearance-none rounded-lg border border-hairline bg-white pl-3 pr-9 text-sm font-medium text-navy-900 focus:border-navy-300 focus:outline-none focus:ring-2 focus:ring-navy-100"
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -202,7 +202,7 @@ const RowMenu = ({ items }) => {
         aria-label="Document actions"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="rounded-lg p-1.5 text-navy-800 transition-colors hover:bg-blue-50"
+        className="rounded-lg p-1.5 text-navy-800 transition-colors hover:bg-navy-50"
       >
         <MoreHorizontal className="h-5 w-5" aria-hidden />
       </button>
@@ -223,7 +223,7 @@ const RowMenu = ({ items }) => {
                       item.onClick();
                     }}
                     className={`flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-40 ${
-                      item.danger ? "text-red-600 hover:bg-red-50" : "text-navy-900 hover:bg-blue-50"
+                      item.danger ? "text-red-600 hover:bg-red-50" : "text-navy-900 hover:bg-navy-50"
                     }`}
                   >
                     <Icon className="h-4 w-4" aria-hidden />
@@ -341,8 +341,8 @@ const StatusBanner = ({ document }) => {
     );
   }
   return (
-    <div className="flex items-start gap-3 rounded-xl bg-blue-50 px-4 py-3">
-      <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" aria-hidden />
+    <div className="flex items-start gap-3 rounded-xl bg-navy-50 px-4 py-3">
+      <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-navy-900" aria-hidden />
       <p className="text-[13px] text-navy-900">Our team is checking this document. We'll let you know once it's verified.</p>
     </div>
   );
@@ -392,10 +392,10 @@ const DetailPanel = ({ document, hasAccess, onClose, onOpen, onReplace, onDelete
             type="button"
             aria-selected={tab === item.id}
             onClick={() => setTab(item.id)}
-            className={`relative px-5 py-3 text-sm font-medium ${tab === item.id ? "text-blue-600" : "text-ink-soft hover:text-navy-900"}`}
+            className={`relative px-5 py-3 text-sm font-medium ${tab === item.id ? "text-navy-900" : "text-ink-soft hover:text-navy-900"}`}
           >
             {item.label}
-            {tab === item.id && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-blue-600" />}
+            {tab === item.id && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-navy-900" />}
           </button>
         ))}
       </div>
@@ -481,7 +481,7 @@ const DetailPanel = ({ document, hasAccess, onClose, onOpen, onReplace, onDelete
         <button
           type="button"
           onClick={() => onOpen(document, "attachment")}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2.5 text-sm font-medium text-blue-600 hover:border-blue-200 hover:bg-blue-50"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2.5 text-sm font-medium text-navy-900 hover:border-navy-200 hover:bg-navy-50"
         >
           <Download className="h-4 w-4" aria-hidden />
           Download
@@ -492,7 +492,7 @@ const DetailPanel = ({ document, hasAccess, onClose, onOpen, onReplace, onDelete
               type="button"
               disabled={isBusy}
               onClick={() => replaceRef.current?.click()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2.5 text-sm font-medium text-blue-600 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-60"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2.5 text-sm font-medium text-navy-900 hover:border-navy-200 hover:bg-navy-50 disabled:opacity-60"
             >
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <RefreshCw className="h-4 w-4" aria-hidden />}
               Replace file
@@ -548,7 +548,7 @@ const UploadModal = ({ onClose, onUpload, isUploading }) => {
           <select
             value={type}
             onChange={(event) => setType(event.target.value)}
-            className="mt-1.5 h-11 w-full rounded-lg border border-hairline bg-white px-3 text-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="mt-1.5 h-11 w-full rounded-lg border border-hairline bg-white px-3 text-sm focus:border-navy-300 focus:outline-none focus:ring-2 focus:ring-navy-100"
           >
             <option value="">Choose a type…</option>
             {CATEGORIES.map((category) => (
@@ -564,8 +564,8 @@ const UploadModal = ({ onClose, onUpload, isUploading }) => {
             ))}
           </select>
         </label>
-        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 px-4 py-6 text-center hover:bg-blue-50">
-          <Upload className="h-6 w-6 text-blue-600" aria-hidden />
+        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-navy-200 bg-navy-50/40 px-4 py-6 text-center hover:bg-navy-50">
+          <Upload className="h-6 w-6 text-navy-900" aria-hidden />
           <span className="text-sm font-medium text-navy-900">{file ? file.name : "Choose a file"}</span>
           {file && <span className="text-xs text-ink-muted">{formatFileSize(file.size)}</span>}
           <input type="file" className="hidden" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
@@ -578,7 +578,7 @@ const UploadModal = ({ onClose, onUpload, isUploading }) => {
             type="button"
             disabled={!type || !file || isUploading}
             onClick={() => onUpload(type, file)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-navy-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-950 disabled:opacity-50"
           >
             {isUploading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Upload
@@ -607,7 +607,7 @@ const GuidelinesModal = ({ onClose }) => (
           return (
             <li key={guideline.text} className="flex items-start gap-3 text-sm text-ink-soft">
               <Icon
-                className={`mt-0.5 h-5 w-5 flex-shrink-0 ${guideline.tone === "warning" ? "text-amber-500" : "text-blue-500"}`}
+                className={`mt-0.5 h-5 w-5 flex-shrink-0 ${guideline.tone === "warning" ? "text-amber-500" : "text-navy-900"}`}
                 aria-hidden
               />
               {guideline.text}
@@ -800,7 +800,7 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas pb-16">
+    <div className="min-h-screen pb-16">
       <div
         className={`mx-auto grid max-w-[1500px] grid-cols-1 gap-6 px-4 pt-8 sm:px-6 ${
           selectedDocument ? "lg:grid-cols-[minmax(0,1fr)_380px]" : ""
@@ -818,7 +818,7 @@ const DocumentsPage = () => {
             <button
               type="button"
               onClick={() => setIsUploadOpen(true)}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lift transition-colors hover:bg-blue-700"
+              className="flex items-center gap-2 rounded-lg bg-navy-900 px-5 py-3 text-sm font-semibold text-white shadow-lift transition-colors hover:bg-navy-950"
             >
               <Upload className="h-4 w-4" aria-hidden />
               Upload Document
@@ -829,7 +829,7 @@ const DocumentsPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             <StatCard icon={CheckCircle2} tint="bg-emerald-50 text-emerald-600" count={stats.ready} label="Ready" hint="Approved & ready to use" />
             <StatCard icon={AlertCircle} tint="bg-ignite-50 text-ignite-500" count={stats.action} label="Action needed" hint="Missing or needs changes" />
-            <StatCard icon={Clock} tint="bg-blue-50 text-blue-600" count={stats.review} label="Under review" hint="Being checked by our team" />
+            <StatCard icon={Clock} tint="bg-navy-50 text-navy-900" count={stats.review} label="Under review" hint="Being checked by our team" />
             <StatCard icon={FileText} tint="bg-gray-100 text-ink-muted" count={stats.total} label="Total documents" hint="In your vault" />
           </div>
 
@@ -843,7 +843,7 @@ const DocumentsPage = () => {
             <button
               type="button"
               onClick={() => setIsGuidelinesOpen(true)}
-              className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:underline"
+              className="flex items-center gap-2 text-sm font-medium text-navy-900 hover:underline"
             >
               View upload guidelines <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
@@ -864,11 +864,11 @@ const DocumentsPage = () => {
                         aria-selected={active}
                         onClick={() => setActiveCategory(tab.id)}
                         className={`relative whitespace-nowrap px-4 py-3.5 text-sm font-medium ${
-                          active ? "text-blue-600" : "text-ink-soft hover:text-navy-900"
+                          active ? "text-navy-900" : "text-ink-soft hover:text-navy-900"
                         }`}
                       >
                         {tab.label} ({tab.count})
-                        {active && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-blue-600" />}
+                        {active && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-navy-900" />}
                       </button>
                     );
                   }
@@ -883,7 +883,7 @@ const DocumentsPage = () => {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search documents..."
-                    className="h-10 w-52 rounded-lg border border-hairline bg-[#F8F9FC] pl-9 pr-3 text-sm placeholder:text-ink-faint focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    className="h-10 w-52 rounded-lg border border-hairline bg-[#F8F9FC] pl-9 pr-3 text-sm placeholder:text-ink-faint focus:border-navy-300 focus:outline-none focus:ring-2 focus:ring-navy-100"
                   />
                 </label>
                 <Select label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS.map((f) => ({ ...f, label: f.value === "all" ? "Status" : f.label }))} />
@@ -934,7 +934,7 @@ const DocumentsPage = () => {
                           key={row.key}
                           onClick={() => row.kind === "document" && setSelectedId(doc.id)}
                           className={`${row.kind === "document" ? "cursor-pointer" : ""} ${
-                            selected ? "bg-blue-50/70" : "hover:bg-[#F8F9FC]"
+                            selected ? "bg-navy-50/70" : "hover:bg-[#F8F9FC]"
                           }`}
                         >
                           <td className={`rounded-l-xl border-b border-hairline px-3 py-4 ${selected ? "border-transparent" : ""}`}>
@@ -968,7 +968,7 @@ const DocumentsPage = () => {
                                     event.stopPropagation();
                                     requestInputRefs.current[row.item.id]?.click();
                                   }}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 px-5 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-60"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 px-5 py-2 text-sm font-medium text-navy-900 hover:bg-navy-50 disabled:opacity-60"
                                 >
                                   {uploadingItemId === row.item.id && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
                                   Upload

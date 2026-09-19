@@ -27,14 +27,14 @@ import { getFeedbackForScore } from "../../data";
 import { formatDateTime } from "../../lib/simulate";
 
 const ACCENT_STYLES = {
-  blue: { chip: "bg-blue-50 text-blue-600", bar: "bg-blue-500", ring: "border-blue-200" },
-  purple: { chip: "bg-purple-50 text-purple-600", bar: "bg-purple-500", ring: "border-purple-200" },
+  blue: { chip: "bg-navy-50 text-navy-900", bar: "bg-navy-900", ring: "border-navy-200" },
+  purple: { chip: "bg-navy-50 text-navy-900", bar: "bg-navy-900", ring: "border-navy-200" },
   green: { chip: "bg-green-50 text-green-600", bar: "bg-green-500", ring: "border-green-200" },
 };
 
 const TONE_STYLES = {
   green: "bg-green-50 border-green-200 text-green-700",
-  blue: "bg-blue-50 border-blue-200 text-blue-700",
+  blue: "bg-navy-50 border-navy-200 text-navy-800",
   orange: "bg-orange-50 border-orange-200 text-orange-700",
   red: "bg-red-50 border-red-200 text-red-700",
 };
@@ -172,7 +172,7 @@ const AnswerRecorder = ({ answer, onCaptured, onDelete }) => {
           onClick={() => setKind("video")}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition disabled:opacity-50 ${
             kind === "video"
-              ? "bg-blue-50 text-blue-600 border-blue-200"
+              ? "bg-navy-50 text-navy-900 border-navy-200"
               : "text-gray-600 border-gray-200 hover:bg-gray-50"
           }`}
         >
@@ -185,7 +185,7 @@ const AnswerRecorder = ({ answer, onCaptured, onDelete }) => {
           onClick={() => setKind("audio")}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition disabled:opacity-50 ${
             kind === "audio"
-              ? "bg-blue-50 text-blue-600 border-blue-200"
+              ? "bg-navy-50 text-navy-900 border-navy-200"
               : "text-gray-600 border-gray-200 hover:bg-gray-50"
           }`}
         >
@@ -218,7 +218,7 @@ const AnswerRecorder = ({ answer, onCaptured, onDelete }) => {
           <button
             type="button"
             onClick={startRecording}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
           >
             {kind === "video" ? <Camera className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             Start recording
@@ -389,7 +389,7 @@ const Interviews = () => {
   if (active && result) {
     const passed = result.score >= active.type.passingScore;
     return (
-      <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+      <div className="min-h-screen mt-9 pb-12">
         <PageHeader
           icon={Bot}
           title={`${active.type.name} — results`}
@@ -398,7 +398,7 @@ const Interviews = () => {
             <button
               type="button"
               onClick={handleExit}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-blue-600 transition-all duration-300"
+              className="flex items-center gap-2 px-6 py-3 bg-navy-900 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-navy-950 transition-all duration-300"
             >
               Back to interviews
               <ChevronRight className="w-5 h-5" />
@@ -441,13 +441,13 @@ const Interviews = () => {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-500" />
+                <TrendingUp className="w-5 h-5 text-navy-900" />
                 What to work on
               </h3>
               <ul className="space-y-2">
                 {result.feedback.improvements.map((item) => (
                   <li key={item} className="text-sm text-gray-600 flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-navy-900 mt-1.5 flex-shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -478,7 +478,7 @@ const Interviews = () => {
     const progress = Math.round((questionIndex / active.questions.length) * 100);
 
     return (
-      <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+      <div className="min-h-screen mt-9 pb-12">
         <PageHeader
           icon={Bot}
           title={active.type.name}
@@ -526,7 +526,7 @@ const Interviews = () => {
                   onClick={() => setViewMode("text")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                     viewMode === "text"
-                      ? "bg-blue-50 text-blue-600 border border-blue-200"
+                      ? "bg-navy-50 text-navy-900 border border-navy-200"
                       : "text-gray-500 border border-transparent hover:bg-gray-50"
                   }`}
                 >
@@ -538,7 +538,7 @@ const Interviews = () => {
                   onClick={() => setViewMode("recording")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                     viewMode === "recording"
-                      ? "bg-blue-50 text-blue-600 border border-blue-200"
+                      ? "bg-navy-50 text-navy-900 border border-navy-200"
                       : "text-gray-500 border border-transparent hover:bg-gray-50"
                   }`}
                 >
@@ -560,7 +560,7 @@ const Interviews = () => {
                       setError("");
                     }}
                     placeholder="Type your answer as you would say it out loud…"
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
                   />
                   <div className="flex justify-between text-xs text-gray-500">
                     <span className="flex items-center gap-2">
@@ -622,7 +622,7 @@ const Interviews = () => {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="px-6 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300"
+                  className="px-6 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4" />
@@ -638,7 +638,7 @@ const Interviews = () => {
   /* ------------------------------------------------------------- landing --- */
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+    <div className="min-h-screen mt-9 pb-12">
       <PageHeader
         icon={Bot}
         title="AI Interview Practice"
@@ -670,7 +670,7 @@ const Interviews = () => {
                   <button
                     type="button"
                     onClick={() => handleStart(type)}
-                    className="mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300"
+                    className="mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
                   >
                     Start interview
                     <ChevronRight className="w-4 h-4" />

@@ -29,7 +29,7 @@ const Timeline = ({ stages }) => (
         {stage.state === "completed" ? (
           <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
         ) : stage.state === "current" ? (
-          <Clock className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+          <Clock className="w-5 h-5 text-navy-900 flex-shrink-0 mt-0.5" />
         ) : (
           <Circle className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
         )}
@@ -115,7 +115,7 @@ const Visa = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+    <div className="min-h-screen mt-9 pb-12">
       <PageHeader
         icon={Stamp}
         title="Visa & Departure"
@@ -180,7 +180,7 @@ const Visa = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-500" />
+                  <FileText className="w-5 h-5 text-navy-900" />
                   Required Documents
                 </h3>
                 <span className="text-sm text-gray-500">
@@ -208,7 +208,7 @@ const Visa = () => {
                           type="button"
                           onClick={() => fileInputs.current[document.id]?.click()}
                           disabled={uploadingId === document.id}
-                          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-60"
+                          className="flex items-center gap-1 text-xs text-navy-900 hover:text-navy-800 disabled:opacity-60"
                         >
                           <Upload className="h-3 w-3" />
                           {uploadingId === document.id
@@ -243,7 +243,7 @@ const Visa = () => {
               transition={{ delay: 0.1 }}
             >
               <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-500" />
+                <Calendar className="w-5 h-5 text-navy-900" />
                 Appointments
               </h3>
               <div className="space-y-3">
@@ -273,7 +273,7 @@ const Visa = () => {
                         type="button"
                         onClick={() => handleBook(appointment)}
                         disabled={bookingId === appointment.id}
-                        className="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 disabled:opacity-60"
+                        className="flex-shrink-0 px-4 py-2 rounded-lg text-xs font-medium bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300 disabled:opacity-60"
                       >
                         {bookingId === appointment.id ? "Booking…" : "Book appointment"}
                       </button>
@@ -291,7 +291,7 @@ const Visa = () => {
               transition={{ delay: 0.15 }}
             >
               <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-blue-500" />
+                <Receipt className="w-5 h-5 text-navy-900" />
                 Fees
               </h3>
               <div className="space-y-3">
@@ -321,7 +321,7 @@ const Visa = () => {
                             type="button"
                             onClick={() => handlePay(fee)}
                             disabled={payingId === fee.id}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 disabled:opacity-60"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300 disabled:opacity-60"
                           >
                             <Check className="h-3 w-3" />
                             {payingId === fee.id ? "Recording…" : "Mark as paid"}
@@ -343,7 +343,7 @@ const Visa = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                  <Plane className="w-5 h-5 text-blue-500" />
+                  <Plane className="w-5 h-5 text-navy-900" />
                   Departure Checklist
                 </h3>
                 <span className="text-sm text-gray-500">
@@ -352,7 +352,7 @@ const Visa = () => {
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                  className="bg-navy-900 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${departureSummary.completionPct}%` }}
                 />
               </div>

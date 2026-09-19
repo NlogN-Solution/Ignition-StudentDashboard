@@ -94,7 +94,7 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
             Counsellor<span className="text-red-500">*</span>
           </label>
           <select
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
             value={values.counsellorId}
             onChange={(event) => handleChange("counsellorId", event.target.value)}
           >
@@ -113,7 +113,7 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
             Meeting type<span className="text-red-500">*</span>
           </label>
           <select
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
             value={values.meetingType}
             onChange={(event) => handleChange("meetingType", event.target.value)}
           >
@@ -133,7 +133,7 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
           </label>
           <input
             type="datetime-local"
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
             value={values.scheduledAt}
             onChange={(event) => handleChange("scheduledAt", event.target.value)}
           />
@@ -143,7 +143,7 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700">Mode</label>
           <select
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
             value={values.mode}
             onChange={(event) => handleChange("mode", event.target.value)}
           >
@@ -159,7 +159,7 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
           <label className="text-sm font-medium text-gray-700">Agenda</label>
           <textarea
             rows="3"
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
             value={values.agenda}
             placeholder="What would you like to cover in this meeting?"
             onChange={(event) => handleChange("agenda", event.target.value)}
@@ -178,7 +178,7 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
         <button
           type="submit"
           disabled={isSaving}
-          className="px-6 py-2 rounded-lg text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 disabled:opacity-60"
+          className="px-6 py-2 rounded-lg text-sm font-medium bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300 disabled:opacity-60"
         >
           {isSaving ? "Sending…" : submitLabel}
         </button>
@@ -201,18 +201,18 @@ const AppointmentCard = ({ appointment, onJoin, onReschedule, onCancel, isBusy }
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
             <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4 text-blue-500" />
+              <Clock className="w-4 h-4 text-navy-900" />
               {formatDateTime(appointment.scheduledAt)}
             </span>
             <span className="flex items-center gap-1">
-              <User className="w-4 h-4 text-blue-500" />
+              <User className="w-4 h-4 text-navy-900" />
               {appointment.counsellorName}
             </span>
             <span className="flex items-center gap-1">
               {appointment.mode === "Video call" ? (
-                <Video className="w-4 h-4 text-blue-500" />
+                <Video className="w-4 h-4 text-navy-900" />
               ) : (
-                <MapPin className="w-4 h-4 text-blue-500" />
+                <MapPin className="w-4 h-4 text-navy-900" />
               )}
               {appointment.location}
             </span>
@@ -235,7 +235,7 @@ const AppointmentCard = ({ appointment, onJoin, onReschedule, onCancel, isBusy }
               <button
                 type="button"
                 onClick={() => onJoin(appointment)}
-                className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300"
+                className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
               >
                 {appointment.mode === "Video call" ? (
                   <>
@@ -356,7 +356,7 @@ const Appointments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-9 pb-12">
+    <div className="min-h-screen mt-9 pb-12">
       <PageHeader
         icon={CalendarClock}
         title="Appointments"
@@ -365,7 +365,7 @@ const Appointments = () => {
           <button
             type="button"
             onClick={() => setFormState({ mode: "request" })}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-blue-600 transition-all duration-300"
+            className="flex items-center gap-2 px-6 py-3 bg-navy-900 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-navy-950 transition-all duration-300"
           >
             <CalendarPlus className="w-5 h-5" />
             Request Appointment
@@ -418,7 +418,7 @@ const Appointments = () => {
                 <button
                   type="button"
                   onClick={() => setFormState({ mode: "request" })}
-                  className="px-6 py-2 rounded-lg text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300"
+                  className="px-6 py-2 rounded-lg text-sm font-medium bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
                 >
                   Request an appointment
                 </button>

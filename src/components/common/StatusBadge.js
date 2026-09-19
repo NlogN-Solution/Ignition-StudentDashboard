@@ -4,17 +4,17 @@ import React from "react";
 // same status never renders two different ways across screens.
 const STATUS_STYLES = {
   draft: "bg-gray-100 text-gray-600",
-  submitted: "bg-blue-100 text-blue-600",
+  submitted: "bg-navy-100 text-navy-900",
   "in-review": "bg-yellow-100 text-yellow-700",
   offer: "bg-green-100 text-green-600",
   rejected: "bg-red-100 text-red-600",
   withdrawn: "bg-gray-100 text-gray-500",
   pending: "bg-yellow-100 text-yellow-700",
   confirmed: "bg-green-100 text-green-600",
-  completed: "bg-blue-100 text-blue-600",
+  completed: "bg-navy-100 text-navy-900",
   cancelled: "bg-red-100 text-red-600",
-  uploading: "bg-blue-100 text-blue-600",
-  uploaded: "bg-blue-100 text-blue-600",
+  uploading: "bg-navy-100 text-navy-900",
+  uploaded: "bg-navy-100 text-navy-900",
   approved: "bg-green-100 text-green-600",
   verified: "bg-green-100 text-green-600",
   missing: "bg-red-100 text-red-600",
@@ -33,7 +33,7 @@ const STATUS_STYLES = {
   // "Ready_to_submit" — which is the database talking, not the product.
   // A request nobody has accepted yet. Blue rather than yellow: yellow on
   // this screen means "you have something to do", and the student does not.
-  requested: "bg-blue-100 text-blue-700",
+  requested: "bg-navy-100 text-navy-800",
   documents_pending: "bg-yellow-100 text-yellow-700",
   // Same tone as `under_review`, because they now say the same word.
   ready_to_submit: "bg-yellow-100 text-yellow-700",

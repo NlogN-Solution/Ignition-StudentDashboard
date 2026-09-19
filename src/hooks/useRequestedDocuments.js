@@ -24,7 +24,12 @@ import { getApplicationChecklistApi, linkChecklistItemDocumentApi } from "../api
 export const useRequestedDocuments = () => {
   const { applications, uploadDocument } = useAppData();
   const [items, setItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  // Which set of applications `items` answers for. Until it matches the
+  // current set, the list is stale or not fetched yet — and a caller that
+  // treated that as "nothing requested" would render its empty state for a
+  // frame before the real items landed.
+  const [loadedFor, setLoadedFor] = useState(null);
   const [uploadingItemId, setUploadingItemId] = useState(null);
 
   // `applications` is a fresh array on every render of the provider; the ids
@@ -34,10 +39,11 @@ export const useRequestedDocuments = () => {
   const reload = useCallback(async () => {
     if (applications.length === 0) {
       setItems([]);
-      setIsLoading(false);
+      setIsFetching(false);
+      setLoadedFor(applicationIds);
       return [];
     }
-    setIsLoading(true);
+    setIsFetching(true);
     const lists = await Promise.all(
       applications.map((application) =>
         getApplicationChecklistApi(application.id)
@@ -49,7 +55,8 @@ export const useRequestedDocuments = () => {
     );
     const next = lists.flat();
     setItems(next);
-    setIsLoading(false);
+    setIsFetching(false);
+    setLoadedFor(applicationIds);
     return next;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationIds]);
@@ -57,12 +64,17 @@ export const useRequestedDocuments = () => {
   useEffect(() => {
     let cancelled = false;
     reload().catch(() => {
-      if (!cancelled) setIsLoading(false);
+      if (!cancelled) {
+        setIsFetching(false);
+        setLoadedFor(applicationIds);
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [reload]);
+  }, [reload, applicationIds]);
+
+  const isLoading = isFetching || loadedFor !== applicationIds;
 
   /** Answer one request: upload the file, then link it to the item that asked. */
   const fulfil = useCallback(

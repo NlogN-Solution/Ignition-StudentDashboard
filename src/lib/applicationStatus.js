@@ -12,25 +12,6 @@
 // a tile's number and the list that tile opens are the same set by construction.
 
 /**
- * Nobody but Ignition is holding this one yet.
- *
- * `requested` included: from the student's side an application they opened and
- * one a counsellor has accepted are the same answer to "where is it" — with
- * us, not with a university. The distinction between them is an internal one
- * about whether work has been agreed to, and surfacing it as a separate group
- * would ask the student to care about our queue.
- */
-export const IN_REVIEW_STATUSES = [
-  "requested",
-  "draft",
-  "documents_pending",
-  "ready_to_submit",
-  "under_review",
-];
-
-export const SUBMITTED_STATUSES = ["submitted"];
-
-/**
  * An offer exists on this application.
  *
  * Includes `offer_accepted` and `offer_declined`: an offer you accepted is
@@ -51,26 +32,6 @@ export const HAS_OFFER_STATUSES = [
 ];
 
 export const hasOffer = (status) => HAS_OFFER_STATUSES.includes(status);
-
-/**
- * The filter chips, in journey order.
- *
- * "With your counsellor" and "In review" used to be two separate chips. They
- * are one now: both mean "someone is reading it, you cannot act on it", and
- * whether the reader is a counsellor or the university is a backend
- * distinction. Splitting it made two applications at the same point in the
- * journey look like they were at different ones. The timeline on the detail
- * page still says precisely which, for anyone who wants to know.
- */
-export const STATUS_FILTERS = [
-  { value: "all", label: "All", match: () => true },
-  { value: "submitted", label: "Submitted", match: (status) => SUBMITTED_STATUSES.includes(status) },
-  { value: "in-review", label: "In review", match: (status) => IN_REVIEW_STATUSES.includes(status) },
-  { value: "offer", label: "Offers", match: (status) => OFFER_STATUSES.includes(status) },
-  { value: "visa", label: "Visa & enrolment", match: (status) => VISA_STATUSES.includes(status) },
-];
-
-export const isKnownFilter = (value) => STATUS_FILTERS.some((filter) => filter.value === value);
 
 /** Where a CAS is worth talking about, even before it exists. */
 export const CAS_STAGES = ["offer_accepted", "cas_received", ...VISA_STATUSES];
@@ -138,17 +99,27 @@ export const applicationPill = (status) => ({
 });
 
 /**
- * The four-step progress card on the application page.
+ * The progress card on the application page, from shortlist to enrolment.
  *
- * Shortlisted → Submitted → Document verification → Offer letter. `reached` is
- * the index of the step the application is currently *on*; everything before it
- * is done. An application that was turned down or withdrawn stops where it is.
+ * Shortlisted → Submitted → Offer letter → CAS → Visa lodged → Enrolled.
+ * It follows the backend's `ApplicationStatus` order but not every value in
+ * it: the university's review (`under_review`) is part of "Application
+ * Submitted" from the student's side, accepting an offer is a click between
+ * "Offer Letter" and "CAS", and a visa approval is the outcome of "Visa
+ * Lodged" — six steps a student can scan beat eleven they have to read. The
+ * backend keeps every status; only this display folds them.
+ *
+ * `reached` is the index of the step the application is currently *on*;
+ * everything before it is done. An application that was turned down,
+ * withdrawn or refused a visa stops where it is.
  */
 export const PROGRESS_STEPS = [
   "Course Shortlisted",
   "Application Submitted",
-  "Document Verification",
   "Offer Letter",
+  "CAS Received",
+  "Visa Lodged",
+  "Enrolled",
 ];
 
 const STEP_OF_STATUS = {
@@ -156,13 +127,97 @@ const STEP_OF_STATUS = {
   draft: 1,
   documents_pending: 1,
   ready_to_submit: 1,
-  // Filed with the university and waiting: the submission is the live step
-  // until the university starts checking documents.
+  // Filed with the university and waiting — including while it reviews the
+  // documents: the submission is the live step until a decision comes back.
   submitted: 1,
-  under_review: 2,
-  rejected: 2,
+  under_review: 1,
   withdrawn: 1,
+  rejected: 1,
+  offer_declined: 2,
+  // Offer in hand; the university issues the CAS once it is accepted.
+  offer_received: 3,
+  offer_accepted: 3,
+  cas_received: 4,
+  visa_processing: 4,
+  visa_rejected: 4,
+  visa_approved: 5,
+  enrolled: 6,
 };
 
+/** Statuses that end the journey where they stand. */
+export const STOPPED_STATUSES = ["rejected", "withdrawn", "offer_declined", "visa_rejected"];
+
 /** Index of the step in progress; `PROGRESS_STEPS.length` when every step is done. */
-export const progressStepOf = (status) => STEP_OF_STATUS[status] ?? PROGRESS_STEPS.length;
+export const progressStepOf = (status) => STEP_OF_STATUS[status] ?? 0;
+
+/**
+ * The four-stage summary of the journey, as the dashboard shows it.
+ *
+ * Course Shortlisted → Application Submitted → Offer Letter → CAS Received.
+ * These labels are the same strings as the matching steps of `PROGRESS_STEPS`
+ * above — the dashboard summary is those steps with the in-between ones
+ * (document verification, visa, enrolment) folded away, not a second
+ * vocabulary. Each stage says which backend `ApplicationStatus` values have
+ * *reached* it; an application counts towards every stage up to its own.
+ */
+export const SUMMARY_STAGES = [
+  { key: "shortlisted", label: PROGRESS_STEPS[0] },
+  { key: "submitted", label: PROGRESS_STEPS[1] },
+  { key: "offer", label: PROGRESS_STEPS[2] },
+  { key: "cas", label: PROGRESS_STEPS[3] },
+];
+
+/** The furthest summary stage each status has reached (index into SUMMARY_STAGES). */
+const SUMMARY_RANK = {
+  requested: 0,
+  draft: 0,
+  documents_pending: 0,
+  ready_to_submit: 0,
+  withdrawn: 0,
+  submitted: 1,
+  under_review: 1,
+  rejected: 1,
+  offer_received: 2,
+  offer_accepted: 2,
+  offer_declined: 2,
+  cas_received: 3,
+  visa_processing: 3,
+  visa_approved: 3,
+  visa_rejected: 3,
+  enrolled: 3,
+};
+
+/**
+ * Index of the furthest summary stage `status` has reached. A status this
+ * build does not know yet — the backend added one — counts as shortlisted
+ * rather than throwing or vanishing: it is at least an application.
+ */
+export const summaryStageOf = (status) => SUMMARY_RANK[status] ?? 0;
+
+/**
+ * The Applications list's filter chips: the four summary stages, in journey
+ * order, each matching the applications *currently at* that stage.
+ *
+ * Built from `SUMMARY_STAGES` rather than listed separately, so the dashboard
+ * card that says "2 · Offer Letter" and the chip it opens are the same set by
+ * construction. `under_review` sits with Application Submitted: from the
+ * student's side it is with the university, and the detail page's tracker
+ * still says precisely which, for anyone who wants to know.
+ */
+export const STATUS_FILTERS = [
+  { value: "all", label: "All", match: () => true },
+  ...SUMMARY_STAGES.map((stage, index) => ({
+    value: stage.key,
+    label: stage.label,
+    match: (status) => summaryStageOf(status) === index,
+  })),
+];
+
+/** Filter values older links still carry (`?status=offer` etc.), mapped onto today's. */
+const FILTER_ALIASES = { "in-review": "shortlisted", visa: "cas" };
+
+/** A `?status=` value as a current filter value, or null if it names none. */
+export const normalizeFilter = (value) => {
+  const next = FILTER_ALIASES[value] ?? value;
+  return STATUS_FILTERS.some((filter) => filter.value === next) ? next : null;
+};

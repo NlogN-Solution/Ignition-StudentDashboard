@@ -75,7 +75,7 @@ const MessageTimeline = ({ messages, onOpenAttachment, viewerIsStudent = true })
           >
             {message.bodyHtml ? (
               <div
-                className="py-2 pr-3 text-[14.5px] font-medium leading-[1.65] text-ink [&_a]:text-blue-link [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5"
+                className="py-2 pr-3 text-[14.5px] font-medium leading-[1.65] text-ink [&_a]:text-navy-900 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5"
                 // Safe because the server sanitises on write, not on read.
                 // See the note at the top of this file.
                 dangerouslySetInnerHTML={{ __html: message.bodyHtml }}

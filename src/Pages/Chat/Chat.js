@@ -176,7 +176,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12 pt-9">
+    <div className="min-h-screen pb-12 pt-9">
       <div className="mx-auto max-w-7xl px-4">
         <PageHeader
           icon={Mail}

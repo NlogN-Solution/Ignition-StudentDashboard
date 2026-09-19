@@ -83,7 +83,7 @@ export const CourseOverviewPanel = ({ course }) => {
       university ? (
         <Link
           to={`/explore/universities/${university.slug}`}
-          className="font-semibold text-blue-link hover:text-navy-900"
+          className="font-semibold text-navy-900 hover:text-navy-900"
         >
           {university.name}
         </Link>
@@ -438,7 +438,7 @@ export const CourseUniversityPanel = ({ course }) => {
               </p>
               <Link
                 to={`/explore/universities/${named.slug}`}
-                className="inline-flex items-center gap-2 text-sm font-bold text-blue-link hover:text-navy-900"
+                className="inline-flex items-center gap-2 text-sm font-bold text-navy-900 hover:text-navy-900"
               >
                 Open {named.name}
                 <ExternalLink className="h-4 w-4" />
@@ -551,7 +551,7 @@ export const CourseUniversityPanel = ({ course }) => {
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
               <Link
                 to={`/explore/universities/${profile.slug}`}
-                className="inline-flex items-center gap-2 text-sm font-bold text-blue-link hover:text-navy-900"
+                className="inline-flex items-center gap-2 text-sm font-bold text-navy-900 hover:text-navy-900"
               >
                 Open the university
                 <ExternalLink className="h-4 w-4" />
