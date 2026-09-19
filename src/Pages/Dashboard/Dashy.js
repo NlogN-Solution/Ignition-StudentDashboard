@@ -74,6 +74,11 @@ const PriorityTasks = ({ tasks, isLoading }) => (
         {tasks.map((task, index) => (
           <li key={task.id} className="flex items-start justify-between gap-4 py-3.5 last:pb-0">
             <div className="min-w-0">
+              {task.isPriority && (
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ignite-600">
+                  From your counsellor
+                </p>
+              )}
               <p className="text-[14px] font-semibold text-navy-900">{task.title}</p>
               {task.description && (
                 <p className="mt-0.5 line-clamp-2 text-[13px] leading-5 text-ink-muted">{task.description}</p>
@@ -135,11 +140,17 @@ const StudentDashboard = () => {
     [applications]
   );
 
-  // Priority tasks are the next unlocked, incomplete milestones by due date.
-  const priorityTasks = tasks
-    .filter((task) => !task.completed && isTaskUnlocked(task))
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-    .slice(0, 3);
+  // Priority tasks: what the student's counsellor set first (soonest
+  // due first), then the next unlocked checklist tasks to fill the remaining
+  // slots. The counsellor's list is the point of the panel; the checklist is
+  // what it falls back to when there is nothing set.
+  const byDueDate = (a, b) =>
+    (a.dueDate ? new Date(a.dueDate).getTime() : Infinity) - (b.dueDate ? new Date(b.dueDate).getTime() : Infinity);
+  const openTasks = tasks.filter((task) => !task.completed && isTaskUnlocked(task));
+  const priorityTasks = [
+    ...openTasks.filter((task) => task.isPriority).sort(byDueDate),
+    ...openTasks.filter((task) => !task.isPriority).sort(byDueDate),
+  ].slice(0, 3);
 
   // A requested document outranks a checklist task in the hero: someone is
   // actively waiting on it, rather than it being a self-paced to-do.

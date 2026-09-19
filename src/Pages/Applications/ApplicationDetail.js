@@ -673,7 +673,7 @@ const CourseTab = ({ application }) => {
           <DetailFact icon={CalendarDays} label="Intake" value={application.intakeDetail?.name || application.intake} />
           <DetailFact icon={GraduationCap} label="Study level" value={course?.qualification || application.degreeLevel} />
           <DetailFact icon={Timer} label="Duration" value={durationLabel(course, application.courseName)} />
-          <DetailFact icon={Clock} label="Study mode" value={course?.courseType} />
+          <DetailFact icon={Clock} label="Study mode" value={application.studyMode || course?.courseType} />
           {course?.intakesSummary?.length > 0 && (
             <DetailFact icon={CalendarDays} label="Other intakes" value={course.intakesSummary.join(", ")} />
           )}

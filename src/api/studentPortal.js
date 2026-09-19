@@ -179,6 +179,8 @@ const mapApplication = (a) => ({
   tuitionFee: a.tuition_fee,
   scholarshipAmount: a.scholarship_amount,
   universityApplicationId: a.university_application_id,
+  // Staff-set, per application; the course's own `course_type` when blank.
+  studyMode: a.study_mode ?? null,
   deadline: null,
   progress: null,
   missingDocumentIds: [],
@@ -505,6 +507,8 @@ const mapChecklistItem = (item) => ({
   dependsOn: item.depends_on_key ? [item.depends_on_key] : [],
   isCustom: item.is_custom,
   isLocked: item.is_locked,
+  // Set by the student's counsellor; leads the dashboard's "Priority tasks".
+  isPriority: Boolean(item.is_priority),
 });
 
 export const getTasksFor = async () => {
