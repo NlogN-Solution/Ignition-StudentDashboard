@@ -58,7 +58,7 @@
   {
     "id": "/documents",
     "icon": "document",
-    "label": "Documents",
+    "label": "Paper Vault",
     "path": "/documents",
     "badge": null,
     "tourId": "nav-documents"

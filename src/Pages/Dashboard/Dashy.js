@@ -21,10 +21,15 @@ import { useToast } from '../../context/ToastContext';
 import EmptyState from '../../components/common/EmptyState';
 import ResearchCard from '../../components/dashboard/ResearchCard';
 import OffersPanel from '../../components/dashboard/OffersPanel';
-import RequestedDocumentsCard from '../../components/dashboard/RequestedDocumentsCard';
+import NextStepHero from '../../components/dashboard/NextStepHero';
+import JourneyStepper from '../../components/dashboard/JourneyStepper';
+import RecentActivityCard from '../../components/dashboard/RecentActivityCard';
+import UpcomingAppointmentsCard from '../../components/dashboard/UpcomingAppointmentsCard';
+import QuickLinksCard from '../../components/dashboard/QuickLinksCard';
 import CelebrationModal from '../../components/milestones/CelebrationModal';
 import { getUnseenMilestones, markMilestoneSeen } from '../../api/access';
-import { Panel, PanelBody, PanelHead } from '../../components/ui/kit';
+import { PanelBody, PanelHead } from '../../components/ui/kit';
+import GlassPanel from '../../components/dashboard/GlassPanel';
 import { STATUS_LABELS } from '../../components/common/StatusBadge';
 import { OFFER_STATUSES } from '../../lib/applicationStatus';
 import {
@@ -32,6 +37,7 @@ import {
   formatDateTime,
   formatRelativeTime,
 } from '../../lib/simulate';
+import { useRequestedDocuments } from '../../hooks/useRequestedDocuments';
 
 /**
  * The dashboard, redrawn.
@@ -78,7 +84,12 @@ const StudentDashboard = () => {
     activityFeed,
     tasks,
     isTaskUnlocked,
+    milestoneStatus,
+    overallProgress,
+    taskProgress,
+    documentProgress,
   } = useAppData();
+  const { outstanding: outstandingDocuments, uploadingItemId, fulfil: fulfilDocument } = useRequestedDocuments();
 
   /**
    * Good news the student has not been shown yet.
@@ -139,6 +150,21 @@ const StudentDashboard = () => {
     .filter((task) => !task.completed && isTaskUnlocked(task))
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
     .slice(0, 3);
+
+  // A requested document outranks a checklist task in the hero: someone is
+  // actively waiting on it, rather than it being a self-paced to-do.
+  const nextDocument = outstandingDocuments[0] ?? null;
+
+  const handleHeroDocumentUpload = async (file) => {
+    if (!nextDocument) return;
+    const result = await fulfilDocument(nextDocument, file);
+    showToast(
+      result.ok
+        ? `${nextDocument.label} uploaded — your counsellor will review it.`
+        : "Couldn't upload that document. Please try again.",
+      result.ok ? 'success' : 'error'
+    );
+  };
 
   const handleAppointmentAction = () => {
     if (!nextAppointment) {
@@ -246,12 +272,22 @@ const StudentDashboard = () => {
   };
 
   return (
-    <motion.div
-      className="mx-auto max-w-[1220px] px-5 py-8 sm:px-8 sm:py-10"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Glassmorphism only reads as glass with colour behind it to blur —
+          this wash exists purely so the panels below have something to show
+          through. Dashboard-only experiment, not a site-wide background. */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-blue-bright/25 blur-[110px]" />
+        <div className="absolute top-40 right-[-140px] h-[460px] w-[460px] rounded-full bg-ignite-400/20 blur-[120px]" />
+        <div className="absolute bottom-[-160px] left-1/3 h-[420px] w-[420px] rounded-full bg-purple-400/20 blur-[120px]" />
+      </div>
+
+      <motion.div
+        className="relative mx-auto max-w-[1400px] px-5 py-8 sm:px-8 sm:py-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
       {celebrate ? (
         <CelebrationModal
           milestone={celebrate}
@@ -270,19 +306,27 @@ const StudentDashboard = () => {
         </p>
       </motion.header>
 
-      {/* Everything the student explored on the public Ignition site, before
-          they had an account. Renders nothing when there is none. */}
-      <div className="mt-7">
-        <ResearchCard research={user?.preferences?.research} />
-      </div>
-
-      <div className="mt-7 space-y-6">
-        {/* What Ignition is waiting on. First, because it is the only thing on
-            this page the student has to do — everything below is a report.
-            Renders nothing when nothing is outstanding. */}
+      <div className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="min-w-0 space-y-6">
+        {/* The one thing the student has to do, ahead of everything else on
+            the page — a requested document if anything's outstanding,
+            otherwise the next checklist task. Renders nothing when there's
+            neither. */}
         <motion.div {...fadeIn}>
-          <RequestedDocumentsCard onResult={(message, tone) => showToast(message, tone)} />
+          <NextStepHero
+            documentItem={nextDocument}
+            documentCount={outstandingDocuments.length}
+            documentProgress={documentProgress}
+            isUploadingDocument={Boolean(nextDocument) && uploadingItemId === nextDocument.id}
+            onUploadDocument={handleHeroDocumentUpload}
+            task={priorityTasks[0] ?? null}
+            taskProgress={taskProgress}
+          />
         </motion.div>
+
+        {/* Everything the student explored on the public Ignition site, before
+            they had an account. Renders nothing when there is none. */}
+        <ResearchCard research={user?.preferences?.research} />
 
         {/* The offers themselves, with the letters behind them.
 
@@ -299,7 +343,7 @@ const StudentDashboard = () => {
 
         {/* ------------------------------------------- application progress --- */}
         <motion.div {...fadeIn}>
-          <Panel>
+          <GlassPanel>
             <PanelHead
               title="Application progress"
               actions={
@@ -376,18 +420,21 @@ const StudentDashboard = () => {
                 ))}
               </div>
             </PanelBody>
-          </Panel>
+          </GlassPanel>
         </motion.div>
 
-        {/* Priority Tasks.
-
-            The "Recent Updates" panel that used to sit beside this is gone:
-            recent activity is now the fourth card in the grid above, and
-            printing the same five entries twice on one screen is the sort of
-            thing that makes a dashboard feel busy without telling anyone
-            anything more. Tasks take the width the pair used to share. */}
+        {/* The macro journey — profile through departure — using the backend
+            milestone ladder the progress grid's counts are already drawn
+            from, just laid out as a stage tracker instead of a number. */}
         <motion.div {...fadeIn}>
-          <Panel>
+          <JourneyStepper milestoneStatus={milestoneStatus} overallProgress={overallProgress} />
+        </motion.div>
+
+        {/* Priority Tasks. The condensed "Recent updates" tile above and the
+            full activity feed in the sidebar both still exist; this is the
+            action list, not the report. */}
+        <motion.div {...fadeIn}>
+          <GlassPanel>
             <PanelHead title="Priority tasks" />
             <PanelBody data-tour="dashboard-priority-tasks">
               {priorityTasks.length === 0 ? (
@@ -430,10 +477,28 @@ const StudentDashboard = () => {
                 </ul>
               )}
             </PanelBody>
-          </Panel>
+          </GlassPanel>
         </motion.div>
       </div>
-    </motion.div>
+
+      <div className="space-y-6">
+        <motion.div {...fadeIn}>
+          <RecentActivityCard activityFeed={activityFeed} />
+        </motion.div>
+        <motion.div {...fadeIn}>
+          <UpcomingAppointmentsCard
+            nextAppointment={nextAppointment}
+            onAction={handleAppointmentAction}
+            actionLabel={nextAppointment?.mode === 'Video call' ? 'Join Meeting' : 'View Details'}
+          />
+        </motion.div>
+        <motion.div {...fadeIn}>
+          <QuickLinksCard />
+        </motion.div>
+      </div>
+      </div>
+      </motion.div>
+    </div>
   );
 };
 

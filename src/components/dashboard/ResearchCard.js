@@ -69,7 +69,7 @@ const ResearchCard = ({ research }) => {
   if (!career && !courses.length && !universities.length) return null;
 
   return (
-    <div className="rounded-2xl border border-navy-100 bg-navy-50/60 p-6 sm:p-7">
+    <div className="rounded-2xl border border-white/60 bg-white/50 p-6 shadow-[0_8px_32px_rgba(15,23,42,0.10)] backdrop-blur-xl backdrop-saturate-150 sm:p-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <Sparkles className="h-5 w-5 text-orange" aria-hidden />

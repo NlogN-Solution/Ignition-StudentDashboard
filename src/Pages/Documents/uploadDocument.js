@@ -720,6 +720,19 @@ const DocumentsPage = () => {
     });
   }, [rows, activeCategory, statusFilter, query, sort]);
 
+  // Open the first document's preview automatically once the list loads, so
+  // the side panel isn't empty on arrival. Only fires once — closing the
+  // panel afterwards (setSelectedId(null)) must stick.
+  const didAutoSelect = useRef(false);
+  useEffect(() => {
+    if (didAutoSelect.current || documents.length === 0) return;
+    const firstDocument = visibleRows.find((row) => row.kind === "document");
+    if (firstDocument) {
+      didAutoSelect.current = true;
+      setSelectedId(firstDocument.document.id);
+    }
+  }, [documents, visibleRows]);
+
   const selectedDocument = documents.find((doc) => doc.id === selectedId) ?? null;
 
   const handleOpen = async (document, disposition) => {
@@ -790,14 +803,14 @@ const DocumentsPage = () => {
     <div className="min-h-screen bg-canvas pb-16">
       <div
         className={`mx-auto grid max-w-[1500px] grid-cols-1 gap-6 px-4 pt-8 sm:px-6 ${
-          selectedDocument ? "xl:grid-cols-[minmax(0,1fr)_380px]" : ""
+          selectedDocument ? "lg:grid-cols-[minmax(0,1fr)_380px]" : ""
         }`}
       >
         <main className="min-w-0 space-y-5">
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-[28px] font-bold tracking-tight text-navy-900">Documents</h1>
+              <h1 className="text-[28px] font-bold tracking-tight text-navy-900">Paper Vault</h1>
               <p className="mt-1 text-[15px] text-ink-soft">
                 Keep your documents organised, verified and ready for every university application.
               </p>
@@ -1002,8 +1015,8 @@ const DocumentsPage = () => {
         </main>
 
         {selectedDocument && (
-          <div className="fixed inset-0 z-[70] bg-navy-950/30 p-3 xl:static xl:z-auto xl:bg-transparent xl:p-0">
-            <div className="ml-auto h-full max-w-[400px] xl:sticky xl:top-20 xl:h-[calc(100vh-6rem)] xl:max-w-none">
+          <div className="fixed inset-0 z-[70] bg-navy-950/30 p-3 lg:static lg:z-auto lg:bg-transparent lg:p-0">
+            <div className="ml-auto h-full max-w-[400px] lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:max-w-none">
               <DetailPanel
                 document={selectedDocument}
                 hasAccess={hasAccess}

@@ -22,6 +22,7 @@ import {
   MessageCircle,
   Compass,
   GraduationCap,
+  ChevronDown,
 } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 
@@ -48,6 +49,7 @@ const PremiumNavigation = () => {
     unreadMessageCount,
     tasks,
     isTaskUnlocked,
+    applications,
   } = useAppData();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -57,12 +59,14 @@ const PremiumNavigation = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+  const [searchTerm, setSearchTerm] = useState("");
 
   const userMenuRef = useRef(null);
   const notificationRef = useRef(null);
   const priorityTasksRef = useRef(null);
   const sidebarRef = useRef(null);
   const fileInputRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   const priorityTasks = tasks
     .filter((task) => !task.completed && isTaskUnlocked(task))
@@ -97,6 +101,10 @@ const PremiumNavigation = () => {
         setShowNotifications(false);
         setShowPriorityTasks(false);
         setIsSidebarOpen(false);
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
       }
     };
 
@@ -148,6 +156,14 @@ const PremiumNavigation = () => {
     navigate("/login", { replace: true });
   }, [logout, navigate]);
 
+  // Reuses the `?q=` param ExploreCourses already reads off the URL, so this
+  // is a real search rather than a box that goes nowhere.
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const term = searchTerm.trim();
+    navigate(term ? `/explore?q=${encodeURIComponent(term)}` : "/explore");
+  };
+
   const iconsMap = {
     home: Home,
     courseSearch: Search,
@@ -195,6 +211,24 @@ const PremiumNavigation = () => {
             <IgnitionMark size="sm" />
           </span>
         </div>
+
+        <form
+          onSubmit={handleSearchSubmit}
+          className="mx-4 hidden max-w-md flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-400 transition-colors focus-within:border-navy-300 focus-within:bg-white md:flex"
+        >
+          <Search className="h-4 w-4 shrink-0" aria-hidden />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search universities, courses..."
+            className="w-full bg-transparent text-sm text-navy-900 placeholder:text-slate-400 focus:outline-none"
+          />
+          <kbd className="hidden shrink-0 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 lg:inline-block">
+            ⌘K
+          </kbd>
+        </form>
 
         <div className="flex items-center gap-2">
           {/* Priority Tasks */}
@@ -267,9 +301,7 @@ const PremiumNavigation = () => {
             >
               <Bell className="h-6 w-6" />
               {unreadNotificationCount > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadNotificationCount}
-                </span>
+                <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
               )}
             </button>
 
@@ -327,7 +359,7 @@ const PremiumNavigation = () => {
           {/* User Profile */}
           <div className="relative" ref={userMenuRef} data-tour="account-menu">
             <button
-              className="relative p-1 rounded-full hover:bg-navy-50 overflow-hidden transition-colors"
+              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 hover:bg-navy-50 transition-colors sm:rounded-xl sm:pr-2.5"
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               aria-label="Account menu"
             >
@@ -335,13 +367,17 @@ const PremiumNavigation = () => {
                 <img
                   src={user.profileImage}
                   alt="Profile"
-                  className="h-8 w-8 rounded-full object-cover"
+                  className="h-8 w-8 shrink-0 rounded-full object-cover"
                 />
               ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-100 text-navy-700">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-700">
                   <UserCircle className="h-6 w-6" />
                 </span>
               )}
+              <span className="hidden truncate text-sm font-semibold text-navy-900 sm:inline">
+                {user?.fullName}
+              </span>
+              <ChevronDown className="hidden h-4 w-4 shrink-0 text-slate-400 sm:inline-block" aria-hidden />
             </button>
 
             {/* User Menu Dropdown */}
@@ -459,9 +495,13 @@ const PremiumNavigation = () => {
                       ? "bg-navy-50 text-navy-800"
                       : "text-slate-600 hover:bg-slate-50 hover:-translate-y-0.5"
                   }`}
-                onClick={() => {
+                onClick={(e) => {
                   if (window.innerWidth < 1024) {
                     setIsSidebarOpen(false);
+                  }
+                  if (item.id === "/applications" && applications?.length === 1) {
+                    e.preventDefault();
+                    navigate(`/applications/${applications[0].id}`);
                   }
                 }}
                 style={{

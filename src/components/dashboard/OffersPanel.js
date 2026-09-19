@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Award, Building, ChevronRight, Download, Eye, FileText } from 'lucide-react';
 
 import StatusBadge from '../common/StatusBadge';
-import { Panel, PanelBody, PanelHead } from '../ui/kit';
+import { PanelBody, PanelHead } from '../ui/kit';
+import GlassPanel from './GlassPanel';
 import { getApplicationDocumentsApi, DOCUMENT_TYPE_LABELS, ISSUED_DOCUMENT_TYPES } from '../../api/studentPortal';
 import { openDocumentFile } from '../../lib/documentFile';
 import { formatDate } from '../../lib/simulate';
@@ -95,7 +96,7 @@ const OffersPanel = ({ offers, onError }) => {
   if (offers.length === 0) return null;
 
   return (
-    <Panel>
+    <GlassPanel>
       <PanelHead
         title="Your offers"
         actions={
@@ -157,7 +158,7 @@ const OffersPanel = ({ offers, onError }) => {
           })}
         </ul>
       </PanelBody>
-    </Panel>
+    </GlassPanel>
   );
 };
 
