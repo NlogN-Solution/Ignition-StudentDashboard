@@ -40,3 +40,12 @@ export const confirmPasswordReset = ({ uid, token, newPassword }) =>
     { uid, token, new_password: newPassword },
     { skipAuth: true }
   );
+
+/** Self-service password change. The backend revokes every other session on
+ * success, so a stolen token stops working the moment the real owner changes
+ * their password. */
+export const changePassword = ({ currentPassword, newPassword }) =>
+  apiPost("/auth/change-password", {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });

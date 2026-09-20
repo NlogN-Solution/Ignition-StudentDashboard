@@ -16,9 +16,7 @@ import EmptyState from "../../components/common/EmptyState";
 import StatusBadge from "../../components/common/StatusBadge";
 import { SkeletonList } from "../../components/common/Skeleton";
 import { useAppData } from "../../context/AppDataContext";
-import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { counsellors } from "../../data";
 import { formatDateTime, simulateDelay } from "../../lib/simulate";
 
 const MEETING_TYPES = [
@@ -30,6 +28,15 @@ const MEETING_TYPES = [
 ];
 
 const MODES = ["Video call", "In person"];
+
+/** "Sarah Gurung" → "SG". Two letters at most; a single name gives one. */
+const initialsOf = (name) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
 
 /** `datetime-local` needs a value with no timezone suffix. */
 const toLocalInputValue = (isoString) => {
@@ -49,7 +56,6 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
 
   const validate = () => {
     const next = {};
-    if (!values.counsellorId) next.counsellorId = "Pick a counsellor.";
     if (!values.meetingType) next.meetingType = "Choose a meeting type.";
     if (!values.scheduledAt) {
       next.scheduledAt = "Pick a date and time.";
@@ -89,23 +95,31 @@ const RequestForm = ({ title, initialValues, onCancel, onSubmit, isSaving, submi
       </div>
 
       <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Who you are seeing, not who you would like to see.
+
+            This was a dropdown of two invented counsellors from a JSON fixture,
+            which was wrong twice over: the names were not anybody at the
+            agency, and the backend ignores the field entirely — a counsellor is
+            assigned to the student through their application, and the office
+            sets the time and the person when it confirms. So this states the
+            advisor the student already has and asks nothing. */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
-            Counsellor<span className="text-red-500">*</span>
-          </label>
-          <select
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-navy-900"
-            value={values.counsellorId}
-            onChange={(event) => handleChange("counsellorId", event.target.value)}
-          >
-            <option value="">Select a counsellor</option>
-            {counsellors.map((counsellor) => (
-              <option key={counsellor.id} value={counsellor.id}>
-                {counsellor.name} — {counsellor.title}
-              </option>
-            ))}
-          </select>
-          {errors.counsellorId && <p className="text-sm text-red-500">{errors.counsellorId}</p>}
+          <span className="text-sm font-medium text-gray-700">Counsellor</span>
+          <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-900 text-xs font-semibold text-white">
+              {values.counsellorName ? initialsOf(values.counsellorName) : "—"}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-gray-900">
+                {values.counsellorName || "To be assigned"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {values.counsellorName
+                  ? "Your assigned advisor"
+                  : "We'll assign an advisor when we confirm this"}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -273,9 +287,9 @@ const AppointmentCard = ({ appointment, onJoin, onReschedule, onCancel, isBusy }
 };
 
 const Appointments = () => {
-  const { user } = useAuth();
   const { showToast } = useToast();
   const {
+    applications,
     appointments,
     upcomingAppointments,
     requestAppointment,
@@ -306,15 +320,38 @@ const Appointments = () => {
     [appointments, upcomingAppointments]
   );
 
-  const defaultCounsellorId =
-    user?.counsellorId ?? counsellors[0]?.id ?? "";
+  /**
+   * The student's actual advisor, from their own records.
+   *
+   * An application carries the counsellor assigned to it, so the most recently
+   * updated one names who is working this student's file now. A past
+   * appointment is the fallback, for a student who has been seen but has no
+   * application open yet. If neither exists nobody is assigned, and the form
+   * says so rather than inventing a name.
+   */
+  const assignedCounsellor = useMemo(() => {
+    const fromApplication = [...applications]
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt ?? b.createdAt ?? 0) - new Date(a.updatedAt ?? a.createdAt ?? 0)
+      )
+      .find((application) => application.counsellorName);
+    if (fromApplication) {
+      return { id: fromApplication.counsellorId ?? null, name: fromApplication.counsellorName };
+    }
+    const fromAppointment = appointments.find((appointment) => appointment.counsellorName);
+    return fromAppointment
+      ? { id: fromAppointment.counsellorId ?? null, name: fromAppointment.counsellorName }
+      : { id: null, name: "" };
+  }, [applications, appointments]);
 
   const handleRequest = async (values) => {
     setIsSaving(true);
-    const counsellor = counsellors.find((item) => item.id === values.counsellorId);
     await requestAppointment({
-      counsellorId: values.counsellorId,
-      counsellorName: counsellor?.name ?? "Counsellor",
+      // Sent for the local optimistic row only — the server sets the counsellor
+      // when the office confirms, and ignores anything passed here.
+      counsellorId: assignedCounsellor.id,
+      counsellorName: assignedCounsellor.name || "To be assigned",
       meetingType: values.meetingType,
       mode: values.mode,
       scheduledAt: new Date(values.scheduledAt).toISOString(),
@@ -386,14 +423,15 @@ const Appointments = () => {
             initialValues={
               formState.mode === "request"
                 ? {
-                    counsellorId: defaultCounsellorId,
+                    counsellorName: assignedCounsellor.name,
                     meetingType: "",
                     scheduledAt: "",
                     mode: MODES[0],
                     agenda: "",
                   }
                 : {
-                    counsellorId: formState.appointment.counsellorId,
+                    counsellorName:
+                      formState.appointment.counsellorName || assignedCounsellor.name,
                     meetingType: formState.appointment.meetingType,
                     scheduledAt: toLocalInputValue(formState.appointment.scheduledAt),
                     mode: formState.appointment.mode,

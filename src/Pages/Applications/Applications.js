@@ -148,8 +148,15 @@ const Applications = () => {
           ))}
         </div>
 
-        {/* Search + chips */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        {/* Search, then chips — two rows, not one.
+
+            The five chips and a search box do not fit on a line together at any
+            width a laptop actually has, so `flex-wrap` used to break the set
+            across two lines with the last one or two hanging underneath. They
+            are one control; splitting them reads as two. So search gets its own
+            row and the chips get theirs, on a single line that scrolls
+            sideways on a phone rather than wrapping. */}
+        <div className="flex flex-col gap-3">
           <label className="relative block w-full lg:max-w-md">
             <span className="sr-only">Search applications</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
@@ -162,7 +169,7 @@ const Applications = () => {
             />
           </label>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-4 flex flex-nowrap items-center gap-2 overflow-x-auto px-4 pb-1 sm:-mx-8 sm:px-8 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {chips.map((filter) => {
               const active = statusFilter === filter.value;
               return (
@@ -171,7 +178,7 @@ const Applications = () => {
                   type="button"
                   onClick={() => selectFilter(filter.value)}
                   aria-pressed={active}
-                  className={`flex h-11 items-center gap-2 rounded-full border px-4 text-[15px] font-medium transition-colors ${
+                  className={`flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-[15px] font-medium transition-colors ${
                     active
                       ? "border-navy-500 bg-navy-900 text-white"
                       : "border-hairline bg-white text-ink-soft hover:border-navy-200"
@@ -237,15 +244,24 @@ const Applications = () => {
               ))}
             </ul>
 
-            <div className="hidden lg:block">
-              <table className="w-full table-fixed text-left">
+            {/* `table-fixed` was dividing the row into columns narrower than
+                the dates and the two action buttons needed, and an over-wide
+                cell in a fixed table does not push its neighbour along — it
+                overflows into it, which is the stagger. Auto layout sizes the
+                last three columns to their content and gives the slack to
+                University and Course, whose text can wrap. The wrapper scrolls
+                rather than squeezing below the min width. */}
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[1000px] text-left">
                 <thead>
                   <tr className="bg-canvas text-[12px] font-semibold uppercase tracking-wide text-ink-muted">
-                    <th className="w-[28%] px-6 py-3.5 font-semibold">University</th>
-                    <th className="w-[26%] px-4 py-3.5 font-semibold">Course</th>
-                    <th className="w-[20%] px-4 py-3.5 font-semibold">Status</th>
-                    <th className="hidden px-4 py-3.5 font-semibold xl:table-cell">Date added</th>
-                    <th className="px-4 py-3.5 font-semibold">
+                    <th className="w-[30%] px-6 py-3.5 font-semibold">University</th>
+                    <th className="w-[28%] px-4 py-3.5 font-semibold">Course</th>
+                    <th className="w-[22%] px-4 py-3.5 font-semibold">Status</th>
+                    <th className="hidden whitespace-nowrap px-4 py-3.5 font-semibold xl:table-cell">
+                      Date added
+                    </th>
+                    <th className="whitespace-nowrap px-4 py-3.5 font-semibold">
                       <button
                         type="button"
                         onClick={() => setSortDescending((current) => !current)}
@@ -256,7 +272,7 @@ const Applications = () => {
                         <SortIcon className="h-3.5 w-3.5 text-navy-900" aria-hidden />
                       </button>
                     </th>
-                    <th className="w-24 px-6 py-3.5 text-right font-semibold">Action</th>
+                    <th className="w-px whitespace-nowrap px-6 py-3.5 text-right font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
@@ -304,7 +320,7 @@ const Applications = () => {
                       <td className="whitespace-nowrap px-4 py-5 text-[14px] text-ink-soft">
                         {formatStamp(application.updatedAt ?? application.createdAt)}
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="w-px px-6 py-5">
                         <div className="flex items-center justify-end gap-3">
                           <Link
                             to={`/applications/${application.id}`}

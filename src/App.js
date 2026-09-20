@@ -20,6 +20,7 @@ import RegistrationPage from './Pages/register/register1';
 import LoginPage from './Pages/Login/Login';
 import ResetPassword from './Pages/reset/reset';
 import DocumentLayout from './Pages/Documents/uploadDocumentLayout';
+import SettingsLayout from './Pages/Settings/settingsLayout';
 
 import StudentApplicationForm from './Pages/initialsetup/application';
 
@@ -106,6 +107,7 @@ const App = () => {
                 <Route path="/visa" element={guarded(<VisaApplication />)} />
                 <Route path="/initalsetup" element={guarded(<ApplicationLayout />)} />
                 <Route path="/documents" element={guarded(<DocumentLayout />)} />
+                <Route path="/settings" element={guarded(<SettingsLayout />)} />
                 <Route path="/profile" element={guarded(<EnhancedProfile />)} />
                 <Route path="/edit-profile" element={guarded(<EditProfile />)} />
                 {/* Kept so existing links to the old edit path still resolve */}
