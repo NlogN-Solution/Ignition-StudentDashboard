@@ -1,4 +1,4 @@
-import { apiGet, apiPost, clearTokens, getRefreshToken, setTokens } from "./client";
+import { apiGet, apiPatch, apiPost, clearTokens, getRefreshToken, setTokens } from "./client";
 
 export const login = async (email, password) => {
   const data = await apiPost("/auth/login", { email, password }, { skipAuth: true });
@@ -21,11 +21,21 @@ export const logout = async () => {
   }
 };
 
-// There is no PATCH /auth/me on the backend — first_name/last_name/phone
-// aren't self-service-editable by a student today (only staff can PATCH
-// another user's account fields, via /users/{id}). AuthContext's `updateUser`
-// therefore only ever writes through the student-profile endpoints below.
 export const fetchCurrentUser = () => apiGet("/auth/me");
+
+/**
+ * The signed-in user's own account fields: first_name, last_name, phone,
+ * date_of_birth, gender. `PATCH /users/me` is open to every role and rejects
+ * role/status outright. Email is not sent from the portal — changing it needs
+ * the current password, and students ask their counsellor (see Settings).
+ */
+export const updateMyAccount = (patch) => apiPatch("/users/me", patch);
+
+export const uploadMyAvatar = (file) => {
+  const body = new FormData();
+  body.append("file", file);
+  return apiPost("/users/me/avatar", body);
+};
 
 // KNOWN GAP: the backend has no password-reset-by-email flow yet (no
 // /auth/password-reset/* routes) — these will 404 until one is built. Left

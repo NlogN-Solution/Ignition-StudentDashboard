@@ -65,15 +65,6 @@ export const dashboardTourSteps = [
     tip: "Use Edit Profile to fill in anything still missing.",
   },
   {
-    id: "eligibility",
-    target: '[data-tour="profile-academics"]',
-    route: "/profile",
-    placement: "top",
-    title: "Check your eligibility",
-    body: "Review your academic background, English proficiency and preferred course here. Together these decide which universities and courses you can realistically apply to.",
-    tip: "Test scores and study preferences sit alongside this — keep them current.",
-  },
-  {
     id: "course-search",
     target: '[data-tour="course-search"]',
     route: "/explore",
@@ -121,12 +112,12 @@ export const dashboardTourSteps = [
     title: "Know exactly what to do next",
     body: ({ openTaskCount }) =>
       openTaskCount > 0
-        ? `Your checklist is the running list of what to do next — ${plural(
+        ? `Your checklist holds the tasks your advisor has set for you — ${plural(
             openTaskCount,
             "task is",
             "tasks are"
-          )} waiting for you. Milestones unlock in order, so finish them as they appear and nothing important gets missed.`
-        : "Your checklist shows the actions you need to complete through your application journey. Milestones unlock in order, so finish them as they appear and nothing important gets missed.",
+          )} waiting right now.`
+        : "When your advisor needs something from you, it appears here as a task. Tick each one off as you finish it.",
     tip: "The checklist icon in the header shows what's due without leaving the page.",
   },
   {
@@ -183,7 +174,6 @@ export const dashboardTourSteps = [
     requiresNav: true,
     title: "Help is always available",
     body: "If you're ever unsure what to do next, book time with the support team from here — or message your counsellor and ask.",
-    tip: "You can replay this tour any time from the account menu.",
   },
 ];
 

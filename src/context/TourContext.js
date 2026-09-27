@@ -12,6 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useAppData } from "./AppDataContext";
 import { trackEvent } from "../lib/analytics";
+import { getPendingIntent } from "../lib/applyIntent";
 import {
   DASHBOARD_TOUR_VERSION,
   markTourCompleted,
@@ -87,6 +88,13 @@ export const TourProvider = ({ children }) => {
   const hasOfferedRef = useRef(false);
   const drawerSeqRef = useRef(0);
 
+  // The course this student pressed Apply on and has not applied to yet. The
+  // tour moves them off the apply page to walk the dashboard, so its closing
+  // modal has to be able to send them straight back to that course rather than
+  // leaving them to find it again in Explore. Read when the tour ends, not
+  // when it starts: the intent closes once the application is started.
+  const [pendingCourse, setPendingCourse] = useState(null);
+
   /** What the copy in tourSteps.js is allowed to reason about. */
   const tourContext = useMemo(() => {
     const openTasks = tasks.filter((task) => !task.completed && isTaskUnlocked(task));
@@ -142,6 +150,10 @@ export const TourProvider = ({ children }) => {
 
   const completeTour = useCallback(() => {
     clearOverlay();
+    setPendingCourse(null);
+    getPendingIntent().then((intent) => {
+      setPendingCourse(intent?.course?.course_slug ? intent.course : null);
+    });
     setStatus("finished");
     trackEvent("dashboard_tour_completed", {
       version: DASHBOARD_TOUR_VERSION,
@@ -395,6 +407,7 @@ export const TourProvider = ({ children }) => {
       targetRect,
       isResolving,
       tourContext,
+      pendingCourse,
       navDrawerRequest,
       startTour,
       nextStep,
@@ -413,6 +426,7 @@ export const TourProvider = ({ children }) => {
       targetRect,
       isResolving,
       tourContext,
+      pendingCourse,
       navDrawerRequest,
       startTour,
       nextStep,

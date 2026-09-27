@@ -24,7 +24,7 @@ const WelcomeTourModal = ({ firstName, stepCount, onStart, onDismiss }) => (
 
     <p id="dashboard-tour-welcome-body" className="mt-3 text-sm leading-relaxed text-slate-600">
       Everything about your application journey lives here — your profile, documents,
-      applications, messages, eligibility, interviews, visa preparation and more.
+      applications, messages, interviews, visa preparation and more.
     </p>
     <p className="mt-2 text-sm leading-relaxed text-slate-600">
       Take a quick tour to see how it all fits together. It takes about a minute.

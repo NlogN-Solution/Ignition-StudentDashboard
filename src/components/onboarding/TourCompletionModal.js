@@ -5,16 +5,22 @@ import TourModal from "./TourModal";
 
 /**
  * Shown once the last step is finished. The primary action is whatever the
- * student should actually do next — their checklist when something is waiting
- * on them, otherwise finishing their profile.
+ * student should actually do next: the application for the course they came
+ * in on (pressed Apply on the public site and not yet applied), otherwise
+ * their checklist when something is waiting on them, otherwise their profile.
  */
-const TourCompletionModal = ({ openTaskCount, profileCompletion, onClose }) => {
+const TourCompletionModal = ({ openTaskCount, profileCompletion, pendingCourse, onClose }) => {
   const hasTasks = openTaskCount > 0;
-  const primary = hasTasks
-    ? { label: "Go to my checklist", destination: "/tasks" }
-    : { label: "Finish my profile", destination: "/profile" };
+  const primary = pendingCourse
+    ? { label: "Continue my application", destination: `/apply/${pendingCourse.course_slug}` }
+    : hasTasks
+      ? { label: "Go to my checklist", destination: "/tasks" }
+      : { label: "Finish my profile", destination: "/profile" };
 
-  const nextStepLine = hasTasks
+  const courseName = [pendingCourse?.course_name, pendingCourse?.university_name].filter(Boolean).join(" at ");
+  const nextStepLine = pendingCourse
+    ? `Pick up where you left off — your application for ${courseName || "the course you chose"} is ready to continue.`
+    : hasTasks
     ? `Start with your checklist — ${openTaskCount} ${
         openTaskCount === 1 ? "task is" : "tasks are"
       } waiting for you.`
@@ -62,10 +68,6 @@ const TourCompletionModal = ({ openTaskCount, profileCompletion, onClose }) => {
           {primary.label}
         </button>
       </div>
-
-      <p className="mt-4 text-center text-xs text-slate-400 sm:text-right">
-        Replay this tour any time from the account menu.
-      </p>
     </TourModal>
   );
 };

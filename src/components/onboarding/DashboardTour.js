@@ -31,6 +31,7 @@ const DashboardTour = () => {
     targetRect,
     isResolving,
     tourContext,
+    pendingCourse,
     startTour,
     nextStep,
     previousStep,
@@ -56,6 +57,7 @@ const DashboardTour = () => {
       <TourCompletionModal
         openTaskCount={tourContext.openTaskCount}
         profileCompletion={tourContext.profileCompletion}
+        pendingCourse={pendingCourse}
         onClose={closeCompletion}
       />,
       document.body

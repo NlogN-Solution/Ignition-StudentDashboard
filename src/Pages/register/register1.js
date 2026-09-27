@@ -7,6 +7,8 @@ import { useApplyIntentPreview } from "../../hooks/useApplyIntentPreview";
 import { useToast } from "../../context/ToastContext";
 import formOptions from "../../data/formOptions.json";
 import { parseApiErrorDetail } from "../../lib/apiErrors";
+import { checkPassword } from "../../lib/passwordPolicy";
+import PasswordChecklist from "../../components/auth/PasswordChecklist";
 import {
   AuthButton,
   AuthError,
@@ -79,8 +81,13 @@ const RegistrationPage = () => {
 
     if (!formData.password) {
       newErrors.password = "Choose a password.";
-    } else if (formData.password.length < 8) {
-      newErrors.password = `Use at least 8 characters — that one is ${formData.password.length}.`;
+    } else {
+      const missing = checkPassword(formData.password).filter((rule) => !rule.met);
+      if (missing.length > 0) {
+        newErrors.password = `Your password still needs: ${missing
+          .map((rule) => rule.label.toLowerCase())
+          .join(", ")}.`;
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -295,7 +302,7 @@ const RegistrationPage = () => {
           label="Password"
           type={showPassword.password ? "text" : "password"}
           autoComplete="new-password"
-          placeholder="At least 8 characters"
+          placeholder="Create a strong password"
           icon={Lock}
           error={errors.password}
           value={formData.password}
@@ -315,6 +322,16 @@ const RegistrationPage = () => {
           onChange={set("confirmPassword")}
           trailing={revealButton("confirm", showPassword.confirm)}
         />
+
+        {/* Shown once the student starts typing a password, so the empty form
+            stays short; from then on every rule ticks off live. */}
+        {formData.password || formData.confirmPassword ? (
+          <PasswordChecklist
+            id="password-requirements"
+            password={formData.password}
+            confirmPassword={formData.confirmPassword}
+          />
+        ) : null}
 
         <AuthError>{formError}</AuthError>
 

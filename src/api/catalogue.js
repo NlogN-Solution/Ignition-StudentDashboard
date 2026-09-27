@@ -173,6 +173,18 @@ export const getPublicScholarships = (params = {}) => {
 export const getPublicTaxonomies = () =>
   cached("taxonomies", () => apiGet("/public/taxonomies", PUBLIC));
 
+/**
+ * How a catalogue subject is worded to a student choosing a preference.
+ *
+ * The catalogue groups computing, IT, data and cyber courses under
+ * `Computing`; students look for "Computer Science". The onboarding dropdown
+ * shows and stores the label, and the backend's recommendation matcher reads
+ * it back as `Computing` (SUBJECT_ALIASES in recommendation_service.py).
+ */
+const SUBJECT_LABELS = { Computing: "Computer Science" };
+
+export const subjectLabel = (subject) => SUBJECT_LABELS[subject] ?? subject;
+
 /** What the API returns when it is unreachable. Kept in step with `CourseSubject`. */
 export const FALLBACK_SUBJECTS = [
   "Computing",

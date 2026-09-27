@@ -114,7 +114,6 @@ const StudentDashboard = () => {
     isTaskUnlocked,
     milestoneStatus,
     overallProgress,
-    taskProgress,
     documentProgress,
     isReady,
   } = useAppData();
@@ -197,7 +196,6 @@ const StudentDashboard = () => {
               isUploadingDocument={Boolean(nextDocument) && uploadingItemId === nextDocument.id}
               onUploadDocument={handleHeroDocumentUpload}
               task={priorityTasks[0] ?? null}
-              taskProgress={taskProgress}
             />
 
             {/* Everything the student explored on the public site before they

@@ -373,6 +373,12 @@ export const AppDataProvider = ({ children }) => {
       });
       setAppointments((current) => [appointment, ...current]);
       pushActivity(`${appointment.meetingType} requested`, "appointment");
+      // The server writes an "Appointment requested" notification as part of
+      // the request. Notifications are otherwise loaded once per session, so
+      // re-read them now for it to reach the bell straight away.
+      getNotificationsFor()
+        .then((next) => setNotifications(next))
+        .catch(() => {});
       return { ok: true, appointment };
     },
     [pushActivity]

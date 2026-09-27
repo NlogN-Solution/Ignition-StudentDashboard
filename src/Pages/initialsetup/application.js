@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useAppData } from "../../context/AppDataContext";
 import { useToast } from "../../context/ToastContext";
 import formOptions from "../../data/formOptions.json";
+import { subjectLabel } from "../../api/catalogue";
 import {
   consumePendingHandoff,
   mergeResearchIntoPreferences,
@@ -34,7 +35,7 @@ const defaultsFromResearch = (handoff) => {
   const title = handoff.courses?.[0]?.title ?? null;
   const course =
     formOptions.courses.find((option) => option === title) ??
-    formOptions.courses.find((option) => option === subject) ??
+    formOptions.courses.find((option) => option === subjectLabel(subject)) ??
     "";
 
   return {

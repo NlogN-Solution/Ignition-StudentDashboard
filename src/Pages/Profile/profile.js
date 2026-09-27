@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Briefcase, Camera, GraduationCap, MapPin, Plus, Trash2, User } from "lucide-react";
+import { Briefcase, Camera, FileBadge, GraduationCap, MapPin, Plus, Trash2, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import AppLayout from "../../components/layout/AppLayout";
@@ -7,6 +7,7 @@ import {
   EntryCard,
   Field as KitField,
   FieldGrid,
+  FormError,
   GhostButton,
   NoneYet,
   Panel,
@@ -20,6 +21,15 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { fetchMyProfile, updateMyProfile } from "../../api/students";
+import { updateMyAccount, uploadMyAvatar } from "../../api/auth";
+import { parseApiErrorDetail } from "../../lib/apiErrors";
+import formOptions from "../../data/formOptions.json";
+import {
+  seedTestsFrom,
+  TestCard,
+  testScoresError,
+  withSectionChange,
+} from "../../components/tests/testScores";
 import {
   addEducationHistoryApi,
   addWorkExperienceApi,
@@ -47,6 +57,12 @@ import {
  */
 
 const EDUCATION_LEVELS = ["bachelor", "diploma", "10+2", "masters", "phd", "other"];
+// The backend's `Gender` enum values, labelled.
+const GENDERS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
 const DEGREE_LEVELS = [
   "certificate",
   "diploma",
@@ -90,12 +106,18 @@ const emptyExperienceDraft = {
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showToast } = useToast();
 
   const [formData, setFormData] = useState(null);
   const [profileImage, setProfileImage] = useState(user?.profileImage ?? null);
+  // The chosen file, uploaded on Save. The preview above used to be the only
+  // thing that happened: the photo never left the browser.
+  const [avatarFile, setAvatarFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [languageTests, setLanguageTests] = useState(() => seedTestsFrom(formOptions.languageTests, null));
+  const [otherTests, setOtherTests] = useState(() => seedTestsFrom(formOptions.otherTests, null));
 
   const [education, setEducation] = useState([]);
   const [experience, setExperience] = useState([]);
@@ -117,6 +139,8 @@ const EditProfile = () => {
         fullName: user?.fullName ?? "",
         email: user?.email ?? "",
         phone: user?.phone ?? "",
+        date_of_birth: user?.basicInfo?.dateOfBirth ?? "",
+        gender: user?.basicInfo?.gender ?? "",
         nationality: profile?.nationality ?? "",
         passport_number: profile?.passport_number ?? "",
         citizenship_number: profile?.citizenship_number ?? "",
@@ -138,13 +162,29 @@ const EditProfile = () => {
         budget: profile?.budget ?? "",
         notes: profile?.notes ?? "",
       });
+      setLanguageTests(seedTestsFrom(formOptions.languageTests, profile?.test_scores?.language));
+      setOtherTests(seedTestsFrom(formOptions.otherTests, profile?.test_scores?.other));
       setEducation(nextEducation);
       setExperience(nextExperience);
     });
     return () => {
       cancelled = true;
     };
-  }, [user?.id, user?.fullName, user?.email, user?.phone]);
+    // Loaded once per visit. Re-running when the signed-in user changes would
+    // overwrite what the student is typing with what was last saved.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const testSetter = (type) => (type === "language" ? setLanguageTests : setOtherTests);
+  const handleTestToggle = (type, test) =>
+    testSetter(type)((prev) => ({ ...prev, [test]: { ...prev[test], selected: !prev[test].selected } }));
+  const handleTestInput = (type, test, value, field) =>
+    testSetter(type)((prev) => ({
+      ...prev,
+      [test]: { ...prev[test], [field]: value, ...(field === "score" ? { scoreEdited: true } : {}) },
+    }));
+  const handleTestSection = (type, test, sectionKey, value) =>
+    testSetter(type)((prev) => ({ ...prev, [test]: withSectionChange(prev[test], test, sectionKey, value) }));
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -154,14 +194,39 @@ const EditProfile = () => {
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
+    setAvatarFile(file);
     setProfileImage(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFormError("");
+
+    const [firstName, ...rest] = formData.fullName.trim().split(/\s+/).filter(Boolean);
+    if (!firstName || rest.length === 0) {
+      setFormError("Enter your first and last name, as they appear on your passport.");
+      return;
+    }
+    if (formData.date_of_birth && formData.date_of_birth > new Date().toISOString().slice(0, 10)) {
+      setFormError("Your date of birth can't be in the future.");
+      return;
+    }
+    const testsError = testScoresError(languageTests, otherTests);
+    if (testsError) {
+      setFormError(testsError);
+      return;
+    }
+
     setIsSaving(true);
     try {
-      await updateUser({ fullName: formData.fullName, email: formData.email, phone: formData.phone, profileImage });
+      await updateMyAccount({
+        first_name: firstName,
+        last_name: rest.join(" "),
+        phone: formData.phone.trim() || null,
+        date_of_birth: formData.date_of_birth || null,
+        gender: formData.gender || null,
+      });
+      if (avatarFile) await uploadMyAvatar(avatarFile);
       await updateMyProfile({
         nationality: formData.nationality || null,
         passport_number: formData.passport_number || null,
@@ -183,11 +248,17 @@ const EditProfile = () => {
         preferred_intake: formData.preferred_intake || null,
         budget: formData.budget ? Number(formData.budget) : null,
         notes: formData.notes || null,
+        test_scores: { language: languageTests, other: otherTests },
       });
+      // Every other screen reads the signed-in user, which was loaded at
+      // sign-in; without this the apply flow would still show the old values.
+      await refreshUser().catch(() => null);
       showToast("Profile updated successfully.");
       navigate("/profile");
-    } catch {
-      showToast("Couldn't save your profile. Please try again.", "error");
+    } catch (error) {
+      const { fields, message } = parseApiErrorDetail(error?.data?.detail);
+      const detail = message || Object.values(fields ?? {})[0];
+      setFormError(detail ? `Couldn't save your profile: ${detail}` : "Couldn't save your profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -281,8 +352,26 @@ const EditProfile = () => {
 
               <FieldGrid className="lg:grid-cols-3">
                 <Field label="Full name" name="fullName" value={formData.fullName} onChange={handleChange} />
-                <Field label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
+                <KitField id="email" label="Email" hint="Ask your counsellor to change your email address.">
+                  <TextInput type="email" name="email" value={formData.email} readOnly disabled />
+                </KitField>
                 <Field label="Phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
+                <Field
+                  label="Date of birth"
+                  name="date_of_birth"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={handleChange}
+                />
+                <KitField id="gender" label="Gender">
+                  <SelectInput
+                    name="gender"
+                    placeholder="Not specified"
+                    options={GENDERS}
+                    value={formData.gender}
+                    onChange={handleChange}
+                  />
+                </KitField>
               </FieldGrid>
             </PanelBody>
           </Panel>
@@ -407,6 +496,39 @@ const EditProfile = () => {
               </FieldGrid>
             </PanelBody>
           </Panel>
+
+          <Panel>
+            <PanelHead
+              icon={FileBadge}
+              title="Test scores"
+              description="Tick a test to add or edit its score. Untick it to remove it from your profile."
+            />
+            <PanelBody className="space-y-8">
+              {[
+                ["language", "Language tests", languageTests],
+                ["other", "Other tests", otherTests],
+              ].map(([type, heading, tests]) => (
+                <section key={type}>
+                  <h3 className="text-[12px] font-bold uppercase tracking-[0.14em] text-ink-faint">{heading}</h3>
+                  <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {Object.entries(tests).map(([test, data]) => (
+                      <TestCard
+                        key={test}
+                        type={type}
+                        testName={test}
+                        data={data}
+                        onToggle={handleTestToggle}
+                        onInputChange={handleTestInput}
+                        onSectionChange={handleTestSection}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </PanelBody>
+          </Panel>
+
+          <FormError>{formError}</FormError>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <PrimaryButton type="submit" disabled={isSaving}>

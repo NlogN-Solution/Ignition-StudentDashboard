@@ -9,6 +9,7 @@ import {
   User,
   Video,
   X,
+  CircleCheck,
 } from "lucide-react";
 
 import PageHeader from "../../components/common/PageHeader";
@@ -300,6 +301,9 @@ const Appointments = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [formState, setFormState] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  // Kept on screen until dismissed or a new request is started, so the
+  // confirmation does not vanish with the toast.
+  const [requestSent, setRequestSent] = useState(false);
   const [busyId, setBusyId] = useState(null);
 
   useEffect(() => {
@@ -347,19 +351,25 @@ const Appointments = () => {
 
   const handleRequest = async (values) => {
     setIsSaving(true);
-    await requestAppointment({
-      // Sent for the local optimistic row only — the server sets the counsellor
-      // when the office confirms, and ignores anything passed here.
-      counsellorId: assignedCounsellor.id,
-      counsellorName: assignedCounsellor.name || "To be assigned",
-      meetingType: values.meetingType,
-      mode: values.mode,
-      scheduledAt: new Date(values.scheduledAt).toISOString(),
-      agenda: values.agenda,
-    });
-    setIsSaving(false);
-    setFormState(null);
-    showToast("Appointment requested — awaiting counsellor confirmation.");
+    try {
+      await requestAppointment({
+        // Sent for the local optimistic row only — the server sets the counsellor
+        // when the office confirms, and ignores anything passed here.
+        counsellorId: assignedCounsellor.id,
+        counsellorName: assignedCounsellor.name || "To be assigned",
+        meetingType: values.meetingType,
+        mode: values.mode,
+        scheduledAt: new Date(values.scheduledAt).toISOString(),
+        agenda: values.agenda,
+      });
+      setFormState(null);
+      setRequestSent(true);
+      showToast("Your appointment request has been submitted. Our team will review it and confirm a time with you.");
+    } catch {
+      showToast("We couldn't send your appointment request. Please try again.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleReschedule = async (values) => {
@@ -401,7 +411,10 @@ const Appointments = () => {
         actions={
           <button
             type="button"
-            onClick={() => setFormState({ mode: "request" })}
+            onClick={() => {
+              setRequestSent(false);
+              setFormState({ mode: "request" });
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-navy-900 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md hover:bg-navy-950 transition-all duration-300"
           >
             <CalendarPlus className="w-5 h-5" />
@@ -411,6 +424,30 @@ const Appointments = () => {
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {requestSent && !formState && (
+          <div
+            role="status"
+            className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800"
+          >
+            <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600" aria-hidden />
+            <div className="flex-1">
+              <p className="font-semibold">Your appointment request has been submitted</p>
+              <p className="mt-0.5 text-sm">
+                Our team will look into it and confirm a time with you. You&apos;ll get a notification as soon as
+                it&apos;s confirmed.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRequestSent(false)}
+              aria-label="Dismiss"
+              className="rounded-md p-1 text-green-700 hover:bg-green-100"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        )}
+
         {formState && (
           <RequestForm
             title={
@@ -455,7 +492,10 @@ const Appointments = () => {
               action={
                 <button
                   type="button"
-                  onClick={() => setFormState({ mode: "request" })}
+                  onClick={() => {
+              setRequestSent(false);
+              setFormState({ mode: "request" });
+            }}
                   className="px-6 py-2 rounded-lg text-sm font-medium bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
                 >
                   Request an appointment

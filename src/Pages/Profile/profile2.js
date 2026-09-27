@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Briefcase, GraduationCap, MapPin, PenTool, ShieldCheck, User, Users } from "lucide-react";
+import { Briefcase, CircleAlert, GraduationCap, MapPin, PenTool, ShieldCheck, User, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import AppLayout from "../../components/layout/AppLayout";
@@ -33,6 +33,8 @@ import { formatDate } from "../../lib/simulate";
  * how much of it is still missing — and it earns the weight by being the only
  * one.
  */
+
+const GENDER_LABELS = { male: "Male", female: "Female", other: "Other" };
 
 const selectedTests = (tests) => Object.entries(tests || {}).filter(([, data]) => data?.selected);
 
@@ -152,6 +154,36 @@ const EnhancedProfile = () => {
           <p className="mt-8 text-[15.5px] font-medium text-ink-faint">Loading…</p>
         ) : (
           <div className="mt-6 space-y-6">
+            {/* Only 100% when every field and section is filled — this says
+                exactly what is left, so the number is never a mystery. */}
+            {profile?.profile_missing?.length > 0 ? (
+              <Panel>
+                <PanelHead
+                  icon={CircleAlert}
+                  title="Still to complete"
+                  description="Your profile reaches 100% once each of these is filled in."
+                />
+                <PanelBody>
+                  <ul className="flex flex-wrap gap-2">
+                    {profile.profile_missing.map((item) => (
+                      <li
+                        key={item}
+                        className="rounded-full border border-orange/30 bg-orange/[0.07] px-3 py-1 text-[13.5px] font-semibold text-orange"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to="/edit-profile"
+                    className="mt-4 inline-flex text-[14.5px] font-bold text-navy-900 underline underline-offset-2"
+                  >
+                    Complete your profile
+                  </Link>
+                </PanelBody>
+              </Panel>
+            ) : null}
+
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Panel>
                 <PanelHead icon={User} title="Personal details" />
@@ -164,7 +196,10 @@ const EnhancedProfile = () => {
                       label="Date of birth"
                       value={formatDate(user?.basicInfo?.dateOfBirth)}
                     />
-                    <DataItem label="Gender" value={user?.basicInfo?.gender} />
+                    <DataItem
+                      label="Gender"
+                      value={GENDER_LABELS[user?.basicInfo?.gender] ?? user?.basicInfo?.gender}
+                    />
                     <DataItem label="Birth place" value={profile?.birth_place} />
                   </DataList>
                 </PanelBody>

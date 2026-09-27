@@ -1,6 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { fetchCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister } from "../api/auth";
+import {
+  fetchCurrentUser,
+  login as apiLogin,
+  logout as apiLogout,
+  register as apiRegister,
+  updateMyAccount,
+} from "../api/auth";
 import { clearTokens, getAccessToken } from "../api/client";
 import { fetchMyProfile, updateMyProfile } from "../api/students";
 import { consumePendingHandoff, mergeResearchIntoPreferences, peekPendingHandoff } from "../lib/handoff";
@@ -253,16 +259,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
+   * Re-read the account and profile from the server. Screens that write
+   * through the API directly (Edit Profile) call this afterwards, so every
+   * other screen — the apply flow's prefill above all — sees what was saved
+   * rather than what was loaded at sign-in.
+   */
+  const refreshUser = useCallback(async () => {
+    const next = await loadSession();
+    setUser(next);
+    return next;
+  }, []);
+
+  /**
    * `education`/`preferences`/`testScores`/`address` and
    * `basicInfo.nationality`/`basicInfo.passportNumber` go to the
-   * student-profile endpoint and really do leave the browser now.
-   *
-   * Three things stay local-only, same posture as `profileImage` before it:
-   * `fullName`/`email`/`phone` (no PATCH /auth/me exists — only staff can
-   * edit another user's account fields) and `basicInfo.dateOfBirth`/`gender`
-   * (those live on the account too, same gap). A form that edits them will
-   * still look like it worked, it just won't survive a refresh — that's the
-   * same trade `profileImage` already made.
+   * student-profile endpoint; `fullName`/`phone` and
+   * `basicInfo.dateOfBirth`/`basicInfo.gender` live on the account and go to
+   * `PATCH /users/me`. Email is not written from here.
    *
    * `education_level` is required by the backend the *first* time a profile
    * is created (`StudentProfileUpsert` 400s without it). The onboarding
@@ -273,7 +286,38 @@ export const AuthProvider = ({ children }) => {
   const updateUser = useCallback(async (patch) => {
     setUser((current) => (current ? { ...current, ...patch } : current));
 
-    const { education, preferences, testScores, basicInfo, address, onboardingCompleted } = patch;
+    const { education, preferences, testScores, basicInfo, address, onboardingCompleted, fullName, phone } = patch;
+
+    const accountPatch = {};
+    if (fullName !== undefined) {
+      const [first, ...rest] = String(fullName).trim().split(/\s+/);
+      if (first) accountPatch.first_name = first;
+      if (rest.length) accountPatch.last_name = rest.join(" ");
+    }
+    if (phone !== undefined) accountPatch.phone = phone || null;
+    if (basicInfo?.dateOfBirth !== undefined) accountPatch.date_of_birth = basicInfo.dateOfBirth || null;
+    if (basicInfo?.gender !== undefined) accountPatch.gender = basicInfo.gender || null;
+    if (Object.keys(accountPatch).length > 0) {
+      try {
+        const account = await updateMyAccount(accountPatch);
+        setUser((current) =>
+          current
+            ? {
+                ...current,
+                fullName: [account.first_name, account.last_name].filter(Boolean).join(" "),
+                phone: account.phone,
+                basicInfo: {
+                  ...current.basicInfo,
+                  dateOfBirth: account.date_of_birth ?? "",
+                  gender: account.gender ?? "",
+                },
+              }
+            : current
+        );
+      } catch {
+        // Same posture as the profile write below.
+      }
+    }
 
     const profilePatch = {};
     if (education !== undefined) {
@@ -348,8 +392,9 @@ export const AuthProvider = ({ children }) => {
       register,
       logout,
       updateUser,
+      refreshUser,
     }),
-    [user, isAuthenticating, isBootstrapping, login, register, logout, updateUser]
+    [user, isAuthenticating, isBootstrapping, login, register, logout, updateUser, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
@@ -61,13 +61,11 @@ import RelatedCourses from "../../components/apply/RelatedCourses";
 /**
  * The fields a UK application cannot be filed without.
  *
- * `locked` marks the three that live on the **account**, not the profile:
- * there is no student-facing write path for them (no `PATCH /auth/me` — only
- * staff may edit another user's account fields), so they are shown as facts
- * and **never gate the form**. A required field a student cannot fill is a
- * dead end, not a validation rule: the seeded accounts have no phone number,
- * and gating on it would have stopped them applying with no way to fix it.
- * Where one is blank the student is told who can add it.
+ * `locked` marks the three account fields (name, email, phone). They are
+ * shown as facts here and **never gate the form**: they are edited on Edit
+ * Profile (email only by a counsellor), and a required field this screen
+ * cannot fill is a dead end, not a validation rule. Where one is blank the
+ * student is pointed to Edit Profile.
  */
 const REQUIRED_DETAILS = [
   { key: "fullName", label: "Full name", group: "account", type: "text", locked: true },
@@ -123,7 +121,7 @@ const readValue = (user, field) => {
 const ApplyFlow = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, refreshUser } = useAuth();
   const { applications, documents, uploadDocument, reloadApplications } = useAppData();
   const { showToast } = useToast();
 
@@ -162,17 +160,33 @@ const ApplyFlow = () => {
     };
   }, [slug, attempt]);
 
-  // Seed the form from the profile once the user is loaded, so the student
-  // edits what they already told us rather than a blank page.
+  // Seed the form from the profile, so the student confirms what they already
+  // told us rather than typing it again. The signed-in user is re-read first:
+  // it is cached from sign-in, and a passport number or nationality added on
+  // Edit Profile since then would otherwise be missing here. Seeded once, so a
+  // later refresh of the user cannot wipe what the student is typing.
+  const hasSeededRef = useRef(false);
   useEffect(() => {
-    if (!user) return;
-    setDetails(
-      REQUIRED_DETAILS.reduce(
-        (acc, field) => ({ ...acc, [field.key]: readValue(user, field) }),
-        {}
-      )
-    );
-  }, [user]);
+    let cancelled = false;
+    const seed = (source) => {
+      if (cancelled || hasSeededRef.current || !source) return;
+      hasSeededRef.current = true;
+      setDetails(
+        REQUIRED_DETAILS.reduce(
+          (acc, field) => ({ ...acc, [field.key]: readValue(source, field) }),
+          {}
+        )
+      );
+    };
+    refreshUser()
+      .then(seed)
+      .catch(() => seed(user));
+    return () => {
+      cancelled = true;
+    };
+    // Once per visit; `user` is only the fallback if the refresh fails.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const editable = REQUIRED_DETAILS.filter((field) => !field.locked && !field.optional);
 
@@ -489,10 +503,13 @@ const ApplyFlow = () => {
                 <p className="flex items-start gap-2.5 text-sm leading-relaxed text-ink">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange" />
                   <span>
-                    Your counsellor will need to add your{" "}
-                    {missingLocked.map((field) => field.label.toLowerCase()).join(" and ")} before
-                    this is filed — those live on your account and only staff can change them. You
-                    can carry on in the meantime.
+                    Your{" "}
+                    {missingLocked.map((field) => field.label.toLowerCase()).join(" and ")} is still
+                    missing. Add it from{" "}
+                    <Link to="/edit-profile" className="font-semibold text-navy-900 underline">
+                      Edit profile
+                    </Link>{" "}
+                    before this is filed — you can carry on in the meantime.
                   </span>
                 </p>
               </Card>

@@ -20,7 +20,6 @@ import {
   Camera,
   UserCircle,
   MessageCircle,
-  Compass,
   GraduationCap,
   ChevronDown,
 } from "lucide-react";
@@ -436,19 +435,6 @@ const PremiumNavigation = () => {
                     <Settings className="h-5 w-5 mr-3" />
                     Settings
                   </Link>
-                  {tour && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        tour.restartTour();
-                      }}
-                      className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-600"
-                    >
-                      <Compass className="h-5 w-5 mr-3" />
-                      Take dashboard tour again
-                    </button>
-                  )}
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center px-4 py-2 text-slate-700 hover:bg-red-50 hover:text-red-700"

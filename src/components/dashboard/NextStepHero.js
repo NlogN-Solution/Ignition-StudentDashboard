@@ -79,7 +79,6 @@ const NextStepHero = ({
   isUploadingDocument = false,
   onUploadDocument,
   task,
-  taskProgress = 0,
 }) => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -113,7 +112,8 @@ const NextStepHero = ({
     if (file) onUploadDocument?.(file);
   };
 
-  const progress = documentItem ? documentProgress : taskProgress;
+  // Tasks have no meter: the checklist is whatever the advisor has set so far,
+  // not a finite list, so "x% of tasks" would measure nothing.
   const title = documentItem ? documentItem.label : task.title;
   const body = documentItem
     ? `Requested for ${documentItem.applicationName}${documentItem.status === 'rejected' ? ' — needs replacing' : ''}${
@@ -153,7 +153,7 @@ const NextStepHero = ({
           </button>
         )}
         <div className="flex min-w-[180px] flex-1 items-center gap-3">
-          <Meter value={progress} />
+          {documentItem && <Meter value={documentProgress} />}
           {chip && <Chip>{chip}</Chip>}
         </div>
       </div>
