@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Compass, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Compass } from "lucide-react";
 
 import EmptyState from "../../components/common/EmptyState";
 import { SkeletonCard } from "../../components/common/Skeleton";
