@@ -1,7 +1,7 @@
 import { apiGet, apiPost } from "./client";
 
 /**
- * The one-time platform unlock, and the milestones it gates.
+ * Th one-time platform unlock, and the milestones it gates.
  *
  * The entitlement is a completed `PORTAL_ACCESS` payment on the server — there
  * is deliberately no `isPaid` anywhere in this client. Every gated read is
