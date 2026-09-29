@@ -5,21 +5,27 @@ import TourModal from "./TourModal";
 
 /**
  * Shown once the last step is finished. The primary action is whatever the
- * student should actually do next: the application for the course they came
- * in on (pressed Apply on the public site and not yet applied), otherwise
- * their checklist when something is waiting on them, otherwise their profile.
+ * student should actually do next: the course they came in on (pressed Apply
+ * on the public site and not yet applied), otherwise their checklist when
+ * something is waiting on them, otherwise their profile.
+ *
+ * `redirectToCourse` is the first-run case: a student who registered from a
+ * course card has been shown the dashboard once, and now goes to that course's
+ * page — the one they pressed Apply on — however the modal is closed. It is
+ * the good end to the registration they started on that course.
  */
-const TourCompletionModal = ({ openTaskCount, profileCompletion, pendingCourse, onClose }) => {
+const TourCompletionModal = ({ openTaskCount, profileCompletion, pendingCourse, redirectToCourse, onClose }) => {
   const hasTasks = openTaskCount > 0;
+  const courseDestination = pendingCourse ? `/explore/courses/${pendingCourse.course_slug}` : null;
   const primary = pendingCourse
-    ? { label: "Continue my application", destination: `/apply/${pendingCourse.course_slug}` }
+    ? { label: redirectToCourse ? "Go to my course" : "View my course", destination: courseDestination }
     : hasTasks
       ? { label: "Go to my checklist", destination: "/tasks" }
       : { label: "Finish my profile", destination: "/profile" };
 
   const courseName = [pendingCourse?.course_name, pendingCourse?.university_name].filter(Boolean).join(" at ");
   const nextStepLine = pendingCourse
-    ? `Pick up where you left off — your application for ${courseName || "the course you chose"} is ready to continue.`
+    ? `Next, let's take you back to ${courseName || "the course you chose"} — review it and start your application from there.`
     : hasTasks
     ? `Start with your checklist — ${openTaskCount} ${
         openTaskCount === 1 ? "task is" : "tasks are"
@@ -32,7 +38,7 @@ const TourCompletionModal = ({ openTaskCount, profileCompletion, pendingCourse, 
     <TourModal
       labelledBy="dashboard-tour-done-title"
       describedBy="dashboard-tour-done-body"
-      onDismiss={() => onClose(null)}
+      onDismiss={() => onClose(redirectToCourse ? courseDestination : null)}
     >
       <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-600">
         <PartyPopper className="h-5 w-5" />
@@ -50,14 +56,16 @@ const TourCompletionModal = ({ openTaskCount, profileCompletion, pendingCourse, 
       </p>
 
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-        <button
-          type="button"
-          onClick={() => onClose("/")}
-          className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100
-            hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-ignite-400"
-        >
-          Continue to dashboard
-        </button>
+        {!redirectToCourse && (
+          <button
+            type="button"
+            onClick={() => onClose("/")}
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100
+              hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-ignite-400"
+          >
+            Continue to dashboard
+          </button>
+        )}
         <button
           type="button"
           onClick={() => onClose(primary.destination)}

@@ -26,6 +26,12 @@ const DESTINATION = "United Kingdom";
  * public Ignition site — the destination they were browsing, and the subject
  * of the first course they saved. Everything stays editable; this only saves
  * them re-entering an answer they have effectively already given.
+ *
+ * `fromApply` is set when the student arrived by pressing Apply on a course.
+ * They have already chosen the course — it is on the card above the form — so
+ * the whole "what you're looking for" panel (destination, preferred course,
+ * study mode, fee structure) is a set of questions they have answered by
+ * pressing the button, and it is not shown. Only the test scores remain.
  */
 const StudyPreferences = ({
   onNext,
@@ -33,6 +39,7 @@ const StudyPreferences = ({
   isLastStep,
   isSubmitting,
   initialValues,
+  fromApply = false,
 }) => {
   const [studyPreferences, setStudyPreferences] = useState({
     // Pre-filled, and there is nothing else to pick. Ignition works with UK
@@ -107,8 +114,11 @@ const StudyPreferences = ({
 
   const validate = () => {
     const next = {};
-    if (!studyPreferences.course) next.course = "Select a preferred course.";
-    if (!studyPreferences.studyMode) next.studyMode = "Select a study mode.";
+    // Nothing to ask about the course when the student pressed Apply on one.
+    if (!fromApply) {
+      if (!studyPreferences.course) next.course = "Select a preferred course.";
+      if (!studyPreferences.studyMode) next.studyMode = "Select a study mode.";
+    }
 
     const testsError = testScoresError(languageTests, otherTests);
     if (testsError) next.tests = testsError;
@@ -122,14 +132,12 @@ const StudyPreferences = ({
     onNext({ ...studyPreferences, languageTests, otherTests });
   };
 
+  // "Highest academic qualification" is not asked here: step one
+  // ("Educational background") already asks for the highest level of
+  // education, and the same question twice in one wizard invites two answers.
   const selectFields = [
     { label: "Preferred course", field: "course", options: subjects, required: true },
     { label: "Study mode", field: "studyMode", options: formOptions.studyModes, required: true },
-    {
-      label: "Highest academic qualification",
-      field: "highestAcademic",
-      options: formOptions.educationLevels,
-    },
     {
       label: "College fee structure",
       field: "feeStructure",
@@ -146,45 +154,47 @@ const StudyPreferences = ({
 
   return (
     <div className="space-y-6">
-      <Panel>
-        <PanelHead
-          icon={Compass}
-          eyebrow="What you're looking for"
-          title="Study preferences"
-          description="Enough to start matching you to courses. Your advisor will narrow it down with you — nothing here locks you in."
-        />
+      {!fromApply && (
+        <Panel>
+          <PanelHead
+            icon={Compass}
+            eyebrow="What you're looking for"
+            title="Study preferences"
+            description="Enough to start matching you to courses. Your advisor will narrow it down with you — nothing here locks you in."
+          />
 
-        <PanelBody className="space-y-6">
-          {/* ---------------------------------------------- destination --- */}
-          {/* Stated, not asked. Ignition places students at UK institutions
-              and the catalogue behind this wizard has nothing else in it, so a
-              picker here offered one option and could still be left empty. */}
-          <div>
-            <span className="block text-[14px] font-semibold text-ink-soft">Destination</span>
-            <p className="mt-[10px] inline-flex items-center gap-2 rounded-full border border-navy-100 bg-navy-50 py-1.5 pl-3 pr-4 text-[14px] font-bold text-navy-900">
-              <span aria-hidden>🇬🇧</span>
-              {DESTINATION}
-            </p>
-            <p className="mt-[7px] text-[13.5px] font-medium text-ink-faint">
-              Ignition works with UK universities. Everything below is about studying there.
-            </p>
-          </div>
+          <PanelBody className="space-y-6">
+            {/* ---------------------------------------------- destination --- */}
+            {/* Stated, not asked. Ignition places students at UK institutions
+                and the catalogue behind this wizard has nothing else in it, so a
+                picker here offered one option and could still be left empty. */}
+            <div>
+              <span className="block text-[14px] font-semibold text-ink-soft">Destination</span>
+              <p className="mt-[10px] inline-flex items-center gap-2 rounded-full border border-navy-100 bg-navy-50 py-1.5 pl-3 pr-4 text-[14px] font-bold text-navy-900">
+                <span aria-hidden>🇬🇧</span>
+                {DESTINATION}
+              </p>
+              <p className="mt-[7px] text-[13.5px] font-medium text-ink-faint">
+                Ignition works with UK universities. Everything below is about studying there.
+              </p>
+            </div>
 
-          {/* -------------------------------------------------- the rest --- */}
-          <FieldGrid>
-            {selectFields.map(({ label, field, options, required }) => (
-              <Field key={field} id={field} label={label} required={required} error={errors[field]}>
-                <SelectInput
-                  placeholder={`Select ${label.toLowerCase()}`}
-                  options={options}
-                  value={studyPreferences[field] ?? ""}
-                  onChange={setPreference(field)}
-                />
-              </Field>
-            ))}
-          </FieldGrid>
-        </PanelBody>
-      </Panel>
+            {/* -------------------------------------------------- the rest --- */}
+            <FieldGrid>
+              {selectFields.map(({ label, field, options, required }) => (
+                <Field key={field} id={field} label={label} required={required} error={errors[field]}>
+                  <SelectInput
+                    placeholder={`Select ${label.toLowerCase()}`}
+                    options={options}
+                    value={studyPreferences[field] ?? ""}
+                    onChange={setPreference(field)}
+                  />
+                </Field>
+              ))}
+            </FieldGrid>
+          </PanelBody>
+        </Panel>
+      )}
 
       {/* ------------------------------------------------------- tests --- */}
       <Panel>

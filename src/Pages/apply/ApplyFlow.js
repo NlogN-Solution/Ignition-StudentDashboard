@@ -19,7 +19,7 @@ import { useAppData } from "../../context/AppDataContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { getPublicCourse } from "../../api/catalogue";
-import { isNotFoundError } from "../../lib/apiErrors";
+import { isNotFoundError, parseApiErrorDetail } from "../../lib/apiErrors";
 import {
   DOCUMENT_TYPE_LABELS,
   getApplicationChecklistApi,
@@ -105,6 +105,12 @@ const FALLBACK_DOCUMENTS = [
   { documentType: "cv", isRequired: false },
   { documentType: "photo", isRequired: false },
 ];
+
+/** Applications that have ended; applying again opens a new one. */
+const ENDED_STATUSES = ["withdrawn", "rejected"];
+
+/** A request nobody at Ignition has accepted yet. */
+const REQUEST_STATUSES = ["requested", "request_rejected"];
 
 const STEPS = [
   { id: 1, label: "Your details", icon: UserCircle },
@@ -205,9 +211,18 @@ const ApplyFlow = () => {
     [details]
   );
 
-  /** An application this student already has against this course, if any. */
+  /**
+   * A live application this student already has against this course, if any.
+   *
+   * Withdrawn and university-rejected ones are not "live": the backend lets a
+   * student apply again after either, so resuming one would try to submit a
+   * file that has already ended.
+   */
   const existing = useMemo(
-    () => applications.find((entry) => entry.courseId === course?.id) ?? null,
+    () =>
+      applications.find(
+        (entry) => entry.courseId === course?.id && !ENDED_STATUSES.includes(entry.status)
+      ) ?? null,
     [applications, course]
   );
 
@@ -331,20 +346,45 @@ const ApplyFlow = () => {
     }
   };
 
+  /**
+   * Send it to the counsellor.
+   *
+   * For a new request this is the moment it reaches the desk for review; the
+   * request itself was created at step one. It used to call an endpoint that
+   * refused requests outright, so the student saw "Could not submit" for a
+   * request that had in fact gone through — and pressing again reported that
+   * it already existed. A request now gets a clear confirmation and the
+   * student lands back on their dashboard; an accepted application they are
+   * finishing opens its own page as before.
+   */
   const handleSubmit = async () => {
     if (!application) return;
     setIsWorking(true);
+    const wasRejected = application.status === "request_rejected";
+    const isRequest = REQUEST_STATUSES.includes(application.status);
     try {
       await submitApplicationApi(application.id);
       await reloadApplications();
+      if (isRequest) {
+        showToast(
+          wasRejected
+            ? "Your application request has been sent again and will be reviewed by your counsellor."
+            : "Your application request has been submitted and will be reviewed by your counsellor."
+        );
+        navigate("/");
+        return;
+      }
       showToast("Sent to your counsellor.");
       navigate(`/applications/${application.id}`);
-    } catch {
-      showToast("Could not submit. Try again in a moment.", "error");
+    } catch (error) {
+      const { message } = parseApiErrorDetail(error?.data?.detail);
+      showToast(message || "Could not submit. Try again in a moment.", "error");
     } finally {
       setIsWorking(false);
     }
   };
+
+  const isRequest = REQUEST_STATUSES.includes(application?.status ?? existing?.status);
 
   if (isLoading) {
     return (
@@ -515,14 +555,28 @@ const ApplyFlow = () => {
               </Card>
             )}
 
-            {existing && (
+            {existing && existing.status === "request_rejected" ? (
+              <Card className="border-ignite-200 bg-ignite-50/40 p-4">
+                <p className="text-sm font-semibold text-navy-900">
+                  Your counsellor needs a little more before accepting this request
+                </p>
+                {existing.reviewFeedback && (
+                  <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-ink">
+                    {existing.reviewFeedback}
+                  </p>
+                )}
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                  Update your details and documents below, then send the request again.
+                </p>
+              </Card>
+            ) : existing ? (
               <Card className="border-ignite-200 bg-ignite-50/40 p-4">
                 <p className="text-sm leading-relaxed text-ink">
                   You already have an application open for this course. Carrying on will pick it
                   up where you left it rather than starting a second one.
                 </p>
               </Card>
-            )}
+            ) : null}
 
             <div className="flex justify-end">
               <button
@@ -629,14 +683,25 @@ const ApplyFlow = () => {
               <h2 className="text-base font-bold tracking-tight text-navy-900">
                 Ready to send to your counsellor
               </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
-                Submitting hands this to your counsellor to check and file with{" "}
-                {course.university?.name ?? "the university"}.{" "}
-                <strong className="font-semibold text-ink">
-                  It does not go to the university yet
-                </strong>{" "}
-                — they do that, and you will see it move here when they have.
-              </p>
+              {isRequest ? (
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                  Submitting sends your application request to your counsellor, who will review
+                  your details and documents before accepting it.{" "}
+                  <strong className="font-semibold text-ink">
+                    Nothing goes to {course.university?.name ?? "the university"} yet
+                  </strong>{" "}
+                  — once it is accepted, your counsellor prepares and files it with you.
+                </p>
+              ) : (
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                  Submitting hands this to your counsellor to check and file with{" "}
+                  {course.university?.name ?? "the university"}.{" "}
+                  <strong className="font-semibold text-ink">
+                    It does not go to the university yet
+                  </strong>{" "}
+                  — they do that, and you will see it move here when they have.
+                </p>
+              )}
 
               <dl className="mt-5 divide-y divide-hairline">
                 <div className="flex flex-wrap justify-between gap-x-6 gap-y-1 py-3 first:pt-0">
@@ -695,7 +760,11 @@ const ApplyFlow = () => {
                 className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:opacity-60"
               >
                 {isWorking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Submit application
+                {application?.status === "request_rejected"
+                  ? "Send request again"
+                  : isRequest
+                  ? "Submit application request"
+                  : "Submit application"}
               </button>
             </div>
           </div>

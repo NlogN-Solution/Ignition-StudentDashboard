@@ -34,6 +34,9 @@ const STATUS_STYLES = {
   // A request nobody has accepted yet. Blue rather than yellow: yellow on
   // this screen means "you have something to do", and the student does not.
   requested: "bg-navy-100 text-navy-800",
+  // The counsellor needs something from the student before accepting. Amber,
+  // not red: it is a to-do, not a verdict.
+  request_rejected: "bg-yellow-100 text-yellow-700",
   documents_pending: "bg-yellow-100 text-yellow-700",
   // Same tone as `under_review`, because they now say the same word.
   ready_to_submit: "bg-yellow-100 text-yellow-700",
@@ -74,6 +77,7 @@ export const STATUS_LABELS = {
   //: because "Requested" would describe the student's action rather than
   //: answer their question.
   requested: "With Ignition",
+  request_rejected: "Needs more from you",
   documents_pending: "Documents needed",
   //: What a student's own submit lands on, and what `under_review` is called
   //: too: both are "somebody is reading it, it is not with you".

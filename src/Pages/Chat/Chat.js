@@ -16,6 +16,7 @@ import {
   replyToThread,
   startThread,
 } from "../../api/communication";
+import { navigateTab, openBlankTab } from "../../lib/documentFile";
 import { formatRelativeTime } from "../../lib/simulate";
 
 /**
@@ -131,11 +132,10 @@ const Chat = () => {
   const openAttachment = async (attachment, disposition) => {
     // Opened synchronously then navigated, so the browser attributes the popup
     // to the click. Same reasoning as `lib/documentFile`.
-    const target = window.open("", "_blank", "noopener,noreferrer");
+    const target = openBlankTab();
     try {
       const url = await getAttachmentLink(attachment.id, disposition);
-      if (target) target.location = url;
-      else window.location.assign(url);
+      navigateTab(target, url);
     } catch {
       target?.close();
       showToast("Couldn't open that attachment.", "error");

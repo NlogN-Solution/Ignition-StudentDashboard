@@ -32,6 +32,7 @@ const DashboardTour = () => {
     isResolving,
     tourContext,
     pendingCourse,
+    redirectToCourse,
     startTour,
     nextStep,
     previousStep,
@@ -58,6 +59,7 @@ const DashboardTour = () => {
         openTaskCount={tourContext.openTaskCount}
         profileCompletion={tourContext.profileCompletion}
         pendingCourse={pendingCourse}
+        redirectToCourse={redirectToCourse}
         onClose={closeCompletion}
       />,
       document.body

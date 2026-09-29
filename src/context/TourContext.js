@@ -87,13 +87,26 @@ export const TourProvider = ({ children }) => {
   const directionRef = useRef("forward");
   const hasOfferedRef = useRef(false);
   const drawerSeqRef = useRef(0);
+  // True for the tour offered automatically on a student's first visit, false
+  // for one replayed from the side navigation. Only the first run ends by
+  // taking the student to the course they pressed Apply on — a replay weeks
+  // later must not yank them to a course page.
+  const isFirstRunRef = useRef(false);
 
-  // The course this student pressed Apply on and has not applied to yet. The
-  // tour moves them off the apply page to walk the dashboard, so its closing
-  // modal has to be able to send them straight back to that course rather than
-  // leaving them to find it again in Explore. Read when the tour ends, not
-  // when it starts: the intent closes once the application is started.
+  // The course this student pressed Apply on and has not applied to yet. A
+  // student who registered from a course card is shown the dashboard once,
+  // by the tour, and then taken to that course's page — so the closing modal
+  // needs it. Read when the tour ends, not when it starts: the intent closes
+  // once the application is started.
   const [pendingCourse, setPendingCourse] = useState(null);
+  const [redirectToCourse, setRedirectToCourse] = useState(false);
+
+  /** Take a first-run student to the course they pressed Apply on, if any. */
+  const goToPendingCourse = useCallback(async () => {
+    const intent = await getPendingIntent();
+    const slug = intent?.course?.course_slug;
+    if (slug) navigate(`/explore/courses/${slug}`);
+  }, [navigate]);
 
   /** What the copy in tourSteps.js is allowed to reason about. */
   const tourContext = useMemo(() => {
@@ -150,11 +163,20 @@ export const TourProvider = ({ children }) => {
 
   const completeTour = useCallback(() => {
     clearOverlay();
-    setPendingCourse(null);
+    // The completion modal waits for the intent, so it opens already knowing
+    // whether its button leads to the student's course — rather than showing
+    // one next step and swapping it for another a moment later.
+    const firstRun = isFirstRunRef.current;
+    // Nothing on screen for the moment the intent takes to arrive: left
+    // "running", the last step's tooltip would redraw and could be pressed
+    // again.
+    setStatus("idle");
     getPendingIntent().then((intent) => {
-      setPendingCourse(intent?.course?.course_slug ? intent.course : null);
+      const course = intent?.course?.course_slug ? intent.course : null;
+      setPendingCourse(course);
+      setRedirectToCourse(Boolean(course) && firstRun);
+      setStatus("finished");
     });
-    setStatus("finished");
     trackEvent("dashboard_tour_completed", {
       version: DASHBOARD_TOUR_VERSION,
       step_count: stepCount,
@@ -204,8 +226,14 @@ export const TourProvider = ({ children }) => {
         version: DASHBOARD_TOUR_VERSION,
       });
       markTourSkipped({ user, updateUser });
+      // Skipping is not a reason to lose the course either: a first-run
+      // student who came from Apply still ends up on it.
+      if (isFirstRunRef.current) {
+        isFirstRunRef.current = false;
+        goToPendingCourse();
+      }
     },
-    [clearOverlay, stepCount, stepIndex, steps, user, updateUser]
+    [clearOverlay, stepCount, stepIndex, steps, user, updateUser, goToPendingCourse]
   );
 
   const dismissWelcome = useCallback(() => skipTour("welcome_modal"), [skipTour]);
@@ -213,12 +241,15 @@ export const TourProvider = ({ children }) => {
   const closeCompletion = useCallback(
     (destination) => {
       setStatus("idle");
+      isFirstRunRef.current = false;
+      setRedirectToCourse(false);
       if (destination) navigate(destination);
     },
     [navigate]
   );
 
   const restartTour = useCallback(() => {
+    isFirstRunRef.current = false;
     trackEvent("dashboard_tour_restarted", { version: DASHBOARD_TOUR_VERSION });
     directionRef.current = "forward";
     setStepIndex(0);
@@ -244,6 +275,7 @@ export const TourProvider = ({ children }) => {
     // would let the first pass cancel the only run that was going to happen.
     const timer = setTimeout(() => {
       hasOfferedRef.current = true;
+      isFirstRunRef.current = true;
       setStatus((current) => (current === "idle" ? "welcome" : current));
     }, 700);
     return () => clearTimeout(timer);
@@ -254,6 +286,8 @@ export const TourProvider = ({ children }) => {
   useEffect(() => {
     if (user) return;
     hasOfferedRef.current = false;
+    isFirstRunRef.current = false;
+    setRedirectToCourse(false);
     setStatus("idle");
     setStepIndex(0);
     setTargetElement(null);
@@ -408,6 +442,7 @@ export const TourProvider = ({ children }) => {
       isResolving,
       tourContext,
       pendingCourse,
+      redirectToCourse,
       navDrawerRequest,
       startTour,
       nextStep,
@@ -427,6 +462,7 @@ export const TourProvider = ({ children }) => {
       isResolving,
       tourContext,
       pendingCourse,
+      redirectToCourse,
       navDrawerRequest,
       startTour,
       nextStep,

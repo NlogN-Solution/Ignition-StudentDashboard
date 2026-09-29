@@ -48,6 +48,7 @@ import {
   getApplicationDocumentsApi,
   getApplicationTimeline,
   linkChecklistItemDocumentApi,
+  submitApplicationApi,
 } from "../../api/studentPortal";
 import {
   CAS_STAGES,
@@ -64,6 +65,7 @@ import UnlockModal from "../../components/access/UnlockModal";
 import { useAccess } from "../../hooks/useAccess";
 import { openDocumentFile } from "../../lib/documentFile";
 import { formatDate, formatFileSize } from "../../lib/simulate";
+import { parseApiErrorDetail } from "../../lib/apiErrors";
 
 const HERO_FALLBACK_IMAGE = "/images/campus-historic.webp";
 
@@ -312,6 +314,14 @@ const nextStepOf = (application, outstandingCount) => {
       body: "They'll accept it and open your application — message them if anything has changed.",
       cta: "Message Counsellor",
       to: "/messages",
+    };
+  }
+  if (status === "request_rejected") {
+    return {
+      title: "Your counsellor needs more from you",
+      body: "Do what they asked — usually uploading documents or completing your profile — then send the request again.",
+      cta: "Upload Documents",
+      to: "/documents",
     };
   }
   if (["draft", "documents_pending", "ready_to_submit"].includes(status)) {
@@ -1077,12 +1087,102 @@ const DocumentsTab = ({
   );
 };
 
+/**
+ * The counsellor's answer to the student's request, in their own words.
+ *
+ * Registration is free, so a request is reviewed before anyone works on it.
+ * While it waits, this says so. If the counsellor rejected it, their feedback
+ * is the list of what to do next — so it leads, with the way to send the
+ * request back once it is done. If they accepted it with a note, the note is
+ * shown for as long as the application is in its first stage.
+ */
+const ReviewNotice = ({ application, onResend, isResending }) => {
+  const { status, reviewFeedback, reviewedAt } = application;
+
+  if (status === "requested") {
+    return (
+      <section className="mb-4 flex items-start gap-3 rounded-2xl border border-navy-100 bg-navy-50/60 p-4">
+        <Clock className="mt-0.5 h-5 w-5 shrink-0 text-navy-700" aria-hidden />
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-semibold text-navy-900">
+            Your application request is being reviewed
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
+            Your counsellor will check your details and documents and accept the request, or let
+            you know if anything else is needed. You'll get a notification either way.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (status === "request_rejected") {
+    return (
+      <section className="mb-4 rounded-2xl border border-ignite-200 bg-ignite-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-orange" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[15px] font-semibold text-navy-900">
+              Your counsellor needs a little more before accepting this request
+            </h2>
+            {reviewFeedback ? (
+              <p className="mt-1.5 whitespace-pre-line text-[13.5px] leading-relaxed text-ink">
+                {reviewFeedback}
+              </p>
+            ) : null}
+            {reviewedAt && (
+              <p className="mt-1.5 text-xs text-ink-faint">{formatDate(reviewedAt)}</p>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                to="/documents"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-hairline bg-white px-3.5 text-[13px] font-semibold text-navy-900 hover:border-navy-200"
+              >
+                <Upload className="h-4 w-4" aria-hidden />
+                Upload documents
+              </Link>
+              <button
+                type="button"
+                onClick={onResend}
+                disabled={isResending}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 text-[13px] font-semibold text-white hover:bg-navy-950 disabled:opacity-60"
+              >
+                <Send className="h-4 w-4" aria-hidden />
+                {isResending ? "Sending…" : "I've done this — send request again"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (reviewFeedback && ["draft", "documents_pending"].includes(status)) {
+    return (
+      <section className="mb-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-semibold text-navy-900">
+            Your counsellor accepted your application request
+          </h2>
+          <p className="mt-1.5 whitespace-pre-line text-[13.5px] leading-relaxed text-ink">
+            {reviewFeedback}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  return null;
+};
+
 /* ----------------------------------------------------------------- page --- */
 
 const ApplicationDetail = () => {
   const { applicationId } = useParams();
-  const { applications, isLoading: isListLoading, uploadDocument } = useAppData();
+  const { applications, isLoading: isListLoading, uploadDocument, reloadApplications } = useAppData();
   const { showToast } = useToast();
+  const [isResending, setIsResending] = useState(false);
 
   const [detail, setDetail] = useState(null);
   const [detailError, setDetailError] = useState(false);
@@ -1165,6 +1265,22 @@ const ApplicationDetail = () => {
   const openTab = (tab) => {
     setActiveTab(tab);
     tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  /** A rejected request, sent back once the student has done what was asked. */
+  const handleResendRequest = async () => {
+    setIsResending(true);
+    try {
+      const updated = await submitApplicationApi(applicationId);
+      setDetail((current) => (current ? { ...current, status: updated.status } : updated));
+      await reloadApplications();
+      showToast("Your application request has been sent again and will be reviewed by your counsellor.");
+    } catch (error) {
+      const { message } = parseApiErrorDetail(error?.data?.detail);
+      showToast(message || "Couldn't send the request. Please try again.", "error");
+    } finally {
+      setIsResending(false);
+    }
   };
 
 
@@ -1342,6 +1458,12 @@ const ApplicationDetail = () => {
         <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           {/* ---------------------------------------------------- main --- */}
           <div className="min-w-0">
+            <ReviewNotice
+              application={application}
+              onResend={handleResendRequest}
+              isResending={isResending}
+            />
+
             {/* Tabs */}
             {/* Wrapping, never scrolling sideways: five short labels fit a
                 laptop column on one row and fall to a second on a phone. */}

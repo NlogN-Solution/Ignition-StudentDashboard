@@ -15,7 +15,8 @@ import {
   mergeResearchIntoPreferences,
   peekPendingHandoff,
 } from "../../lib/handoff";
-import { getPendingIntent } from "../../lib/applyIntent";
+import { consumeArrivedFromApply, getPendingIntent } from "../../lib/applyIntent";
+import { readOnboardingState, shouldOfferTour } from "../../services/onboardingService";
 
 const TOTAL_STEPS = 2;
 
@@ -79,9 +80,17 @@ const defaultsFromIntent = (intent, fallback) => {
  * course, and the system has always known which one — it just used to throw it
  * away at the registration boundary and open step 2 with an empty "which
  * course interests you?" dropdown. The intent (see `lib/applyIntent`) is read
- * here, shown as a card, and used to prefill. Finishing the wizard then lands
- * on `/apply/<slug>` rather than the dashboard, because the next thing the
- * student wants is the application they came to make.
+ * here and shown as a card, and the study-preferences questions (destination,
+ * preferred course, study mode, fee structure) are not asked at all — pressing
+ * Apply on a course already answered them.
+ *
+ * ## Where finishing lands
+ *
+ * On the dashboard, where the first-run welcome tour starts. For a student who
+ * came from Apply, the tour then takes them to that course's page
+ * (`TourContext`), so the order is: set up, see the dashboard once, and land
+ * back on exactly the course they pressed Apply on. If the tour will not be
+ * offered (already seen on another device), they go straight to the course.
  */
 const MultiStepForm = () => {
   const navigate = useNavigate();
@@ -154,12 +163,17 @@ const MultiStepForm = () => {
 
     setIsSubmitting(false);
 
-    // Straight into the application they came here to make. Landing on the
-    // dashboard would ask the student to find the course a third time.
+    // This wizard has dealt with the apply link itself. Left set, the one-shot
+    // "arrived from Apply" flag would make `ApplyIntentRedirect` hijack the
+    // dashboard the moment it opens and pull the student out of the tour.
+    consumeArrivedFromApply();
+
     const slug = intent?.course?.course_slug;
     if (slug) {
-      showToast("Profile saved — let's finish your application.");
-      navigate(`/apply/${slug}`);
+      showToast("Setup complete — welcome to Ignition.");
+      // The tour runs on the dashboard first and ends on the course
+      // (TourContext). Without a tour to show, go to the course directly.
+      navigate(shouldOfferTour(readOnboardingState(user)) ? "/" : `/explore/courses/${slug}`);
       return;
     }
     showToast("Setup complete — welcome to Ignition.");
@@ -186,7 +200,7 @@ const MultiStepForm = () => {
           <SelectedCourseCard course={intent.course} />
           <p className="mt-2 text-[13.5px] font-medium leading-[1.55] text-ink-muted">
             We have kept this from the course you opened. Fill in your details below and we will take
-            you straight to it — you can add more courses afterwards.
+            you back to it once you are set up — you can add more courses afterwards.
           </p>
         </div>
       ) : null}
@@ -203,6 +217,7 @@ const MultiStepForm = () => {
         )}
         {currentStep === 2 && (
           <StudentPrefences
+            fromApply={Boolean(intent?.course)}
             initialValues={defaultsFromIntent(intent, defaultsFromResearch(research))}
             onNext={handleFinish}
             onPrevious={goToPreviousStep}

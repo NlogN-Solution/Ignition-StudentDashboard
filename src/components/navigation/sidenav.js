@@ -22,6 +22,7 @@ import {
   MessageCircle,
   GraduationCap,
   ChevronDown,
+  Lock,
 } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 
@@ -470,7 +471,26 @@ const PremiumNavigation = () => {
       >
         <nav className="h-full py-8">
           <div className="space-y-1 px-2 pt-5">
-            {navigationItems.map((item, index) => (
+            {navigationItems.map((item, index) =>
+              item.locked ? (
+                // Still in development: shown so students know it is coming,
+                // but not a link — the route renders a locked screen too.
+                <div
+                  key={item.id}
+                  role="link"
+                  aria-disabled="true"
+                  title="Coming soon — this section is still being built"
+                  className="relative flex cursor-not-allowed select-none items-center gap-4 rounded-lg px-4 py-3 text-slate-400"
+                  style={{ animationDelay: getAnimationDelay(index) }}
+                >
+                  <CustomNavigationIcons name={item.icon} className="h-5 w-5 text-slate-300" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="absolute right-4 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                    <Lock className="h-3 w-3" aria-hidden />
+                    Soon
+                  </span>
+                </div>
+              ) : (
               <Link
                 key={item.id}
                 to={item.path}
@@ -530,7 +550,8 @@ const PremiumNavigation = () => {
                   }`}
                 />
               </Link>
-            ))}
+              )
+            )}
           </div>
 
           <div className="px-4 mt-24">

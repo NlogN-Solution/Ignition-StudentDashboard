@@ -57,6 +57,7 @@ export const OFFER_TYPE_LABELS = {
  */
 const PILL_LABELS = {
   requested: "Requested",
+  request_rejected: "Needs More Info",
   draft: "Preparing",
   documents_pending: "Documents Needed",
   ready_to_submit: "In Review",
@@ -76,6 +77,7 @@ const PILL_LABELS = {
 
 const PILL_TONES = {
   requested: "navy",
+  request_rejected: "orange",
   draft: "navy",
   submitted: "navy",
   documents_pending: "orange",
@@ -124,6 +126,7 @@ export const PROGRESS_STEPS = [
 
 const STEP_OF_STATUS = {
   requested: 1,
+  request_rejected: 1,
   draft: 1,
   documents_pending: 1,
   ready_to_submit: 1,
@@ -170,6 +173,7 @@ export const SUMMARY_STAGES = [
 /** The furthest summary stage each status has reached (index into SUMMARY_STAGES). */
 const SUMMARY_RANK = {
   requested: 0,
+  request_rejected: 0,
   draft: 0,
   documents_pending: 0,
   ready_to_submit: 0,

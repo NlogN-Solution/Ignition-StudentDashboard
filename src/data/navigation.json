@@ -69,7 +69,8 @@
     "label": "My Finance",
     "path": "/finance-management",
     "badge": null,
-    "tourId": "nav-finance"
+    "tourId": "nav-finance",
+    "locked": true
   },
   {
     "id": "/visa",

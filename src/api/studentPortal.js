@@ -198,6 +198,10 @@ const mapApplication = (a) => ({
   paymentDeadline: a.payment_deadline ?? null,
   conditionDeadline: a.condition_deadline ?? null,
   studentNotice: a.student_notice ?? "",
+  // The counsellor's note when they accepted or rejected the request.
+  reviewFeedback: a.review_feedback ?? "",
+  reviewedAt: toIsoOrNull(a.reviewed_at),
+  requestSubmittedAt: toIsoOrNull(a.request_submitted_at),
   // Only on the single-application read (`getApplicationApi`); the list
   // leaves them null.
   university: a.program?.university ? mapApplicationUniversity(a.program.university) : null,
@@ -251,9 +255,13 @@ export const startApplicationApi = async ({ programId, intakeId, remarks }) => {
 /**
  * "I have finished my part."
  *
- * Moves the application to `ready_to_submit`, not `submitted` — submitting is
- * filing it *with the university*, which Ignition does on the student's behalf
- * after checking it over. Idempotent, so a double-press is not an error.
+ * For a request nobody has accepted yet (`requested`), this sends it to the
+ * counsellor for review — the status stays `requested`. For a rejected request
+ * (`request_rejected`) it sends it back for review once the student has done
+ * what was asked. For an accepted application it moves it to
+ * `ready_to_submit`, not `submitted` — submitting is filing it *with the
+ * university*, which Ignition does on the student's behalf after checking it
+ * over. Idempotent, so a double-press is not an error.
  */
 export const submitApplicationApi = async (applicationId) => {
   const data = await apiPost(`/student/me/applications/${applicationId}/submit`);

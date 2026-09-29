@@ -137,14 +137,8 @@ export const dashboardTourSteps = [
     title: "Prepare for interviews",
     body: "Rehearse admission and visa interviews with guided practice sets, then review your score and the feedback on each answer before the real thing.",
   },
-  {
-    id: "finance",
-    target: '[data-tour="nav-finance"]',
-    placement: "right",
-    requiresNav: true,
-    title: "Plan how you'll fund it",
-    body: "Record your funding sources, track a loan and build a budget, so you can see whether you meet the financial requirement for your chosen course.",
-  },
+  // No "finance" step while My Finance is locked (still in development) —
+  // the tour should not introduce a section the student cannot open.
   {
     id: "visa",
     target: '[data-tour="nav-visa"]',
