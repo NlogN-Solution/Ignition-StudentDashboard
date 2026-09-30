@@ -118,20 +118,39 @@ const applyPendingResearch = async (user) => {
   }
 };
 
+const WRONG_PORTAL_MESSAGE =
+  "Staff accounts sign in through the staff portal, not the student portal.";
+
+/**
+ * Both portals sign in through the same `/auth/login`, so a staff password is
+ * a valid password here too. This is the portal's own gate: every path that
+ * establishes a session (login, register, restoring a stored token) goes
+ * through `loadSession`, so checking the role here covers all of them. The
+ * backend still enforces roles on every endpoint; this stops the portal
+ * handing a staff account a student session in the first place.
+ */
+class WrongPortalError extends Error {
+  constructor() {
+    super(WRONG_PORTAL_MESSAGE);
+    this.name = "WrongPortalError";
+  }
+}
+
 const loadSession = async () => {
   const account = await fetchCurrentUser();
-  // Only student accounts have a StudentProfile row — admin/counsellor/
-  // super_admin logins would otherwise 404 this call every time. A student
-  // who just registered and hasn't been through the onboarding wizard yet
-  // also 404s here (no profile row exists until the first PATCH creates
+  if (account.role !== "student") {
+    // Revoke the session server-side, not just forget the tokens locally.
+    await apiLogout().catch(() => {});
+    throw new WrongPortalError();
+  }
+  // A student who just registered and hasn't been through the onboarding
+  // wizard yet 404s here (no profile row exists until the first PATCH creates
   // one) — that must not fail the login/register call that got them here.
   let profile = null;
-  if (account.role === "student") {
-    try {
-      profile = await fetchMyProfile();
-    } catch {
-      profile = null;
-    }
+  try {
+    profile = await fetchMyProfile();
+  } catch {
+    profile = null;
   }
   return toLegacyUser(account, profile);
 };
@@ -211,7 +230,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       clearTokens();
       const message =
-        error?.data?.detail || "Incorrect email or password.";
+        error instanceof WrongPortalError
+          ? error.message
+          : error?.data?.detail || "Incorrect email or password.";
       return { ok: false, error: message };
     } finally {
       setIsAuthenticating(false);
