@@ -5,7 +5,6 @@ import { ListTodo, Route } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useAppData } from '../../context/AppDataContext';
 import { useToast } from '../../context/ToastContext';
-import ResearchCard from '../../components/dashboard/ResearchCard';
 import OffersPanel from '../../components/dashboard/OffersPanel';
 import NextStepHero from '../../components/dashboard/NextStepHero';
 import JourneyStepper from '../../components/dashboard/JourneyStepper';
@@ -197,11 +196,6 @@ const StudentDashboard = () => {
               onUploadDocument={handleHeroDocumentUpload}
               task={priorityTasks[0] ?? null}
             />
-
-            {/* Everything the student explored on the public site before they
-                had an account. Renders nothing when there is none — it comes
-                from the signed-in user, so it is known at first paint. */}
-            <ResearchCard research={user?.preferences?.research} />
 
             {/* The offers themselves, with the letters behind them. */}
             {offers.length > 0 && (
