@@ -10,12 +10,13 @@ import {
   RefreshCw,
   Route,
   Users,
+  Download,
 } from "lucide-react";
 
 import EmptyState from "../../components/common/EmptyState";
 import { SkeletonList } from "../../components/common/Skeleton";
 import DetailTabs from "../../components/explore/DetailTabs";
-import { SaveButton } from "../../components/explore/primitives";
+import { SaveButton, UniversityMark, universityImage } from "../../components/explore/primitives";
 import {
   UniversityAboutPanel,
   UniversityCoursesPanel,
@@ -188,9 +189,30 @@ const ExploreUniversityDetail = () => {
     },
   ];
 
+  // The header photograph from the admin's Media tab, under a navy wash so the
+  // white type stays legible. Absent, the band is plain navy as before.
+  const heroImage = universityImage(university, "hero") ?? universityImage(university, "card");
+
   return (
     <div className="bg-gray-50 pb-12">
-      <div className="border-b border-hairline bg-navy-900 px-4 pb-8 pt-9 lg:px-6">
+      <div className="relative isolate overflow-hidden border-b border-hairline bg-navy-900 px-4 pb-8 pt-9 lg:px-6">
+        {heroImage && (
+          <>
+            <img
+              src={heroImage}
+              alt=""
+              aria-hidden
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+              className="absolute inset-0 -z-10 h-full w-full object-cover"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgba(1,22,111,0.92)_0%,rgba(1,22,111,0.7)_45%,rgba(1,22,111,0.45)_100%)]"
+            />
+          </>
+        )}
         <div className="mx-auto max-w-7xl">
           <button
             type="button"
@@ -203,9 +225,11 @@ const ExploreUniversityDetail = () => {
 
           <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-lg font-bold text-white">
-                {university.monogram ?? university.name.slice(0, 2).toUpperCase()}
-              </span>
+              <UniversityMark
+                university={university}
+                className="h-14 w-14 rounded-2xl border border-white/20 text-lg"
+                fallbackClassName="bg-white/10 text-white"
+              />
               <div className="min-w-0">
                 <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-tight text-white">
                   {university.name}
@@ -228,6 +252,17 @@ const ExploreUniversityDetail = () => {
                   <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-white/85">
                     {university.tagline}
                   </p>
+                )}
+                {university.flyer_url && (
+                  <a
+                    href={university.flyer_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-[13px] font-semibold text-navy-900 transition-colors hover:bg-white/90"
+                  >
+                    <Download className="h-3.5 w-3.5 text-orange-500" aria-hidden />
+                    University brochure
+                  </a>
                 )}
               </div>
             </div>

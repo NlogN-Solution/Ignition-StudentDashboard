@@ -12,7 +12,7 @@ import {
   MapPin,
 } from "lucide-react";
 
-import { Card, Chip, SaveButton } from "./primitives";
+import { Card, Chip, SaveButton, UniversityMark, universityImage } from "./primitives";
 import { durationLabel, feeSummary, scholarshipSummary } from "../../lib/catalogue";
 
 /**
@@ -236,17 +236,37 @@ export const CourseCard = ({ course, saved, onToggleSave, state, onApply }) => {
   );
 };
 
-export const UniversityCard = ({ university, saved, onToggleSave }) => (
+export const UniversityCard = ({ university, saved, onToggleSave }) => {
+  // The card photograph from the admin's Media tab, falling back to the hero.
+  // No stock fallback: a university without one simply has no image band.
+  const image = universityImage(university, "card") ?? universityImage(university, "hero");
+  return (
   // Same reasoning as `CourseCard`: no gradient edge, no glow. See the note there.
   <Card className="group relative flex h-full flex-col overflow-hidden p-0 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-ring-idle hover:shadow-lift">
+    {image && (
+      <div className="h-36 overflow-hidden bg-navy-50">
+        <img
+          src={image}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          onError={(event) => {
+            event.currentTarget.parentElement.style.display = "none";
+          }}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+      </div>
+    )}
     <div className="flex flex-1 flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          {/* The monogram is the record's own, and a two-letter fallback beats an
-              empty square or a broken image for the many rows with no logo. */}
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-hairline bg-navy-50 text-sm font-bold text-navy-900">
-            {university.monogram ?? university.name.slice(0, 2).toUpperCase()}
-          </span>
+          {/* The logo from the admin's Media tab; the record's monogram where
+              there is none, which beats an empty square or a broken image. */}
+          <UniversityMark
+            university={university}
+            className="h-11 w-11 rounded-xl border border-hairline text-sm"
+            fallbackClassName="bg-navy-50 text-navy-900"
+          />
           <div className="min-w-0">
             <h3 className="text-[15.5px] font-bold leading-snug tracking-tight text-navy-900 transition-colors group-hover:text-navy-900">
               <Link
@@ -315,4 +335,5 @@ export const UniversityCard = ({ university, saved, onToggleSave }) => (
       )}
     </div>
   </Card>
-);
+  );
+};

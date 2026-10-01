@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Check, Heart } from "lucide-react";
 
 /**
@@ -112,4 +112,39 @@ export const SaveButton = ({ saved, onToggle, label = "course", size = "md" }) =
       {saved ? "Shortlisted" : "Shortlist"}
     </button>
   );
+};
+
+/**
+ * A university's logo from the admin's Media tab, or its monogram when there
+ * is none — or when the link is dead, so a moved file never shows as a broken
+ * image. `className` sizes and shapes the box; `fallbackClassName` styles the
+ * monogram tile, which differs between the white card and the navy header.
+ */
+export const UniversityMark = ({ university, className = "", fallbackClassName = "" }) => {
+  const [failed, setFailed] = useState(false);
+  if (university.logo_url && !failed) {
+    return (
+      <span className={`flex shrink-0 items-center justify-center overflow-hidden bg-white ${className}`}>
+        <img
+          src={university.logo_url}
+          alt=""
+          aria-hidden
+          onError={() => setFailed(true)}
+          className="h-[78%] w-[78%] object-contain"
+        />
+      </span>
+    );
+  }
+  return (
+    <span aria-hidden className={`flex shrink-0 items-center justify-center font-bold ${className} ${fallbackClassName}`}>
+      {university.monogram ?? university.name.slice(0, 2).toUpperCase()}
+    </span>
+  );
+};
+
+/** The admin's `imagery` JSON is `{ hero, card }`, either key optional. */
+export const universityImage = (university, slot) => {
+  const imagery = university?.imagery;
+  const value = imagery && typeof imagery === "object" ? imagery[slot] : null;
+  return typeof value === "string" && value ? value : null;
 };
