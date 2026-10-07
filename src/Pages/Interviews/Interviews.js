@@ -23,6 +23,10 @@ import EmptyState from "../../components/common/EmptyState";
 import { useAppData } from "../../context/AppDataContext";
 import { useToast } from "../../context/ToastContext";
 import { getInterviewTypesApi } from "../../api/studentPortal";
+import GuideCards from "../../components/interviewPrep/GuideCards";
+import HandIns from "../../components/interviewPrep/HandIns";
+import { useInterviewJourney } from "../../hooks/useInterviewJourney";
+import { bestSessionByType } from "../../lib/interviewPractice";
 import { getFeedbackForScore } from "../../data";
 import { formatDateTime } from "../../lib/simulate";
 
@@ -241,7 +245,8 @@ const AnswerRecorder = ({ answer, onCaptured, onDelete }) => {
  * a session returns; scoring is the backend's `WordCountScorer` (Phase 6).
  */
 const Interviews = () => {
-  const { interviewSessions, startInterview, completeInterview, abandonInterview } = useAppData();
+  const { applications, interviewSessions, startInterview, completeInterview, abandonInterview } = useAppData();
+  const { application, prepStep, recordingStep, setJourney } = useInterviewJourney(applications);
   const { showToast } = useToast();
 
   const [interviewTypes, setInterviewTypes] = useState([]);
@@ -283,6 +288,9 @@ const Interviews = () => {
         .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)),
     [interviewSessions]
   );
+
+  const bestByType = useMemo(() => bestSessionByType(interviewSessions), [interviewSessions]);
+  const completedTypes = interviewTypes.filter((type) => bestByType[type.key]).length;
 
   const handleStart = async (type) => {
     if (!type.questions || type.questions.length === 0) {
@@ -641,16 +649,26 @@ const Interviews = () => {
     <div className="min-h-screen mt-9 pb-12">
       <PageHeader
         icon={Bot}
-        title="AI Interview Practice"
-        description="Rehearse admission and visa interviews, then review your score and feedback."
+        title="Interview Preparation"
+        description="Read the guides, practise the three interviews you'll face, then hand in your answers to your counsellor."
       />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-10">
+        <GuideCards />
+
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Choose a practice set</h2>
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-semibold text-navy-900">2. Practise the interviews</h2>
+            {interviewTypes.length > 0 && (
+              <span className="text-sm text-ink-muted">
+                {completedTypes} of {interviewTypes.length} completed
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {interviewTypes.map((type, index) => {
               const accent = ACCENT_STYLES[type.accent] ?? ACCENT_STYLES.blue;
+              const best = bestByType[type.key];
               return (
                 <motion.div
                   key={type.id}
@@ -659,20 +677,39 @@ const Interviews = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <span className={`self-start px-2 py-1 rounded-full text-xs font-medium ${accent.chip}`}>
-                    {type.questionCount} questions · {type.durationMinutes} min
-                  </span>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${accent.chip}`}>
+                      {type.questionCount} questions · {type.durationMinutes} min
+                    </span>
+                    {best ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Completed
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-ink-muted">
+                        Not started
+                      </span>
+                    )}
+                  </div>
                   <h3 className="text-lg font-semibold text-gray-900 mt-3">{type.name}</h3>
                   <p className="text-sm text-gray-600 mt-2 flex-1">{type.description}</p>
                   <p className="text-xs text-gray-500 mt-3">
                     Passing score: {type.passingScore}%
+                    {best && (
+                      <>
+                        {" · "}
+                        <span className="font-semibold text-gray-700">Best: {best.score ?? 0}%</span>
+                        {" · "}
+                        {formatDateTime(best.completedAt)}
+                      </>
+                    )}
                   </p>
                   <button
                     type="button"
                     onClick={() => handleStart(type)}
                     className="mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 bg-navy-900 hover:bg-navy-950 text-white transition-all duration-300"
                   >
-                    Start interview
+                    {best ? "Practise again" : "Start interview"}
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </motion.div>
@@ -680,6 +717,16 @@ const Interviews = () => {
             })}
           </div>
         </section>
+
+        {application && (prepStep || recordingStep) && (
+          <HandIns
+            application={application}
+            prepStep={prepStep}
+            recordingStep={recordingStep}
+            interviewTypes={interviewTypes}
+            onJourney={setJourney}
+          />
+        )}
 
         <section>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Past attempts</h2>

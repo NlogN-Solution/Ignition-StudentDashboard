@@ -64,15 +64,8 @@ export const dashboardTourSteps = [
           }`,
     tip: "Use Edit Profile to fill in anything still missing.",
   },
-  {
-    id: "course-search",
-    target: '[data-tour="course-search"]',
-    route: "/explore",
-    placement: "bottom",
-    title: "Explore your options",
-    body: "Search every course Ignition works with by subject, level, duration and university, then shortlist the ones you like — your counsellor sees your shortlist straight away.",
-    tip: "Anything you saved on the public Ignition site is already waiting on your dashboard.",
-  },
+  // No "explore courses" step: removed at the user's request (2026-10-02).
+  // Explore stays in the sidebar; the tour just no longer stops on it.
   {
     id: "applications",
     target: '[data-tour="nav-applications"]',

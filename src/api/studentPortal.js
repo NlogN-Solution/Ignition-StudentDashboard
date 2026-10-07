@@ -10,7 +10,7 @@
 // books a confirmed appointment, the same way staff open a `VisaCase`. Those
 // mutations in AppDataContext stay local-only, same posture as
 // AuthContext's `profileImage`.
-import { apiDelete, apiGet, apiPatch, apiPost, apiPut, getCurrentUserId } from "./client";
+import { apiDelete, apiGet, apiGetBlob, apiPatch, apiPost, apiPut, getCurrentUserId } from "./client";
 
 const toIsoOrNull = (value) => (value ? new Date(value).toISOString() : null);
 
@@ -337,6 +337,9 @@ export const DOCUMENT_TYPE_LABELS = {
   financial_document: "Financial Document",
   medical_report: "Medical Report",
   photo: "Photograph",
+  medium_of_instruction: "Medium of Instruction",
+  gap_explanation: "Gap Explanation",
+  interview_recording: "Interview Recording",
   other: "Other",
 };
 
@@ -426,6 +429,16 @@ export const getDocumentFileLink = async (documentId, disposition = "inline") =>
   const data = await apiGet(`/documents/${documentId}/link?disposition=${disposition}`);
   return { url: data.url, fileName: data.file_name, mimeType: data.mime_type };
 };
+
+/**
+ * A stored file's bytes, fetched over the authenticated client.
+ *
+ * What the portal previews and opens. The signed Cloudinary URL from
+ * `getDocumentFileLink` is served with `X-Frame-Options: DENY`, so a PDF in a
+ * preview frame rendered blank; a blob URL made from these bytes does not.
+ */
+export const getDocumentBlob = (documentId, disposition = "inline") =>
+  apiGetBlob(`/documents/${documentId}/content?disposition=${disposition}`);
 
 /** Everything filed against one application — the checklist uploads staff
  * asked for, and the offer/CAS letters Ignition filed back. */
@@ -533,7 +546,8 @@ export const setChecklistItemCompleted = async (itemId, completed) => {
 
 const mapInterviewSessionSummary = (s) => ({
   id: s.id,
-  typeId: null,
+  typeId: s.type_id ?? null,
+  typeKey: s.type_key ?? null,
   typeName: s.type_name,
   status: s.status === "completed" ? "completed" : "in-progress",
   startedAt: s.started_at,
@@ -562,6 +576,7 @@ const mapInterviewQuestion = (q) => ({
 
 const mapInterviewType = (t, index) => ({
   id: t.id,
+  key: t.key,
   name: t.name,
   description: t.description,
   questionCount: t.questions?.length ?? 0,

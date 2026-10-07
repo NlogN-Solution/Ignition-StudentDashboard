@@ -1,4 +1,4 @@
-import { getDocumentFileLink } from "../api/studentPortal";
+import { getDocumentBlob, getDocumentFileLink } from "../api/studentPortal";
 
 /**
  * A blank tab to navigate once a signed URL arrives, or null if it was blocked.
@@ -37,6 +37,9 @@ export const navigateTab = (tab, url) => {
   }
 };
 
+/** How long a blob URL handed to a tab stays valid — long enough to load. */
+const BLOB_URL_LIFETIME_MS = 60_000;
+
 /**
  * Open a stored document in the browser.
  *
@@ -45,20 +48,27 @@ export const navigateTab = (tab, url) => {
  * route (`/api/v1/documents/{id}/download`): a tab opened at it, or an
  * `<a href>` clicked on it, carries no `Authorization` header and gets a 401.
  *
- * So the signed URL is fetched over the authenticated XHR, where the token
- * lives, and *that* is what gets opened.
+ * - **View** (`inline`) fetches the bytes over the authenticated client and
+ *   opens a blob URL, so the browser's own viewer shows the file with its real
+ *   type wherever it is stored.
+ * - **Download** (`attachment`) opens the signed URL from `/link`, which
+ *   Cloudinary serves as a named attachment.
  */
 export const openDocumentFile = async (documentId, { disposition = "inline" } = {}) => {
   const target = openBlankTab();
   try {
-    const { url } = await getDocumentFileLink(documentId, disposition);
-    navigateTab(target, url);
+    if (disposition === "attachment") {
+      const { url } = await getDocumentFileLink(documentId, disposition);
+      navigateTab(target, url);
+    } else {
+      const blob = await getDocumentBlob(documentId, "inline");
+      const url = URL.createObjectURL(blob);
+      navigateTab(target, url);
+      setTimeout(() => URL.revokeObjectURL(url), BLOB_URL_LIFETIME_MS);
+    }
     return { ok: true };
   } catch (error) {
     target?.close();
-    // The caller needs the status, not just "it failed": a 402 means "pay and
-    // this works", which should open the unlock screen rather than an error
-    // toast. `ApiError` carries it.
     return { ok: false, error };
   }
 };

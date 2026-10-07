@@ -7,7 +7,6 @@ import { useAppData } from '../../context/AppDataContext';
 import { useToast } from '../../context/ToastContext';
 import OffersPanel from '../../components/dashboard/OffersPanel';
 import NextStepHero from '../../components/dashboard/NextStepHero';
-import JourneyStepper from '../../components/dashboard/JourneyStepper';
 import RecentActivityCard from '../../components/dashboard/RecentActivityCard';
 import UpcomingAppointmentsCard from '../../components/dashboard/UpcomingAppointmentsCard';
 import QuickLinksCard from '../../components/dashboard/QuickLinksCard';
@@ -16,6 +15,7 @@ import { Bone, Card, CardHeader, CardLink } from '../../components/dashboard/ui'
 import { OFFER_STATUSES, SUMMARY_STAGES, summaryStageOf } from '../../lib/applicationStatus';
 import { formatDeadline } from '../../lib/simulate';
 import { useRequestedDocuments } from '../../hooks/useRequestedDocuments';
+import { useJourneyActions } from '../../hooks/useJourneyActions';
 
 /**
  * The student dashboard.
@@ -111,8 +111,6 @@ const StudentDashboard = () => {
     activityFeed,
     tasks,
     isTaskUnlocked,
-    milestoneStatus,
-    overallProgress,
     documentProgress,
     isReady,
   } = useAppData();
@@ -122,6 +120,7 @@ const StudentDashboard = () => {
     uploadingItemId,
     fulfil: fulfilDocument,
   } = useRequestedDocuments();
+  const { actions: journeyActions, isLoading: isJourneyLoading } = useJourneyActions(applications);
 
   // Offer / CAS / visa celebrations are shown app-wide by `CelebrationHost`
   // (mounted in AppLayout), not here — a student returning to any page should
@@ -188,12 +187,13 @@ const StudentDashboard = () => {
           {/* ------------------------------------------------------ main --- */}
           <div className="min-w-0 space-y-6">
             <NextStepHero
-              isLoading={!isReady || isDocumentsLoading}
+              isLoading={!isReady || isDocumentsLoading || isJourneyLoading}
               documentItem={nextDocument}
               documentCount={outstandingDocuments.length}
               documentProgress={documentProgress}
               isUploadingDocument={Boolean(nextDocument) && uploadingItemId === nextDocument.id}
               onUploadDocument={handleHeroDocumentUpload}
+              journeyAction={journeyActions[0] ?? null}
               task={priorityTasks[0] ?? null}
             />
 
@@ -225,12 +225,6 @@ const StudentDashboard = () => {
                 )}
               </div>
             </Card>
-
-            <JourneyStepper
-              isLoading={!isReady}
-              milestoneStatus={milestoneStatus}
-              overallProgress={overallProgress}
-            />
 
             <div data-tour="dashboard-priority-tasks">
               <PriorityTasks tasks={priorityTasks} isLoading={!isReady} />

@@ -18,6 +18,7 @@ import {
   TextArea,
   TextInput,
 } from "../../components/ui/kit";
+import { nationalityOptions } from "../../data/nationalities";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { fetchMyProfile, updateMyProfile } from "../../api/students";
@@ -380,7 +381,16 @@ const EditProfile = () => {
             <PanelHead icon={User} title="Personal & family details" />
             <PanelBody>
               <FieldGrid className="lg:grid-cols-3">
-                <Field label="Nationality" name="nationality" value={formData.nationality} onChange={handleChange} />
+                <KitField id="nationality" label="Nationality">
+                  <SelectInput
+                    id="nationality"
+                    name="nationality"
+                    placeholder="Select nationality"
+                    options={nationalityOptions(formData.nationality)}
+                    value={formData.nationality ?? ""}
+                    onChange={handleChange}
+                  />
+                </KitField>
                 <Field
                   label="Passport number"
                   name="passport_number"

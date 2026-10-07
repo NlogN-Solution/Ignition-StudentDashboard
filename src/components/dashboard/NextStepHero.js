@@ -78,12 +78,38 @@ const NextStepHero = ({
   documentProgress = 0,
   isUploadingDocument = false,
   onUploadDocument,
+  journeyAction,
   task,
 }) => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
   if (isLoading) return <Skeleton />;
+
+  // A journey stage waiting on the student (interview answers sent back, a
+  // slot to book) comes after an owed document and before a self-paced task:
+  // a counsellor or a university is waiting on it.
+  if (!documentItem && journeyAction) {
+    return (
+      <Shell>
+        <Eyebrow />
+        <h2 className="mt-3 line-clamp-2 text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:text-[24px]">
+          {journeyAction.title}
+        </h2>
+        <p className="mt-2 line-clamp-2 max-w-[60ch] text-[14px] leading-[1.6] text-white/75">{journeyAction.body}</p>
+        <div className="mt-auto pt-5">
+          <button
+            type="button"
+            onClick={() => navigate(`/applications/${journeyAction.applicationId}`)}
+            className={buttonClass('inverse')}
+          >
+            Open journey
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      </Shell>
+    );
+  }
 
   if (!documentItem && !task) {
     return (

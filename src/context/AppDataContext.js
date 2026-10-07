@@ -462,6 +462,7 @@ export const AppDataProvider = ({ children }) => {
     const summary = {
       id: session.id,
       typeId: session.type?.id ?? typeId,
+      typeKey: session.type?.key ?? null,
       typeName: session.type?.name ?? "Interview",
       status: "in-progress",
       startedAt: session.started_at,

@@ -93,10 +93,11 @@ const refreshAccessToken = async () => {
 
 /**
  * @param {string} path - e.g. "/auth/me" (leading slash required, no trailing slash — FastAPI routes don't have one)
- * @param {object} options - fetch options; `body` may be a plain object (auto JSON-encoded) or FormData
+ * @param {object} options - fetch options; `body` may be a plain object (auto JSON-encoded) or FormData.
+ *   `asBlob: true` resolves a successful response as a Blob instead of parsed JSON (file bytes).
  */
 export const apiRequest = async (path, options = {}) => {
-  const { body, headers = {}, skipAuth = false, isRetry = false, ...rest } = options;
+  const { body, headers = {}, skipAuth = false, isRetry = false, asBlob = false, ...rest } = options;
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
   const finalHeaders = { ...headers };
@@ -120,12 +121,14 @@ export const apiRequest = async (path, options = {}) => {
     }
   }
 
+  if (asBlob && response.ok) return response.blob();
   const data = await parseBody(response);
   if (!response.ok) throw new ApiError(response.status, data);
   return data;
 };
 
 export const apiGet = (path, options) => apiRequest(path, { ...options, method: "GET" });
+export const apiGetBlob = (path, options) => apiRequest(path, { ...options, method: "GET", asBlob: true });
 export const apiPost = (path, body, options) => apiRequest(path, { ...options, method: "POST", body });
 export const apiPatch = (path, body, options) => apiRequest(path, { ...options, method: "PATCH", body });
 export const apiPut = (path, body, options) => apiRequest(path, { ...options, method: "PUT", body });

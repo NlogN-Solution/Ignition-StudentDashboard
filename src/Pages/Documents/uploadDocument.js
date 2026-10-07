@@ -14,7 +14,6 @@ import {
   Landmark,
   Lightbulb,
   Loader2,
-  Lock,
   MoreHorizontal,
   RefreshCw,
   Search,
@@ -26,10 +25,8 @@ import {
 import { useAppData } from "../../context/AppDataContext";
 import { useRequestedDocuments } from "../../hooks/useRequestedDocuments";
 import { useToast } from "../../context/ToastContext";
-import { useAccess } from "../../hooks/useAccess";
-import UnlockModal from "../../components/access/UnlockModal";
 import formOptions from "../../data/formOptions.json";
-import { DOCUMENT_TYPE_LABELS, ISSUED_DOCUMENT_TYPES, getDocumentFileLink } from "../../api/studentPortal";
+import { DOCUMENT_TYPE_LABELS, ISSUED_DOCUMENT_TYPES, getDocumentBlob } from "../../api/studentPortal";
 import { openDocumentFile } from "../../lib/documentFile";
 import { formatDateTime, formatFileSize } from "../../lib/simulate";
 
@@ -240,46 +237,34 @@ const RowMenu = ({ items }) => {
 
 /* ------------------------------------------------------------ side panel --- */
 
-const PreviewPane = ({ document, hasAccess, onUnlock }) => {
+const PreviewPane = ({ document }) => {
   const [state, setState] = useState({ status: "loading", url: null });
   const kind = fileKind(document.file?.mimeType, document.file?.name);
-  const locked = ISSUED_DOCUMENT_TYPES.includes(document.documentType) && !hasAccess;
 
   useEffect(() => {
     let cancelled = false;
-    if (locked) {
-      setState({ status: "locked", url: null });
-      return undefined;
-    }
     setState({ status: "loading", url: null });
-    getDocumentFileLink(document.id, "inline")
-      .then(({ url }) => !cancelled && setState({ status: "ready", url }))
-      .catch((error) => !cancelled && setState({ status: error?.status === 402 ? "locked" : "error", url: null }));
+    let objectUrl = null;
+    // The bytes, not the signed Cloudinary URL: that one is served with
+    // `X-Frame-Options: DENY`, so a PDF in the frame below rendered blank.
+    getDocumentBlob(document.id, "inline")
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setState({ status: "ready", url: objectUrl });
+      })
+      .catch(() => !cancelled && setState({ status: "error", url: null }));
     return () => {
       cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [document.id, document.file?.name, locked]);
+  }, [document.id, document.file?.name]);
 
   const frame = "flex h-[260px] w-full items-center justify-center overflow-hidden rounded-xl bg-gray-100";
   if (state.status === "loading") {
     return (
       <div className={frame}>
         <Loader2 className="h-6 w-6 animate-spin text-ink-faint" aria-label="Loading preview" />
-      </div>
-    );
-  }
-  if (state.status === "locked") {
-    return (
-      <div className={`${frame} flex-col gap-3 text-center`}>
-        <Lock className="h-7 w-7 text-ink-faint" aria-hidden />
-        <p className="px-6 text-sm text-ink-muted">This letter is ready — unlock your package to open it.</p>
-        <button
-          type="button"
-          onClick={onUnlock}
-          className="rounded-full bg-navy-900 px-4 py-2 text-xs font-semibold text-white hover:bg-navy-800"
-        >
-          Unlock to view
-        </button>
       </div>
     );
   }
@@ -348,7 +333,7 @@ const StatusBanner = ({ document }) => {
   );
 };
 
-const DetailPanel = ({ document, hasAccess, onClose, onOpen, onReplace, onDelete, onUnlock, isBusy }) => {
+const DetailPanel = ({ document, onClose, onOpen, onReplace, onDelete, isBusy }) => {
   const [tab, setTab] = useState("preview");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const replaceRef = useRef(null);
@@ -402,7 +387,7 @@ const DetailPanel = ({ document, hasAccess, onClose, onOpen, onReplace, onDelete
 
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         {tab === "preview" ? (
-          <PreviewPane document={document} hasAccess={hasAccess} onUnlock={onUnlock} />
+          <PreviewPane document={document} />
         ) : (
           <dl className="space-y-3 text-sm">
             <div>
@@ -627,7 +612,6 @@ const DocumentsPage = () => {
   // the dashboard so both screens agree about what is outstanding.
   const { items: requestedItems, uploadingItemId, fulfil, reload: reloadRequested } = useRequestedDocuments();
   const { showToast } = useToast();
-  const { access, hasAccess, reload: reloadAccess } = useAccess();
 
   const [activeCategory, setActiveCategory] = useState("all");
   const [query, setQuery] = useState("");
@@ -638,7 +622,6 @@ const DocumentsPage = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
-  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
   const requestInputRefs = useRef({});
 
   // Pick up anything staff verified since the documents were last fetched.
@@ -738,10 +721,6 @@ const DocumentsPage = () => {
   const handleOpen = async (document, disposition) => {
     const result = await openDocumentFile(document.id, { disposition });
     if (result.ok) return;
-    if (result.error?.status === 402) {
-      setIsUnlockOpen(true);
-      return;
-    }
     showToast("Couldn't open that file. Please try again.", "error");
   };
 
@@ -1019,13 +998,11 @@ const DocumentsPage = () => {
             <div className="ml-auto h-full max-w-[400px] lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:max-w-none">
               <DetailPanel
                 document={selectedDocument}
-                hasAccess={hasAccess}
                 isBusy={busyId === selectedDocument.id}
                 onClose={() => setSelectedId(null)}
                 onOpen={handleOpen}
                 onReplace={handleReplace}
                 onDelete={handleDelete}
-                onUnlock={() => setIsUnlockOpen(true)}
               />
             </div>
           </div>
@@ -1036,17 +1013,6 @@ const DocumentsPage = () => {
         <UploadModal onClose={() => setIsUploadOpen(false)} onUpload={handleUploadNew} isUploading={isUploading} />
       )}
       {isGuidelinesOpen && <GuidelinesModal onClose={() => setIsGuidelinesOpen(false)} />}
-      {isUnlockOpen && (
-        <UnlockModal
-          access={access}
-          onClose={() => setIsUnlockOpen(false)}
-          onUnlocked={async () => {
-            setIsUnlockOpen(false);
-            await reloadAccess();
-            showToast("Unlocked — your documents are open.");
-          }}
-        />
-      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+  FolderOpen,
   AlertCircle,
   ArrowLeft,
   ArrowRight,
@@ -17,7 +18,6 @@ import {
   GraduationCap,
   Globe,
   Landmark,
-  Lock,
   Mail,
   MapPin,
   MessageCircle,
@@ -61,13 +61,17 @@ import {
   hasOffer,
   progressStepOf,
 } from "../../lib/applicationStatus";
-import UnlockModal from "../../components/access/UnlockModal";
-import { useAccess } from "../../hooks/useAccess";
 import { openDocumentFile } from "../../lib/documentFile";
+import { bestVaultMatch } from "../../lib/reusableDocuments";
+import { getJourney } from "../../api/journey";
+import JourneyPanel, { JourneySummaryCard } from "../../components/journey/JourneyPanel";
 import { formatDate, formatFileSize } from "../../lib/simulate";
 import { parseApiErrorDetail } from "../../lib/apiErrors";
 
 const HERO_FALLBACK_IMAGE = "/images/campus-historic.webp";
+
+//: First when the application has a journey (UK applications); see `tabsFor`.
+const JOURNEY_TAB = { id: "journey", label: "Journey" };
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -836,32 +840,6 @@ const TimelineTab = ({ steps, isLoading }) => (
   </Card>
 );
 
-/**
- * A letter the student has to pay to open. The row still *appears* — the
- * student is told their offer letter exists — but the actions become one
- * unlock button. The backend refuses the file itself with a 402, so this is
- * presentation over an enforced boundary rather than the boundary itself.
- */
-const LockedDocumentRow = ({ label, onUnlock }) => (
-  <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-canvas p-3">
-    <div className="flex min-w-0 items-center gap-2.5">
-      <Lock className="h-4 w-4 flex-shrink-0 text-ink-faint" aria-hidden />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-navy-900">{label}</p>
-        <p className="truncate text-xs text-ink-muted">Available — unlock your package to open it</p>
-      </div>
-    </div>
-    <button
-      type="button"
-      onClick={onUnlock}
-      className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-navy-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-navy-950"
-    >
-      <Lock className="h-3 w-3" aria-hidden />
-      Unlock to view
-    </button>
-  </li>
-);
-
 const DocumentRow = ({ document, onOpen }) => (
   <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline p-3">
     <div className="flex min-w-0 items-center gap-2.5">
@@ -903,12 +881,12 @@ const DocumentsTab = ({
   isDocumentsLoading,
   checklist,
   isChecklistLoading,
-  hasAccess,
   uploadingItemId,
   fileInputRefs,
   onUpload,
+  onReuse,
+  vaultDocuments,
   onOpen,
-  onUnlock,
 }) => {
   const offerDocuments = documents.filter((doc) => doc.documentType === "offer_letter");
   const casDocuments = documents.filter((doc) => doc.documentType === "cas_letter");
@@ -916,14 +894,8 @@ const DocumentsTab = ({
   const showOffer = hasOffer(application.status) || offerDocuments.length > 0;
   const showCas = CAS_STAGES.includes(application.status) || casDocuments.length > 0;
 
-  const issuedRows = (list, label) =>
-    list.map((document) =>
-      hasAccess ? (
-        <DocumentRow key={document.id} document={document} onOpen={onOpen} />
-      ) : (
-        <LockedDocumentRow key={document.id} label={label ?? DOCUMENT_TYPE_LABELS[document.documentType]} onUnlock={onUnlock} />
-      )
-    );
+  const issuedRows = (list) =>
+    list.map((document) => <DocumentRow key={document.id} document={document} onOpen={onOpen} />);
 
   return (
     <div className="space-y-5">
@@ -989,7 +961,7 @@ const DocumentsTab = ({
               </p>
             </div>
           </div>
-          {casDocuments.length > 0 && <ul className="mt-4 space-y-2">{issuedRows(casDocuments, "CAS letter")}</ul>}
+          {casDocuments.length > 0 && <ul className="mt-4 space-y-2">{issuedRows(casDocuments)}</ul>}
         </Card>
       )}
 
@@ -1029,6 +1001,22 @@ const DocumentsTab = ({
                     )}
                     {(item.status === "pending" || item.status === "rejected") && (
                       <>
+                        {(() => {
+                          const match = bestVaultMatch(vaultDocuments, item.documentType);
+                          if (!match || match.id === item.documentId) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => onReuse(item, match.id)}
+                              disabled={uploadingItemId === item.id}
+                              title={`Use ${match.file?.name ?? "the file"} from your Paper Vault`}
+                              className="flex items-center gap-1 rounded-lg border border-hairline bg-white px-3 py-1.5 text-xs font-semibold text-navy-900 hover:border-navy-200 disabled:opacity-60"
+                            >
+                              <FolderOpen className="h-3.5 w-3.5" aria-hidden />
+                              Use from vault
+                            </button>
+                          );
+                        })()}
                         <button
                           type="button"
                           onClick={() => fileInputRefs.current[item.id]?.click()}
@@ -1180,7 +1168,13 @@ const ReviewNotice = ({ application, onResend, isResending }) => {
 
 const ApplicationDetail = () => {
   const { applicationId } = useParams();
-  const { applications, isLoading: isListLoading, uploadDocument, reloadApplications } = useAppData();
+  const {
+    applications,
+    documents: vaultDocuments,
+    isLoading: isListLoading,
+    uploadDocument,
+    reloadApplications,
+  } = useAppData();
   const { showToast } = useToast();
   const [isResending, setIsResending] = useState(false);
 
@@ -1193,11 +1187,13 @@ const ApplicationDetail = () => {
   const [isChecklistLoading, setIsChecklistLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [isDocumentsLoading, setIsDocumentsLoading] = useState(true);
-  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
-  const { access, hasAccess, reload: reloadAccess } = useAccess();
   const [uploadingItemId, setUploadingItemId] = useState(null);
+  const [journey, setJourney] = useState(null);
   const fileInputRefs = useRef({});
   const tabsRef = useRef(null);
+  // Set once the student picks a tab, so the journey arriving late does not
+  // pull them off the tab they chose.
+  const pickedTab = useRef(false);
 
   // The list entry renders instantly; the detail read (university + course
   // particulars) fills in behind it.
@@ -1262,7 +1258,39 @@ const ApplicationDetail = () => {
     if (applicationId) loadDocuments(applicationId);
   }, [applicationId, loadDocuments]);
 
+  const loadJourney = useCallback(async (id) => {
+    try {
+      setJourney(await getJourney(id));
+    } catch {
+      setJourney(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!applicationId) return;
+    setJourney(null);
+    pickedTab.current = false;
+    loadJourney(applicationId);
+  }, [applicationId, loadJourney]);
+
+  // An application with a journey opens on it: it is where the next thing to do is.
+  useEffect(() => {
+    if (journey && !pickedTab.current) setActiveTab("journey");
+  }, [journey]);
+
+  /** After an upload from the journey: the journey, its checklist and the files all moved. */
+  const reloadFiles = useCallback(async () => {
+    await Promise.all([
+      loadJourney(applicationId),
+      loadDocuments(applicationId),
+      getApplicationChecklistApi(applicationId).then(setChecklist).catch(() => {}),
+    ]);
+  }, [applicationId, loadJourney, loadDocuments]);
+
+  const tabs = journey ? [JOURNEY_TAB, ...TABS] : TABS;
+
   const openTab = (tab) => {
+    pickedTab.current = true;
     setActiveTab(tab);
     tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -1287,12 +1315,23 @@ const ApplicationDetail = () => {
   const handleOpenDocument = async (document, disposition) => {
     const result = await openDocumentFile(document.id, { disposition });
     if (result.ok) return;
-    // 402 means "pay and this works" — the unlock screen, not an error.
-    if (result.error?.status === 402) {
-      setIsUnlockOpen(true);
-      return;
-    }
     showToast("Couldn't open that file. Please try again.", "error");
+  };
+
+  /** Answer a request with a file already in the Paper Vault. */
+  const handleReuseForItem = async (item, documentId) => {
+    setUploadingItemId(item.id);
+    try {
+      const updated = await linkChecklistItemDocumentApi(applicationId, item.id, documentId);
+      setChecklist((current) => current.map((entry) => (entry.id === item.id ? updated : entry)));
+      await loadDocuments(applicationId);
+      showToast(`${item.label} attached from your Paper Vault.`);
+    } catch (error) {
+      const { message } = parseApiErrorDetail(error?.data?.detail);
+      showToast(message || "Couldn't use that document. Please try again.", "error");
+    } finally {
+      setUploadingItemId(null);
+    }
   };
 
   const handleUploadForItem = async (item, file) => {
@@ -1452,7 +1491,12 @@ const ApplicationDetail = () => {
         {/* Hero and progress side by side, the same height. */}
         <div className="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           {hero}
-          <ProgressCard application={application} stepDates={stepDates} />
+          {/* One tracker per page: a journey replaces the status steps. */}
+          {journey ? (
+            <JourneySummaryCard journey={journey} onOpen={() => openTab("journey")} />
+          ) : (
+            <ProgressCard application={application} stepDates={stepDates} />
+          )}
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -1469,7 +1513,7 @@ const ApplicationDetail = () => {
                 laptop column on one row and fall to a second on a phone. */}
             <div ref={tabsRef} className="scroll-mt-20 border-b border-hairline">
               <div role="tablist" className="flex flex-wrap gap-x-1">
-                {TABS.map((tab) => {
+                {tabs.map((tab) => {
                   const active = activeTab === tab.id;
                   return (
                     <button
@@ -1477,7 +1521,10 @@ const ApplicationDetail = () => {
                       role="tab"
                       type="button"
                       aria-selected={active}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        pickedTab.current = true;
+                        setActiveTab(tab.id);
+                      }}
                       className={`relative px-3.5 py-3 text-sm font-medium transition-colors sm:px-4 ${
                         active ? "font-semibold text-navy-900" : "text-ink-muted hover:text-navy-900"
                       }`}
@@ -1496,6 +1543,17 @@ const ApplicationDetail = () => {
             </div>
 
             <div className="mt-4">
+              {activeTab === "journey" && journey && (
+                <JourneyPanel
+                  applicationId={applicationId}
+                  application={application}
+                  journey={journey}
+                  onJourney={setJourney}
+                  documents={documents}
+                  onOpenDocument={handleOpenDocument}
+                  onFilesChanged={reloadFiles}
+                />
+              )}
               {activeTab === "overview" && <OverviewTab application={application} />}
               {activeTab === "course" && <CourseTab application={application} />}
               {activeTab === "requirements" && <RequirementsTab application={application} />}
@@ -1507,12 +1565,12 @@ const ApplicationDetail = () => {
                   isDocumentsLoading={isDocumentsLoading}
                   checklist={checklist}
                   isChecklistLoading={isChecklistLoading}
-                  hasAccess={hasAccess}
                   uploadingItemId={uploadingItemId}
                   fileInputRefs={fileInputRefs}
                   onUpload={handleUploadForItem}
+                  onReuse={handleReuseForItem}
+                  vaultDocuments={vaultDocuments}
                   onOpen={handleOpenDocument}
-                  onUnlock={() => setIsUnlockOpen(true)}
                 />
               )}
             </div>
@@ -1526,18 +1584,6 @@ const ApplicationDetail = () => {
         </div>
       </main>
 
-      {isUnlockOpen && (
-        <UnlockModal
-          access={access}
-          onClose={() => setIsUnlockOpen(false)}
-          onUnlocked={async () => {
-            setIsUnlockOpen(false);
-            // Re-read from the server: the entitlement is a payment row.
-            await reloadAccess();
-            showToast("Unlocked — your documents are open.");
-          }}
-        />
-      )}
     </div>
   );
 };

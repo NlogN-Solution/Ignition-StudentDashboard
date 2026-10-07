@@ -36,7 +36,7 @@ import ChatLayout from './Pages/Chat/chatLayout';
 import AppointmentsLayout from './Pages/Appointments/appointmentsLayout';
 import NotificationsLayout from './Pages/Notifications/notificationsLayout';
 import TasksLayout from './Pages/Tasks/tasksLayout';
-import InterviewsLayout from './Pages/Interviews/interviewsLayout';
+import InterviewsLayout, { InterviewGuideLayout } from './Pages/Interviews/interviewsLayout';
 import NotFound from './Pages/NotFound/NotFound';
 
 /** Wraps a screen in the simulated-session gate. */
@@ -103,6 +103,7 @@ const App = () => {
                 <Route path="/notifications" element={guarded(<NotificationsLayout />)} />
                 <Route path="/tasks" element={guarded(<TasksLayout />)} />
                 <Route path="/interviews" element={guarded(<InterviewsLayout />)} />
+                <Route path="/interviews/guides/:slug" element={guarded(<InterviewGuideLayout />)} />
                 <Route path="/studentapp" element={guarded(<StudentApplicationForm />)} />
                 <Route path="/visa" element={guarded(<VisaApplication />)} />
                 <Route path="/initalsetup" element={guarded(<ApplicationLayout />)} />

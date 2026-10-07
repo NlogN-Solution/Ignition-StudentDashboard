@@ -28,6 +28,8 @@ import {
   submitApplicationApi,
 } from "../../api/studentPortal";
 import { durationLabel } from "../../lib/catalogue";
+import { nationalityOptions } from "../../data/nationalities";
+import { bestVaultMatch, vaultMatches } from "../../lib/reusableDocuments";
 import RelatedCourses from "../../components/apply/RelatedCourses";
 
 /**
@@ -72,7 +74,7 @@ const REQUIRED_DETAILS = [
   { key: "email", label: "Email", group: "account", type: "email", locked: true },
   { key: "phone", label: "Phone", group: "account", type: "tel", locked: true },
   { key: "dateOfBirth", label: "Date of birth", group: "basicInfo", type: "date" },
-  { key: "nationality", label: "Nationality", group: "basicInfo", type: "text" },
+  { key: "nationality", label: "Nationality", group: "basicInfo", type: "select", options: nationalityOptions },
   {
     key: "passportNumber",
     label: "Passport number",
@@ -228,11 +230,39 @@ const ApplyFlow = () => {
 
   const loadChecklist = useCallback(async (applicationId) => {
     try {
-      setChecklist(await getApplicationChecklistApi(applicationId));
+      const items = await getApplicationChecklistApi(applicationId);
+      setChecklist(items);
+      return items;
     } catch {
       setChecklist([]);
+      return [];
     }
   }, []);
+
+  /**
+   * Attach what is already in the Paper Vault to this application's checklist.
+   *
+   * Marking a row "on file" used to be display only: nothing was linked, so
+   * the application went on asking for the same transcript the student had
+   * uploaded for their last course. Each still-open item with a reusable file
+   * of its type is linked here, once, as the documents step opens.
+   */
+  const linkFromVault = useCallback(
+    async (applicationId, items) => {
+      const open = items.filter(
+        (item) => item.documentType && !item.documentId && item.status === "pending"
+      );
+      const links = open
+        .map((item) => [item, bestVaultMatch(documents, item.documentType)])
+        .filter(([, match]) => match);
+      if (links.length === 0) return;
+      await Promise.allSettled(
+        links.map(([item, match]) => linkChecklistItemDocumentApi(applicationId, item.id, match.id))
+      );
+      await loadChecklist(applicationId);
+    },
+    [documents, loadChecklist]
+  );
 
   const handleDetailsNext = async () => {
     const next = {};
@@ -280,7 +310,8 @@ const ApplyFlow = () => {
       }
 
       setApplication(record);
-      await loadChecklist(record.id);
+      const items = await loadChecklist(record.id);
+      await linkFromVault(record.id, items);
       setStep(2);
     } catch {
       showToast("Could not save your details. Try again in a moment.", "error");
@@ -315,12 +346,39 @@ const ApplyFlow = () => {
         }));
 
     return source.map((item) => {
-      const onFile = documents.find((doc) => doc.documentType === item.documentType) ?? null;
-      return { ...item, document: onFile };
+      const linked = item.linkedDocumentId
+        ? documents.find((doc) => doc.id === item.linkedDocumentId) ?? null
+        : null;
+      const matches = vaultMatches(documents, item.documentType);
+      return {
+        ...item,
+        // What answers the item: the file linked to it, else (on the fallback
+        // list, which has nothing to link to) the best one in the vault.
+        document:
+          linked ??
+          (item.linkedDocumentId ? { id: item.linkedDocumentId } : checklist.length ? null : matches[0] ?? null),
+        matches,
+      };
     });
   }, [checklist, documents]);
 
   const outstanding = requirements.filter((item) => item.isRequired && !item.document);
+
+  /** Swap the vault file linked to an item for another of the same type. */
+  const handleReuse = async (item, documentId) => {
+    if (!application || !documentId || documentId === item.linkedDocumentId) return;
+    setUploadingType(item.documentType);
+    try {
+      await linkChecklistItemDocumentApi(application.id, item.id, documentId);
+      await loadChecklist(application.id);
+      showToast(`${item.label}: using the file from your Paper Vault.`);
+    } catch (error) {
+      const { message } = parseApiErrorDetail(error?.data?.detail);
+      showToast(message || `Could not use that file for ${item.label}.`, "error");
+    } finally {
+      setUploadingType(null);
+    }
+  };
 
   const handleUpload = async (item, file) => {
     if (!file) return;
@@ -511,18 +569,38 @@ const ApplyFlow = () => {
                         {field.label}
                         {!field.optional && <span className="text-orange">*</span>}
                       </label>
-                      <input
-                        type={field.type}
-                        readOnly={locked}
-                        value={details[field.key] ?? ""}
-                        onChange={(event) => {
-                          setDetails((prev) => ({ ...prev, [field.key]: event.target.value }));
-                          setErrors((prev) => ({ ...prev, [field.key]: undefined }));
-                        }}
-                        className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-navy-900/20 ${
-                          errors[field.key] ? "border-orange" : "border-hairline"
-                        } ${locked ? "bg-canvas text-ink-muted" : "bg-white focus:border-navy-900"}`}
-                      />
+                      {field.type === "select" ? (
+                        <select
+                          value={details[field.key] ?? ""}
+                          onChange={(event) => {
+                            setDetails((prev) => ({ ...prev, [field.key]: event.target.value }));
+                            setErrors((prev) => ({ ...prev, [field.key]: undefined }));
+                          }}
+                          className={`mt-1.5 w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink focus:border-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-900/20 ${
+                            errors[field.key] ? "border-orange" : "border-hairline"
+                          }`}
+                        >
+                          <option value="">Select {field.label.toLowerCase()}</option>
+                          {field.options(details[field.key]).map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type}
+                          readOnly={locked}
+                          value={details[field.key] ?? ""}
+                          onChange={(event) => {
+                            setDetails((prev) => ({ ...prev, [field.key]: event.target.value }));
+                            setErrors((prev) => ({ ...prev, [field.key]: undefined }));
+                          }}
+                          className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-navy-900/20 ${
+                            errors[field.key] ? "border-orange" : "border-hairline"
+                          } ${locked ? "bg-canvas text-ink-muted" : "bg-white focus:border-navy-900"}`}
+                        />
+                      )}
                       {field.hint && <p className="mt-1 text-xs text-ink-faint">{field.hint}</p>}
                       {locked && (
                         <p className="mt-1 text-xs text-ink-faint">
@@ -600,7 +678,7 @@ const ApplyFlow = () => {
                 {checklist.length
                   ? `${course.university?.name ?? "This university"} asks for the documents below.`
                   : "The general set every UK application asks for. Your counsellor will confirm anything specific to this university."}{" "}
-                Anything already on your profile is marked off — you do not need to upload it twice.
+                Files already in your Paper Vault are attached for you — you do not need to upload them twice.
               </p>
 
               <ul className="mt-5 divide-y divide-hairline">
@@ -623,13 +701,39 @@ const ApplyFlow = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-navy-900">{item.label}</p>
                       <p className="text-xs text-ink-muted">
-                        {item.document
-                          ? item.document.file?.name ?? "On file"
-                          : item.isRequired
-                          ? "Required"
-                          : "Optional"}
+                        {item.document ? (
+                          <>
+                            Using <span className="font-medium text-ink-soft">{item.document.file?.name ?? "your file"}</span>{" "}
+                            from your Paper Vault
+                          </>
+                        ) : item.isRequired ? (
+                          "Required"
+                        ) : (
+                          "Optional"
+                        )}
                       </p>
                     </div>
+
+                    {checklist.length > 0 &&
+                      item.matches.length > (item.document ? 1 : 0) && (
+                        <select
+                          aria-label={`Use a file from your Paper Vault for ${item.label}`}
+                          value=""
+                          disabled={uploadingType === item.documentType}
+                          onChange={(event) => handleReuse(item, event.target.value)}
+                          className="shrink-0 rounded-lg border border-hairline bg-white px-2 py-1.5 text-xs font-semibold text-ink-soft focus:border-navy-900 focus:outline-none"
+                        >
+                          <option value="">{item.document ? "Choose another" : "Use from vault"}</option>
+                          {item.matches
+                            .filter((match) => match.id !== item.document?.id)
+                            .map((match) => (
+                              <option key={match.id} value={match.id}>
+                                {match.file?.name ?? match.title}
+                                {match.status === "approved" ? " · verified" : ""}
+                              </option>
+                            ))}
+                        </select>
+                      )}
 
                     {!item.isRequired && !item.document && <Chip>Optional</Chip>}
 
@@ -645,7 +749,7 @@ const ApplyFlow = () => {
                         ) : (
                           <Upload className="h-3.5 w-3.5" />
                         )}
-                        {item.document ? "Replace" : "Upload"}
+                        {item.document ? "Upload new" : "Upload"}
                       </span>
                     </label>
                   </li>
