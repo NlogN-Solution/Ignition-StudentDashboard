@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CircleCheck, Circle, ListChecks } from "lucide-react";
 
 import PageHeader from "../../components/common/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
-import { useAppData } from "../../context/AppDataContext";
+import { useStudentChecklist } from "../../hooks/useStudentChecklist";
 import { useToast } from "../../context/ToastContext";
 import { formatDate, formatDeadline } from "../../lib/simulate";
 
@@ -18,23 +18,32 @@ import { formatDate, formatDeadline } from "../../lib/simulate";
  * there is no total to count against because the list is not finite.
  */
 const Tasks = () => {
-  const { tasks, toggleTask } = useAppData();
+  const { tasks, toggleTask, isLoading } = useStudentChecklist();
+  const [savingId, setSavingId] = useState(null);
   const { showToast } = useToast();
 
   // Open tasks first, soonest due first; undated ones after dated ones.
   const ordered = [...tasks].sort((a, b) => {
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (Boolean(a.isLocked) !== Boolean(b.isLocked)) return a.isLocked ? 1 : -1;
     if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
     if (a.dueDate || b.dueDate) return a.dueDate ? -1 : 1;
     return 0;
   });
+  useEffect(() => {
+    if (isLoading || !window.location.hash) return;
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    document.getElementById(id)?.scrollIntoView({ block: "center" });
+  }, [isLoading, tasks.length]);
 
-  const handleToggle = (task) => {
-    toggleTask(task.id);
-    showToast(
-      task.completed ? `${task.title} marked as not done.` : `${task.title} completed.`,
-      task.completed ? "info" : "success"
-    );
+  const handleToggle = async (task) => {
+    setSavingId(task.id);
+    try {
+      await toggleTask(task.id);
+      showToast(task.completed ? `${task.title} marked as not done.` : `${task.title} completed.`, task.completed ? "info" : "success");
+    } catch {
+      showToast("Couldn't save this task. Please try again.", "error");
+    } finally { setSavingId(null); }
   };
 
   return (
@@ -46,7 +55,7 @@ const Tasks = () => {
       />
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        {ordered.length === 0 ? (
+        {isLoading ? <p role="status" className="text-sm text-ink-muted">Loading your checklist…</p> : ordered.length === 0 ? (
           <EmptyState
             icon={ListChecks}
             title="No tasks yet"
@@ -58,6 +67,7 @@ const Tasks = () => {
               {ordered.map((task, index) => (
                 <motion.li
                   key={task.id}
+                  id={task.id}
                   className="flex gap-4"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -66,6 +76,7 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => handleToggle(task)}
+                    disabled={Boolean(savingId) || task.isLocked}
                     className="flex-shrink-0 mt-3"
                     aria-label={task.completed ? `Mark ${task.title} as not done` : `Complete ${task.title}`}
                   >
@@ -95,11 +106,13 @@ const Tasks = () => {
                               : "bg-yellow-100 text-yellow-600"
                           }`}
                         >
-                          {task.completed ? `Done ${formatDate(task.completedAt)}` : formatDeadline(task.dueDate)}
+                          {task.completed ? `Done${task.completedAt ? ` ${formatDate(task.completedAt)}` : ""}` : formatDeadline(task.dueDate)}
                         </span>
                       ) : null}
                     </div>
                     {task.description ? <p className="text-sm text-gray-600">{task.description}</p> : null}
+                    {task.stage && <p className="mt-2 text-xs font-medium text-navy-900">{task.stage}</p>}
+                    {task.isLocked && !task.completed && <p className="mt-1 text-xs text-ink-muted">Available when this journey stage opens.</p>}
                   </div>
                 </motion.li>
               ))}

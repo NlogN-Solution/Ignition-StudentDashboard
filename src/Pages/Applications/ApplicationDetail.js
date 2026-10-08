@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   FolderOpen,
   AlertCircle,
@@ -1168,6 +1168,9 @@ const ReviewNotice = ({ application, onResend, isResending }) => {
 
 const ApplicationDetail = () => {
   const { applicationId } = useParams();
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const requestedStage = searchParams.get("stage");
   const {
     applications,
     documents: vaultDocuments,
@@ -1189,11 +1192,13 @@ const ApplicationDetail = () => {
   const [isDocumentsLoading, setIsDocumentsLoading] = useState(true);
   const [uploadingItemId, setUploadingItemId] = useState(null);
   const [journey, setJourney] = useState(null);
+  const [isJourneyLoading, setIsJourneyLoading] = useState(true);
   const fileInputRefs = useRef({});
   const tabsRef = useRef(null);
   // Set once the student picks a tab, so the journey arriving late does not
   // pull them off the tab they chose.
   const pickedTab = useRef(false);
+  const appliedNavigation = useRef(null);
 
   // The list entry renders instantly; the detail read (university + course
   // particulars) fills in behind it.
@@ -1259,10 +1264,13 @@ const ApplicationDetail = () => {
   }, [applicationId, loadDocuments]);
 
   const loadJourney = useCallback(async (id) => {
+    setIsJourneyLoading(true);
     try {
       setJourney(await getJourney(id));
     } catch {
       setJourney(null);
+    } finally {
+      setIsJourneyLoading(false);
     }
   }, []);
 
@@ -1277,6 +1285,19 @@ const ApplicationDetail = () => {
   useEffect(() => {
     if (journey && !pickedTab.current) setActiveTab("journey");
   }, [journey]);
+
+  useEffect(() => {
+    if (!requestedTab || isJourneyLoading) return;
+    const key = `${applicationId}:${requestedTab}:${requestedStage || ""}`;
+    if (appliedNavigation.current === key) return;
+    const tab = requestedTab === "journey" && !journey ? "documents" : requestedTab;
+    if (tab === "journey" || TABS.some((item) => item.id === tab)) {
+      appliedNavigation.current = key;
+      pickedTab.current = true;
+      setActiveTab(tab);
+      tabsRef.current?.scrollIntoView({ block: "start" });
+    }
+  }, [requestedTab, requestedStage, applicationId, isJourneyLoading, journey]);
 
   /** After an upload from the journey: the journey, its checklist and the files all moved. */
   const reloadFiles = useCallback(async () => {
@@ -1552,6 +1573,7 @@ const ApplicationDetail = () => {
                   documents={documents}
                   onOpenDocument={handleOpenDocument}
                   onFilesChanged={reloadFiles}
+                  requestedStage={requestedStage}
                 />
               )}
               {activeTab === "overview" && <OverviewTab application={application} />}

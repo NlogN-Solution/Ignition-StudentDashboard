@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Award, PartyPopper, Stamp, X } from "lucide-react";
+import { milestoneApplicationHref } from "../../lib/journeyNavigation";
 
 /**
  * The moment the offer arrives.
@@ -249,7 +250,7 @@ const CelebrationModal = ({ milestone, studentName, onDismiss }) => {
               type="button"
               onClick={() => {
                 onDismiss();
-                navigate(`/applications/${milestone.applicationId}`);
+                navigate(milestoneApplicationHref(milestone));
               }}
               className="inline-flex h-[46px] w-full items-center justify-center rounded-xl bg-navy-900 text-[15px] font-semibold text-white transition-colors hover:bg-navy-800"
             >

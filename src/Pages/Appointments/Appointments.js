@@ -15,6 +15,7 @@ import {
 import PageHeader from "../../components/common/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
 import StatusBadge from "../../components/common/StatusBadge";
+import AppointmentDetailsDialog from "../../components/appointments/AppointmentDetailsDialog";
 import { SkeletonList } from "../../components/common/Skeleton";
 import { useAppData } from "../../context/AppDataContext";
 import { useToast } from "../../context/ToastContext";
@@ -305,6 +306,7 @@ const Appointments = () => {
   // confirmation does not vanish with the toast.
   const [requestSent, setRequestSent] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -391,19 +393,16 @@ const Appointments = () => {
   };
 
   const handleJoin = (appointment) => {
-    if (appointment.mode === "Video call") {
-      // Stub action — this build has no real meeting link.
-      showToast(
-        `The link for ${appointment.meetingType} opens 15 minutes before the call.`,
-        "info"
-      );
+    if (appointment.mode === "Video call" && appointment.meetingLink) {
+      window.open(appointment.meetingLink, "_blank", "noopener,noreferrer");
       return;
     }
-    showToast(`${appointment.meetingType} — ${appointment.location}.`, "info");
+    setSelectedAppointment(appointment);
   };
 
   return (
     <div className="min-h-screen mt-9 pb-12">
+      <AppointmentDetailsDialog appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} />
       <PageHeader
         icon={CalendarClock}
         title="Appointments"

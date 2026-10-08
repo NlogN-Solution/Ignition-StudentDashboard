@@ -50,6 +50,7 @@ export const useJourneyActions = (applications) => {
           if (step) {
             found.push({
               applicationId: app.id,
+              stageId: step.id,
               title: describe(step),
               body: `${app.courseName ?? "Your application"}${app.universityName ? ` · ${app.universityName}` : ""}`,
               kind: step.kind,

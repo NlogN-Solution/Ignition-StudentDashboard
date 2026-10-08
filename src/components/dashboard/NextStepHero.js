@@ -89,7 +89,7 @@ const NextStepHero = ({
   // A journey stage waiting on the student (interview answers sent back, a
   // slot to book) comes after an owed document and before a self-paced task:
   // a counsellor or a university is waiting on it.
-  if (!documentItem && journeyAction) {
+  if (!documentItem && journeyAction && !task?.isPriority) {
     return (
       <Shell>
         <Eyebrow />
@@ -100,7 +100,7 @@ const NextStepHero = ({
         <div className="mt-auto pt-5">
           <button
             type="button"
-            onClick={() => navigate(`/applications/${journeyAction.applicationId}`)}
+            onClick={() => navigate(`/applications/${journeyAction.applicationId}?tab=journey${journeyAction.stageId ? `&stage=${journeyAction.stageId}` : ''}`)}
             className={buttonClass('inverse')}
           >
             Open journey
@@ -157,6 +157,7 @@ const NextStepHero = ({
         {title}
       </h2>
       {body && <p className="mt-2 line-clamp-2 max-w-[60ch] text-[14px] leading-[1.6] text-white/75">{body}</p>}
+      {!documentItem && task.stage && <p className="mt-2 text-xs font-semibold text-white/80">{task.stage}</p>}
 
       <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-4 pt-5">
         {documentItem ? (
@@ -173,7 +174,7 @@ const NextStepHero = ({
             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFile} />
           </>
         ) : (
-          <button type="button" onClick={() => navigate('/tasks')} className={buttonClass('inverse')}>
+          <button type="button" onClick={() => navigate(`/tasks#${encodeURIComponent(task.id)}`)} className={buttonClass('inverse')}>
             Complete task
             <ArrowRight className="h-4 w-4" aria-hidden />
           </button>

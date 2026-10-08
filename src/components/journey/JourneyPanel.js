@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { findJourneyStage } from "../../lib/journeyNavigation";
 import { Check, X } from "lucide-react";
 
 import { Card } from "../dashboard/ui";
@@ -77,17 +78,23 @@ const Stepper = ({ steps, selectedId, onSelect }) => (
   </ol>
 );
 
-const JourneyPanel = ({ applicationId, application, journey, onJourney, documents, onOpenDocument, onFilesChanged }) => {
+const JourneyPanel = ({ applicationId, application, journey, onJourney, documents, onOpenDocument, onFilesChanged, requestedStage }) => {
   const { uploadDocument, documents: vaultDocuments } = useAppData();
   const { showToast } = useToast();
-  const [selectedId, setSelectedId] = useState(journey.currentStepId ?? journey.steps[journey.steps.length - 1]?.id);
+  const requestedStep = findJourneyStage(journey.steps, requestedStage);
+  const [selectedId, setSelectedId] = useState(requestedStep?.id ?? journey.currentStepId ?? journey.steps[journey.steps.length - 1]?.id);
+  const previousCurrentStep = useRef(journey.currentStepId);
   const [busy, setBusy] = useState(false);
   const [uploadingItemId, setUploadingItemId] = useState(null);
 
   // Follow the student forward: when an action opens the next stage, show it.
   useEffect(() => {
-    if (journey.currentStepId) setSelectedId(journey.currentStepId);
+    if (journey.currentStepId && previousCurrentStep.current !== journey.currentStepId) setSelectedId(journey.currentStepId);
+    previousCurrentStep.current = journey.currentStepId;
   }, [journey.currentStepId]);
+  useEffect(() => {
+    if (requestedStep?.id) setSelectedId(requestedStep.id);
+  }, [requestedStep?.id]);
 
   const step = journey.steps.find((s) => s.id === selectedId) ?? journey.steps[0];
   const position = journey.steps.indexOf(step);

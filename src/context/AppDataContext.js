@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -64,6 +65,8 @@ export const AppDataProvider = ({ children }) => {
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [activityFeed, setActivityFeed] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const taskMutationVersion = useRef(0);
+  const pendingTaskWrites = useRef(0);
   const [interviewSessions, setInterviewSessions] = useState([]);
   const [pointsLedger, setPointsLedger] = useState([]);
   const [pointsBalance, setPointsBalance] = useState(0);
@@ -169,10 +172,29 @@ export const AppDataProvider = ({ children }) => {
     };
   }, [studentId]);
 
+  // Staff assignments refresh independently of the student's initial load.
+  useEffect(() => {
+    if (!studentId) return undefined;
+    let cancelled = false;
+    let inFlight = false;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible" || inFlight || pendingTaskWrites.current) return;
+      inFlight = true;
+      const version = taskMutationVersion.current;
+      try {
+        const next = await getTasksFor();
+        if (!cancelled && version === taskMutationVersion.current && !pendingTaskWrites.current) setTasks(next);
+      } catch { /* Keep the last successful checklist during an outage. */ }
+      finally { inFlight = false; }
+    };
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [studentId]);
+
   // The unread badge on the sidebar's Messages icon needs to move even while
-  // the student is sitting on an unrelated page — nothing else in this
-  // context polls, but a chat inbox is the one thing where "check back next
-  // time you load a page" would feel broken.
+  // the student is sitting on an unrelated page.
   useEffect(() => {
     if (!studentId) return undefined;
     const interval = setInterval(() => {
@@ -431,6 +453,8 @@ export const AppDataProvider = ({ children }) => {
       const target = tasks.find((task) => task.id === taskId);
       if (!target) return;
       const completed = !target.completed;
+      taskMutationVersion.current += 1;
+      pendingTaskWrites.current += 1;
 
       const previous = tasks;
       setTasks((current) =>
@@ -450,6 +474,8 @@ export const AppDataProvider = ({ children }) => {
       } catch (error) {
         setTasks(previous);
         throw error;
+      } finally {
+        pendingTaskWrites.current -= 1;
       }
     },
     [pushActivity, refetchPoints, refetchProgress, tasks]

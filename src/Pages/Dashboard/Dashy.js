@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
 import { ListTodo, Route } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -16,6 +15,8 @@ import { OFFER_STATUSES, SUMMARY_STAGES, summaryStageOf } from '../../lib/applic
 import { formatDeadline } from '../../lib/simulate';
 import { useRequestedDocuments } from '../../hooks/useRequestedDocuments';
 import { useJourneyActions } from '../../hooks/useJourneyActions';
+import AppointmentDetailsDialog from '../../components/appointments/AppointmentDetailsDialog';
+import { useStudentChecklist } from '../../hooks/useStudentChecklist';
 
 /**
  * The student dashboard.
@@ -102,18 +103,18 @@ const PriorityTasks = ({ tasks, isLoading }) => (
 );
 
 const StudentDashboard = () => {
-  const navigate = useNavigate();
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const { user } = useAuth();
   const { showToast } = useToast();
   const {
     applications,
     upcomingAppointments,
     activityFeed,
-    tasks,
     isTaskUnlocked,
     documentProgress,
     isReady,
   } = useAppData();
+  const { tasks, isLoading: isChecklistLoading } = useStudentChecklist();
   const {
     outstanding: outstandingDocuments,
     isLoading: isDocumentsLoading,
@@ -171,15 +172,12 @@ const StudentDashboard = () => {
       window.open(nextAppointment.meetingLink, '_blank', 'noopener,noreferrer');
       return;
     }
-    if (isVideoCall) {
-      showToast('Your meeting link will be shared 15 minutes before the call.', 'info');
-      return;
-    }
-    navigate('/appointments');
+    setSelectedAppointment(nextAppointment);
   };
 
   return (
     <div className="min-h-screen">
+      <AppointmentDetailsDialog appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} />
       <div className="mx-auto max-w-[1360px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <DashboardHeader firstName={user?.fullName?.split(' ')[0]} />
 
@@ -187,7 +185,7 @@ const StudentDashboard = () => {
           {/* ------------------------------------------------------ main --- */}
           <div className="min-w-0 space-y-6">
             <NextStepHero
-              isLoading={!isReady || isDocumentsLoading || isJourneyLoading}
+              isLoading={!isReady || isDocumentsLoading || isJourneyLoading || isChecklistLoading}
               documentItem={nextDocument}
               documentCount={outstandingDocuments.length}
               documentProgress={documentProgress}
@@ -227,7 +225,7 @@ const StudentDashboard = () => {
             </Card>
 
             <div data-tour="dashboard-priority-tasks">
-              <PriorityTasks tasks={priorityTasks} isLoading={!isReady} />
+              <PriorityTasks tasks={priorityTasks} isLoading={!isReady || isChecklistLoading} />
             </div>
           </div>
 
